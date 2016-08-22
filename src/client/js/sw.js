@@ -12,7 +12,9 @@ var BLACKLIST = [
 /*  '/app2.css'*/
 ];
 
-var FILES = [
+var FILES = [];
+
+var FILES2 = [
   '/img/logo.png',
   '/css/app.css',
   '/index.js'
