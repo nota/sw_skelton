@@ -42,6 +42,7 @@ if ('serviceWorker' in navigator) {
       // A new worker is coming!
       console.log('a new worker is coming!', reg)
       //location.reload();
+      document.getElementById('message').innerHTML = 'there is a new update!';
       updateButton.style.display = 'inline-block';
     });
 

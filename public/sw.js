@@ -17,7 +17,7 @@ var FILES = [
   '/client.js'
 ];
 
-var CHECKSUM = "2mxua9-9988787";
+var CHECKSUM = "2mxua9-1234";
 var CACHENAME = 'cache-' + CHECKSUM;
 
 console.log('sw: hello', CHECKSUM)
