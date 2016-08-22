@@ -1,5 +1,7 @@
 # Service Worker オフラインアプリ
 
+![](https://gyazo.com/bdfb01a248300f02268f264d17580c7d.png)
+
 ## 目的
 
 - オフラインでも動作するウェブアプリを作る
