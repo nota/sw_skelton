@@ -58,7 +58,7 @@ if ('serviceWorker' in navigator) {
   });
 };
 
-function onLoad () {
+window.onload = function onLoad () {
   console.log('onLoad')
   var url = location.href;
 
