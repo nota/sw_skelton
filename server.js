@@ -6,7 +6,7 @@ app.get('/', function (req, res) {
   res.render('app')
 });
 
-app.get('/*/*', function (req, res) {
+app.get('/note/*', function (req, res) {
 //  res.send('Hello World!');
   res.render('app')
 });

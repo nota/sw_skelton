@@ -6,18 +6,19 @@ var WHITELIST = [
 
 var BLACKLIST = [
   '/gen_204\?',
-  '/async/'
+  '/async/',
+  '/css/'
 /*  '/sw.js',*/
 /*  '/app2.css'*/
 ];
 
 var FILES = [
-  '/logo.png',
-  '/app.css',
-  '/client.js'
+  '/img/logo.png',
+  '/css/app.css',
+  '/index.js'
 ];
 
-var CHECKSUM = "2mxua9-1234";
+var CHECKSUM = "2mxua9-1234580980";
 var CACHENAME = 'cache-' + CHECKSUM;
 
 console.log('sw: hello', CHECKSUM)
@@ -77,11 +78,11 @@ this.addEventListener('fetch', function(event) {
         for (var i = 0; i < WHITELIST.length; ++i) {
           var b = new RegExp(WHITELIST[i]);
           if (b.test(event.request.url)) {
-            shouldCache = true;
+//            shouldCache = true;
             break;
           }
         }
-/*
+
         for (var i = 0; i < BLACKLIST.length; ++i) {
           var b = new RegExp(BLACKLIST[i]);
           if (b.test(event.request.url)) {
@@ -97,7 +98,7 @@ this.addEventListener('fetch', function(event) {
         if (!response.ok) {
           shouldCache = false;
         }
-*/
+
         if (shouldCache) {
           console.log('sw: save cache', event.request.url)
           return caches.open(CACHENAME).then(function(cache) {
