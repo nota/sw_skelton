@@ -78,6 +78,7 @@ function getAssetHashList () {
   return glob('./public/**/*.*')
     .then(files => {
       files.push('./views/app.ejs')
+      files.push('./src/client/js/sw.js')
       return files
     }).then(files => {
       return Promise.all(files.map(file => {
@@ -119,6 +120,7 @@ gulp.task('watch', ['build'], () => {
   gulp.watch('src/client/fonts/**', ['iconfont'])
   gulp.watch('public/**', ['serviceworker'])
   gulp.watch('views/**', ['serviceworker'])
+  gulp.watch('src/client/js/sw.js', ['serviceworker'])
 })
 
 // 作業フォルダをクリーンな状態に戻す
