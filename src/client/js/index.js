@@ -6,7 +6,9 @@ console.log('hello')
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
     // registration worked
-    console.log('registration succeeded. Scope is ' + reg.scope);
+    console.log('registration succeeded.', reg);
+
+    var hasExistingActiveWorker = !!reg.active
 
     var checkForUpdateButton = document.getElementById('check_for_update_btn')
     var updateButton = document.getElementById('update_btn')
@@ -41,6 +43,12 @@ if ('serviceWorker' in navigator) {
     reg.addEventListener('updatefound', function() {
       // A new worker is coming!
       console.log('a new worker is coming!', reg)
+      if (!hasExistingActiveWorker) {
+        console.log('this is the first worker, so do not prompt')
+        hasExistingActiveWorker = true
+        return
+      }
+
       //location.reload();
       document.getElementById('message').innerHTML = 'there is a new update!';
       updateButton.style.display = 'inline-block';
