@@ -97,12 +97,12 @@ this.addEventListener('fetch', function(event) {
           }
 
           console.log('sw: fetch', event.request.url);
-          return fetch(event.request)
+          return fetch(event.request, {credentials: 'include'})
         })
       }
 
       console.log('sw: fetch', event.request.url);
-      return fetch(event.request)
+      return fetch(event.request, {credentials: 'include'})
 
       // TODO: ここから下は、gyazo.com/xxx.pngなどのユーザー画像をキャッシュするかどうか
       // あとで書く
