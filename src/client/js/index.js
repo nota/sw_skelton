@@ -10,6 +10,8 @@ if ('serviceWorker' in navigator) {
       console.log('Service worker installed')
     } else if (reg.active) {
       console.log('Service worker active')
+    } else {
+      console.log('Service worker registered', reg)
     }
 
     var hasExistingActiveWorker = !!reg.active
@@ -40,7 +42,9 @@ if ('serviceWorker' in navigator) {
           updateButton.style.display = 'inline-block'
           // 自動でリロードをかける
           // 不要ならコメントアウト
-          // window.location.reload()
+          //setTimeout(function () {
+          //  window.location.reload()
+          //}, 300)
         }
       })
     })
@@ -48,6 +52,8 @@ if ('serviceWorker' in navigator) {
     // registration failed
     console.error('registration failed with ' + error)
   })
+} else {
+  console.log('Service worker is not available')
 }
 
 window.onload = function onLoad () {
