@@ -35,7 +35,7 @@ self.addEventListener('activate', function (event) {
   return event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(keys.map(function (k) {
-        if (k !== CACHENAME/* && k.indexOf('me-') == 0*/) {
+        if (k !== CACHENAME && k.indexOf('app-assets-') === 0) {
           console.log('sw: delete cache', k)
           return caches.delete(k)
         } else {

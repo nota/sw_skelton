@@ -3,7 +3,7 @@ console.log('hello')
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
     // registration worked
-    console.log('registration succeeded.', reg)
+    console.log('registration succeeded', reg)
 
     var hasExistingActiveWorker = !!reg.active
 
