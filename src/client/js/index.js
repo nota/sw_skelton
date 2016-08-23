@@ -7,36 +7,6 @@ if ('serviceWorker' in navigator) {
 
     var hasExistingActiveWorker = !!reg.active
 
-    var checkForUpdateButton = document.getElementById('check_for_update_btn')
-    var updateButton = document.getElementById('update_btn')
-
-    checkForUpdateButton.onclick = function () {
-      // reg.updateはservice workerをアップデートする。
-      // もしworkerに変化があれば、updatefoundが呼ばれる。
-      // なけれb何も起きない
-      // 利用中に、アプリの更新をpush通知などを受け取って、
-      // 発火するようにすると、次のリロード時には
-      // 新機能が早速使えるようになるので良さそうだ。
-      // リロードを2回しなくて良くなるのが利点だ。
-      console.log('checking for update...')
-      reg.update().then(function () {
-        console.log('checking for update... done')
-      })
-    }
-
-    updateButton.style.display = 'none'
-    updateButton.onclick = function () {
-      // reg.updateはservice workerをアップデートする。
-      // もしworkerに変化があれば、updatefoundが呼ばれる。
-      // なけれb何も起きない
-      // 利用中に、アプリの更新をpush通知などを受け取って、
-      // 発火するようにすると、次のリロード時には
-      // 新機能が早速使えるようになるので良さそうだ。
-      // リロードを2回しなくて良くなるのが利点だ。
-      console.log('update!')
-      window.location.reload()
-    }
-
     reg.addEventListener('updatefound', function (event) {
       // A new worker is coming!!!!
       console.log('a new worker is coming!', reg)
@@ -59,10 +29,11 @@ if ('serviceWorker' in navigator) {
         console.log('state change!', event.target)
         if (event.target.state === 'activated') {
           document.getElementById('message').innerHTML = 'there is a new update!'
+          var updateButton = document.getElementById('update_btn')
           updateButton.style.display = 'inline-block'
           // 自動でリロードをかける
           // 不要ならコメントアウト
-          window.location.reload()
+          // window.location.reload()
         }
       })
     })
@@ -77,4 +48,36 @@ window.onload = function onLoad () {
   var url = window.location.href
 
   document.getElementById('message').innerHTML = url
+
+  var checkForUpdateButton = document.getElementById('check_for_update_btn')
+  var updateButton = document.getElementById('update_btn')
+
+  checkForUpdateButton.onclick = function () {
+    // reg.updateはservice workerをアップデートする。
+    // もしworkerに変化があれば、updatefoundが呼ばれる。
+    // なけれb何も起きない
+    // 利用中に、アプリの更新をpush通知などを受け取って、
+    // 発火するようにすると、次のリロード時には
+    // 新機能が早速使えるようになるので良さそうだ。
+    // リロードを2回しなくて良くなるのが利点だ。
+    console.log('checking for update...')
+    navigator.serviceWorker.getRegistration('/').then(function (reg) {
+      reg.update().then(function () {
+        console.log('checking for update... done')
+      })
+    })
+  }
+
+  updateButton.style.display = 'none'
+  updateButton.onclick = function () {
+    // reg.updateはservice workerをアップデートする。
+    // もしworkerに変化があれば、updatefoundが呼ばれる。
+    // なけれb何も起きない
+    // 利用中に、アプリの更新をpush通知などを受け取って、
+    // 発火するようにすると、次のリロード時には
+    // 新機能が早速使えるようになるので良さそうだ。
+    // リロードを2回しなくて良くなるのが利点だ。
+    console.log('update!')
+    window.location.reload()
+  }
 }
