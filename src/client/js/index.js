@@ -1,16 +1,16 @@
 console.log('hello')
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
     // registration worked
-    console.log('registration succeeded.', reg);
+    console.log('registration succeeded', reg)
 
     var hasExistingActiveWorker = !!reg.active
 
     var checkForUpdateButton = document.getElementById('check_for_update_btn')
     var updateButton = document.getElementById('update_btn')
 
-    checkForUpdateButton.onclick  = function() {
+    checkForUpdateButton.onclick = function () {
       // reg.updateはservice workerをアップデートする。
       // もしworkerに変化があれば、updatefoundが呼ばれる。
       // なけれb何も起きない
@@ -20,12 +20,12 @@ if ('serviceWorker' in navigator) {
       // リロードを2回しなくて良くなるのが利点だ。
       console.log('checking for update...')
       reg.update().then(function () {
-        console.log('checking for update... done');
+        console.log('checking for update... done')
       })
     }
 
-    updateButton.style.display = 'none';
-    updateButton.onclick = function() {
+    updateButton.style.display = 'none'
+    updateButton.onclick = function () {
       // reg.updateはservice workerをアップデートする。
       // もしworkerに変化があれば、updatefoundが呼ばれる。
       // なけれb何も起きない
@@ -34,10 +34,10 @@ if ('serviceWorker' in navigator) {
       // 新機能が早速使えるようになるので良さそうだ。
       // リロードを2回しなくて良くなるのが利点だ。
       console.log('update!')
-      location.reload();
+      window.location.reload()
     }
 
-    reg.addEventListener('updatefound', function(event) {
+    reg.addEventListener('updatefound', function (event) {
       // A new worker is coming!!!!
       console.log('a new worker is coming!', reg)
 
@@ -57,27 +57,24 @@ if ('serviceWorker' in navigator) {
       // install中の新しいservice workerの状態を監視する
       reg.installing.addEventListener('statechange', function (event) {
         console.log('state change!', event.target)
-
         if (event.target.state === 'activated') {
-
-          document.getElementById('message').innerHTML = 'there is a new update!';
-          updateButton.style.display = 'inline-block';
+          document.getElementById('message').innerHTML = 'there is a new update!'
+          updateButton.style.display = 'inline-block'
           // 自動でリロードをかける
           // 不要ならコメントアウト
-          location.reload();
+          window.location.reload()
         }
       })
-    });
-  }).catch(function(error) {
+    })
+  }).catch(function (error) {
     // registration failed
-    console.error('registration failed with ' + error);
-  });
-};
+    console.error('registration failed with ' + error)
+  })
+}
 
 window.onload = function onLoad () {
   console.log('window has been loaded')
-  var url = location.href;
+  var url = window.location.href
 
-  document.getElementById('message').innerHTML = url;
-
+  document.getElementById('message').innerHTML = url
 }

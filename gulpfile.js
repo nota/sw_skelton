@@ -5,11 +5,10 @@ const gulp = require('gulp')
 const environments = require('gulp-environments')
 const iconfont = require('gulp-iconfont')
 const iconfontCss = require('gulp-iconfont-css')
-const replace = require('gulp-replace');
-const glob = require('glob-promise');
+const replace = require('gulp-replace')
+const glob = require('glob-promise')
 const md5 = require('MD5')
 const md5File = require('md5-file/promise')
-
 
 const development = environments.development
 const production = environments.production
@@ -100,18 +99,17 @@ gulp.task('serviceworker', function () {
 
   return getOneAssetHash()
     .then(result => {
-     console.log(result)
-     checksum = result
-     return getAssetList()
+      console.log(result)
+      checksum = result
+      return getAssetList()
     })
     .then(files => {
       return gulp.src(['./src/client/js/sw.js'])
         .pipe(replace(/FILES = .*/, `FILES = [\n'${files.join('\',\n\'')}'\n];`))
-        .pipe(replace(/CHECKSUM = .*/, `CHECKSUM = "${checksum}"`))
+        .pipe(replace(/CHECKSUM = .*/, `CHECKSUM = '${checksum}'`))
         .pipe(gulp.dest('./public/'))
     })
 })
-
 
 // ファイルの変更を監視する
 // ファイルが変更されたら自動的にコンパイルする
