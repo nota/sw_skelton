@@ -3,12 +3,19 @@ console.log('hello')
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
     // registration worked
-    console.log('registration succeeded', reg)
+
+    if (reg.installing) {
+      console.log('Service worker installing')
+    } else if (reg.waiting) {
+      console.log('Service worker installed')
+    } else if (reg.active) {
+      console.log('Service worker active')
+    }
 
     var hasExistingActiveWorker = !!reg.active
 
     reg.addEventListener('updatefound', function (event) {
-      // A new worker is coming!!!!
+      // A new worker is coming!!
       console.log('a new worker is coming!', reg)
 
       if (!reg.installing) {
@@ -81,3 +88,4 @@ window.onload = function onLoad () {
     window.location.reload()
   }
 }
+

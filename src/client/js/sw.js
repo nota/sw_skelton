@@ -1,5 +1,6 @@
 /* global caches self URL fetch */
 var BLACKLIST = [
+  '/sw.js',
   '/api/',
   '/.+?/.+?/slide',
   '/.+?/.+?.json'
