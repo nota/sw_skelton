@@ -129,7 +129,7 @@ gulp.task('clean', () => {
 })
 
 // ビルドタスク
-const buildTasks = ['fonts', 'iconfont', 'img', 'favicon', 'serviceworker']
+const buildTasks = ['fonts', 'iconfont', 'img', 'favicon']
 gulp.task('build', buildTasks)
 gulp.task('rebuild', ['clean'], () => {
   gulp.run('build')

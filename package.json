@@ -10,7 +10,7 @@
     "postinstall": "npm run build",
     "start": "node server.js",
     "start:dev": "DEBUG=sw_app* node-dev server.js",
-    "build": "npm run babel && npm run browserify && npm run sass && gulp build",
+    "build": "npm run babel && npm run browserify && npm run sass && gulp build && gulp serviceworker",
     "babel": "babel src/ --out-dir build/ --source-maps inline",
     "sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/css/",
     "test": "standard",
