@@ -20,6 +20,7 @@ app.get('/note/*', function (req, res) {
 app.use(express.static(path.join(__dirname, '/public')))
 app.set('views', './views')
 app.set('view engine', 'ejs')
-app.listen(2000, function () {
-  console.log('Example app listening on port 2000!')
+var port = process.env.PORT || 2000
+app.listen(port, function () {
+  console.log(`Example app listening on port ${port}!`)
 })
