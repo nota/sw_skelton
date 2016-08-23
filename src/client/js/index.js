@@ -1,8 +1,5 @@
 console.log('hello')
 
-
-
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function(reg) {
     // registration worked
@@ -36,29 +33,40 @@ if ('serviceWorker' in navigator) {
       // 発火するようにすると、次のリロード時には
       // 新機能が早速使えるようになるので良さそうだ。
       // リロードを2回しなくて良くなるのが利点だ。
-      console.log('update!');
+      console.log('update!')
       location.reload();
     }
 
-    reg.addEventListener('updatefound', function() {
-      // A new worker is coming!
+    reg.addEventListener('updatefound', function(event) {
+      // A new worker is coming!!!!
       console.log('a new worker is coming!', reg)
+
+      if (!reg.installing) {
+        console.log('not installing')
+        return
+      }
+
+      console.log('installing', reg.installing)
+
       if (!hasExistingActiveWorker) {
         console.log('this is the first worker, so do not prompt')
         hasExistingActiveWorker = true
         return
       }
 
-      //location.reload();
-      document.getElementById('message').innerHTML = 'there is a new update!';
-      updateButton.style.display = 'inline-block';
-    });
+      // install中の新しいservice workerの状態を監視する
+      reg.installing.addEventListener('statechange', function (event) {
+        console.log('state change!', event.target)
 
-    reg.addEventListener('controllerchange', function() {
-      // A new worker is coming!
-      console.log('a new worker is controlling!', reg)
-      //location.reload();
-      //updateButton.style.display = 'inline-block';
+        if (event.target.state === 'activated') {
+
+          document.getElementById('message').innerHTML = 'there is a new update!';
+          updateButton.style.display = 'inline-block';
+          // 自動でリロードをかける
+          // 不要ならコメントアウト
+          location.reload();
+        }
+      })
     });
   }).catch(function(error) {
     // registration failed
@@ -67,7 +75,7 @@ if ('serviceWorker' in navigator) {
 };
 
 window.onload = function onLoad () {
-  console.log('onLoad')
+  console.log('window has been loaded')
   var url = location.href;
 
   document.getElementById('message').innerHTML = url;
