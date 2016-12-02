@@ -69,6 +69,7 @@ function getAssetList () {
   return glob('./public/**/*.*').then(files => {
     files = files.map(file => file.replace(/^\.\/public\//, '/'))
     files.push('/app.html')
+    files.push('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
     return files
   })
 }
@@ -93,7 +94,7 @@ function getOneAssetHash () {
   })
 }
 
-// service workerのFILESとCHECKSUMを作ってsw.jsを作成
+// service workerのASSETSとCHECKSUMを作ってsw.jsを作成
 gulp.task('serviceworker', function () {
   let checksum
 
@@ -105,7 +106,7 @@ gulp.task('serviceworker', function () {
     })
     .then(files => {
       return gulp.src(['./src/client/js/sw.js'])
-        .pipe(replace(/FILES = .*/, `FILES = [\n'${files.join('\',\n\'')}'\n];`))
+        .pipe(replace(/ASSETS = .*/, `ASSETS = [\n'${files.join('\',\n\'')}'\n];`))
         .pipe(replace(/CHECKSUM = .*/, `CHECKSUM = '${checksum}'`))
         .pipe(gulp.dest('./public/'))
     })
