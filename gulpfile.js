@@ -75,12 +75,23 @@ function getAssetList () {
 }
 
 function getAssetHashList () {
-  return glob('./public/**/*.*')
+  let tmpFiles
+  return glob('./src/client/**/*.*')
     .then(files => {
-      files.push('./views/app.ejs')
-      files.push('./src/client/js/sw.js')
+      tmpFiles = files
+      // sw.jsはpublicにあるのものはhashを含んでいるのでclientのものを使う
+      //let index = tmpFiles.indexOf('./public/sw.js')
+      //if (index !== false) {
+      //  tmpFiles.splice(index, 1);
+      //}
+      //tmpFiles.push('./src/client/js/sw.js')
+      return glob('./views/**/*.*')
+    })
+    .then(files => {
+      files = files.concat(tmpFiles)
       return files
     }).then(files => {
+      console.log(files)
       return Promise.all(files.map(file => {
         return md5File(file)
       }))
@@ -89,6 +100,7 @@ function getAssetHashList () {
 
 function getOneAssetHash () {
   return getAssetHashList().then(results => {
+    console.log(results)
     let all = results.join(',')
     return md5(all)
   })

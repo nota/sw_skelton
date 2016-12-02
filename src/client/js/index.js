@@ -80,6 +80,11 @@ function checkForUpdate () {
   })
 }
 
+// 定期的に新しいリソースがないか確認しにいく
+setInterval(function () {
+  checkForUpdate()
+}, 10 * 1000)
+
 window.onload = function onLoad () {
   console.log('Window has been loaded')
   var url = window.location.href
