@@ -74,7 +74,7 @@ function getAssetList () {
   })
 }
 
-function getAssetHashList () {
+function getAssetHash () {
   let tmpFiles
   return glob('./src/client/**/*.*')
     .then(files => {
@@ -95,22 +95,19 @@ function getAssetHashList () {
       return Promise.all(files.map(file => {
         return md5File(file)
       }))
+    }).then(results => {
+      console.log(results)
+      let all = results.join(',')
+      return md5(all)
     })
 }
 
-function getOneAssetHash () {
-  return getAssetHashList().then(results => {
-    console.log(results)
-    let all = results.join(',')
-    return md5(all)
-  })
-}
 
 // service workerのASSETSとCHECKSUMを作ってsw.jsを作成
 gulp.task('serviceworker', function () {
   let checksum
 
-  return getOneAssetHash()
+  return getAssetHash()
     .then(result => {
       console.log(result)
       checksum = result
