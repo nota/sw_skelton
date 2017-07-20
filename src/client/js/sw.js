@@ -27,7 +27,7 @@ self.addEventListener('activate', function (event) {
   )
 })
 
-function shouldUseAppHtml (request) {
+function useAppHtml (request) {
   var pathname = new URL(request.url).pathname
 
   var i
@@ -79,10 +79,11 @@ function shouldCache (request, response) {
 
 
 var _db = null
-function openStore () {
+function openStore (readOnly = false) {
+  var permission = readOnly ? "readonly" : "readwrite"
   return new Promise(function(resolve, reject) {
     if (_db) {
-      var store = _db.transaction("version", "readwrite").objectStore("version")
+      var store = _db.transaction("version", permission).objectStore("version")
       resolve(store)
       return
     }
@@ -99,7 +100,7 @@ function openStore () {
     open.onsuccess = function (event) {
       var db = event.target.result // or open.result
       _db = db // save in global
-      var store = db.transaction("version", "readwrite").objectStore("version")
+      var store = db.transaction("version", permission).objectStore("version")
       resolve(store)
     }
   })
@@ -112,7 +113,7 @@ function putVersion(version) {
 }
 
 function getVersion(version) {
-  return openStore().then(function (store) {
+  return openStore(true).then(function (store) {
     return new Promise(function(resolve, reject) {
       var req = store.get('version')
       req.onsuccess = function(event){
@@ -131,6 +132,16 @@ this.addEventListener('fetch', function (event) {
   var request = event.request
 
   // TODO: 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
+  if (useAppHtml(request)) {
+    var url = new URL(request.url).origin + '/app.html'
+    request = new Request(url, {
+        method: request.method,
+        headers: request.headers,
+        mode: 'same-origin', // need to set this properly
+        credentials: request.credentials,
+        redirect: 'manual'   // let browser handle redirects
+    })
+  }
 
   event.respondWith(
     getVersion().then(function(version) {
@@ -140,7 +151,7 @@ this.addEventListener('fetch', function (event) {
             console.log('sw: respond from cache', request.url)
             return response
           }
-
+/*
           if (shouldUseAppHtml(request)) {
             return caches.match('/app.html').then(function (response) {
               if (response) {
@@ -152,7 +163,7 @@ this.addEventListener('fetch', function (event) {
               return fetch(request, {credentials: 'include'})
             })
           }
-
+*/
           console.log('sw: fetch', request.url)
           return fetch(request).then(function(response) {
             if (shouldCache(request, response)) {
@@ -170,24 +181,4 @@ this.addEventListener('fetch', function (event) {
     })
   )
 })
-
-
-      // TODO: ここから下は、gyazo.com/xxx.pngなどのユーザー画像をキャッシュするかどうか
-      // あとで書く
-/*
-
-      return fetch(event.request).then(function(response) {
-
-
-        if (shouldCache) {
-          console.log('sw: save cache', event.request.url)
-          return caches.open(CACHENAME).then(function(cache) {
-            cache.put(event.request, response.clone());
-            return response;
-          });
-        } else {
-          return response;
-        }
-      });
-*/
 
