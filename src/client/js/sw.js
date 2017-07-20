@@ -128,43 +128,37 @@ function getVersion(version) {
 putVersion('hoihoi')
 
 this.addEventListener('fetch', function (event) {
+  var request = event.request
 
-  // 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
-  var cookie = event.request.headers.get('Cookie')
-  console.log('cookie:', cookie)
-//    var pathname = new URL(event.request.url).pathname
-//    if (pathname = '/clear_cache') {
-
-//    }
-
+  // TODO: 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
 
   event.respondWith(
     getVersion().then(function(version) {
       return caches.open(version).then(function(cache) {
-        return cache.match(event.request).then(function (response) {
+        return cache.match(request).then(function (response) {
           if (response) {
-            console.log('sw: respond from cache', event.request.url)
+            console.log('sw: respond from cache', request.url)
             return response
           }
 
-          if (shouldUseAppHtml(event.request)) {
+          if (shouldUseAppHtml(request)) {
             return caches.match('/app.html').then(function (response) {
               if (response) {
-                console.log('sw: respond app.html', event.request.url)
+                console.log('sw: respond app.html', request.url)
                 return response
               }
 
-              console.log('sw: fetch', event.request.url)
-              return fetch(event.request, {credentials: 'include'})
+              console.log('sw: fetch', request.url)
+              return fetch(request, {credentials: 'include'})
             })
           }
 
-          console.log('sw: fetch', event.request.url)
-          return fetch(event.request).then(function(response) {
-            if (shouldCache(event.request, response)) {
-              console.log('sw: save cache', event.request.url)
+          console.log('sw: fetch', request.url)
+          return fetch(request).then(function(response) {
+            if (shouldCache(request, response)) {
+              console.log('sw: save cache', request.url)
   //            return caches.open(CACHENAME).then(function(cache) {
-              cache.put(event.request, response.clone());
+              cache.put(request, response.clone());
               return response;
   //            });
             } else {
