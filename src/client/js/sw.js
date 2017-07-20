@@ -27,8 +27,8 @@ self.addEventListener('activate', function (event) {
   )
 })
 
-function shouldUseAppHtml (event) {
-  var pathname = new URL(event.request.url).pathname
+function shouldUseAppHtml (request) {
+  var pathname = new URL(request.url).pathname
 
   var i
 
@@ -46,13 +46,32 @@ function shouldUseAppHtml (event) {
     }
   }
 
-  if (event.request.method !== 'GET') {
+  if (request.method !== 'GET') {
     return false
   }
 
-  var accept = event.request.headers.get('Accept')
+  var accept = request.headers.get('Accept')
   if (!accept || accept.indexOf('text/html') < 0) {
    return false
+  }
+
+  return true
+}
+
+function shouldCache (request, response) {
+  for (var i = 0; i < NOCACHELIST.length; ++i) {
+    var b = new RegExp(NOCACHELIST[i])
+    if (b.test(request.url)) {
+      return false
+    }
+  }
+
+  if (request.method !== 'GET') {
+    return false
+  }
+
+  if (!response.ok) {
+    return false
   }
 
   return true
@@ -93,8 +112,8 @@ function putVersion(version) {
 }
 
 function getVersion(version) {
-  return new Promise(function(resolve, reject) {
-    openStore().then(function (store) {
+  return openStore().then(function (store) {
+    return new Promise(function(resolve, reject) {
       var req = store.get('version')
       req.onsuccess = function(event){
         resolve(event.target.result.value)
@@ -102,8 +121,6 @@ function getVersion(version) {
       req.onerror = function (event) {
         reject(event)
       }
-    }).catch(function (err) {
-      reject(err)
     })
   })
 }
@@ -130,7 +147,7 @@ this.addEventListener('fetch', function (event) {
             return response
           }
 
-          if (shouldUseAppHtml(event)) {
+          if (shouldUseAppHtml(event.request)) {
             return caches.match('/app.html').then(function (response) {
               if (response) {
                 console.log('sw: respond app.html', event.request.url)
@@ -144,8 +161,7 @@ this.addEventListener('fetch', function (event) {
 
           console.log('sw: fetch', event.request.url)
           return fetch(event.request).then(function(response) {
-            var shouldCache = true
-            if (shouldCache) {
+            if (shouldCache(event.request, response)) {
               console.log('sw: save cache', event.request.url)
   //            return caches.open(CACHENAME).then(function(cache) {
               cache.put(event.request, response.clone());
@@ -155,8 +171,6 @@ this.addEventListener('fetch', function (event) {
               return response;
             }
           })
-
-//          return fetch(event.request, {credentials: 'include'})
         })
       })
     })
@@ -169,31 +183,7 @@ this.addEventListener('fetch', function (event) {
 /*
 
       return fetch(event.request).then(function(response) {
-        var shouldCache = false;
 
-        for (var i = 0; i < WHITELIST.length; ++i) {
-          var b = new RegExp(WHITELIST[i]);
-          if (b.test(event.request.url)) {
-//            shouldCache = true;
-            break;
-          }
-        }
-
-        for (var i = 0; i < NOCACHELIST.length; ++i) {
-          var b = new RegExp(NOCACHELIST[i]);
-          if (b.test(event.request.url)) {
-            shouldCache = false;
-            break;
-          }
-        }
-
-        if (event.request.method == 'POST') {
-          shouldCache = false;
-        }
-
-        if (!response.ok) {
-          shouldCache = false;
-        }
 
         if (shouldCache) {
           console.log('sw: save cache', event.request.url)
