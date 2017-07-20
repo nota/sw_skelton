@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "engines": {
-    "node": "5.x",
-    "npm": "3.x"
+    "node": "7.x",
+    "npm": "4.x"
   },
   "scripts": {
     "postinstall": "npm run build",
