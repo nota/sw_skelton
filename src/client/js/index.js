@@ -46,11 +46,11 @@ if ('serviceWorker' in navigator) {
           reloadButton.style.display = 'inline-block'
           // 自動でリロードをかける
           // 不要ならコメントアウト
-          if (shouldReloadImmediately) {
-            setTimeout(function () {
-              window.location.reload()
-            }, 300)
-          }
+//          if (shouldReloadImmediately) {
+//            setTimeout(function () {
+//              window.location.reload()
+//            }, 300)
+//          }
         }
       })
     })
@@ -71,6 +71,7 @@ if ('serviceWorker' in navigator) {
 // 新機能が早速使えるようになるので良さそうだ。
 // リロードを2回しなくて良くなるのが利点だ。
 function checkForUpdate () {
+/*
   shouldReloadImmediately = false
   console.log('Checking for update...')
   navigator.serviceWorker.getRegistration('/').then(function (reg) {
@@ -78,6 +79,7 @@ function checkForUpdate () {
   }).then(function () {
     console.log('Checking for update... done')
   })
+*/
 }
 
 // 定期的に新しいリソースがないか確認しにいく
