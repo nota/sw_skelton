@@ -54,59 +54,72 @@ self.addEventListener('activate', function (event) {
   )
 })
 
+function shouldUseAppHtml (event) {
+  var pathname = new URL(event.request.url).pathname
+
+  var i
+
+  for (i = 0; i < ASSETS.length; ++i) {
+    var re = new RegExp('^' + ASSETS[i])
+    if (re.test(pathname)) {
+      return false
+    }
+  }
+
+  for (i = 0; i < NOCACHELIST.length; ++i) {
+    var re = new RegExp('^' + NOCACHELIST[i])
+    if (re.test(pathname)) {
+      return false
+    }
+  }
+
+  if (event.request.method !== 'GET') {
+    return false
+  }
+
+  var accept = event.request.headers.get('Accept')
+  if (!accept || accept.indexOf('text/html') < 0) {
+   return false
+  }
+
+  return true
+}
+
 this.addEventListener('fetch', function (event) {
   event.respondWith(
-    caches.match(event.request).then(function (response) {
-      if (response) {
-        console.log('sw: respond from cache', event.request.url)
-        return response
-      }
+    // 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
+//    var pathname = new URL(event.request.url).pathname
+//    if (pathname = '/clear_cache') {
 
-      var useAppHtml = true
+//    }
 
-      var pathname = new URL(event.request.url).pathname
-
-      var i
-
-      for (i = 0; i < ASSETS.length; ++i) {
-        var re = new RegExp('^' + ASSETS[i])
-        if (re.test(pathname)) {
-          useAppHtml = false
-          break
+    caches.open(CACHENAME).then(function(cache) {
+      return cache.match(event.request).then(function (response) {
+        if (response) {
+          console.log('sw: respond from cache', event.request.url)
+          return response
         }
-      }
 
-      for (i = 0; i < NOCACHELIST.length; ++i) {
-        var re = new RegExp('^' + NOCACHELIST[i])
-        if (re.test(pathname)) {
-          useAppHtml = false
-          break
+        if (shouldUseAppHtml(event)) {
+          return caches.match('/app.html').then(function (response) {
+            if (response) {
+              console.log('sw: respond app.html', event.request.url)
+              return response
+            }
+
+            console.log('sw: fetch', event.request.url)
+            return fetch(event.request, {credentials: 'include'})
+          })
         }
-      }
 
-      if (event.request.method !== 'GET') {
-        useAppHtml = false
-      }
+        console.log('sw: fetch', event.request.url)
+        return fetch(event.request, {credentials: 'include'})
+      })
+    })
 
-      var accept = event.request.headers.get('Accept')
-      if (!accept || accept.indexOf('text/html') < 0) {
-        useAppHtml = false
-      }
+  )
+})
 
-      if (useAppHtml) {
-        return caches.match('/app.html').then(function (response) {
-          if (response) {
-            console.log('sw: respond app.html', event.request.url)
-            return response
-          }
-
-          console.log('sw: fetch', event.request.url)
-          return fetch(event.request, {credentials: 'include'})
-        })
-      }
-
-      console.log('sw: fetch', event.request.url)
-      return fetch(event.request, {credentials: 'include'})
 
       // TODO: ここから下は、gyazo.com/xxx.pngなどのユーザー画像をキャッシュするかどうか
       // あとで書く
@@ -150,6 +163,4 @@ this.addEventListener('fetch', function (event) {
         }
       });
 */
-    })
-  )
-})
+
