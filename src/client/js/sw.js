@@ -15,42 +15,15 @@ console.log('sw: hello', CHECKSUM)
 
 this.addEventListener('install', function (event) {
   console.log('sw: installed')
-
   event.waitUntil(
-    caches.open(CACHENAME).then(function (cache) {
-      return cache.addAll(ASSETS)
-    }).then(function () {
-      // `skipWaiting()` forces the waiting ServiceWorker to become the
-      // active ServiceWorker, triggering the `onactivate` event.
-      // Together with `Clients.claim()` this allows a worker to take effect
-      // immediately in the client(s).
-      console.log('sw: cache all done')
-      return self.skipWaiting()
-    })
+    self.skipWaiting()
   )
 })
 
 self.addEventListener('activate', function (event) {
   console.log('sw: activated')
-
-  return event.waitUntil(
-    caches.keys().then(function (keys) {
-      return Promise.all(keys.map(function (k) {
-        if (k !== CACHENAME && k.indexOf('app-assets-') === 0) {
-          console.log('sw: delete cache', k)
-          return caches.delete(k)
-        } else {
-          console.log('sw: keep cache', k)
-          return Promise.resolve()
-        }
-      }))
-    }).then(function () {
-      // `claim()` sets this worker as the active worker for all clients that
-      // match the workers scope and triggers an `oncontrollerchange` event for
-      // the clients.
-      console.log('sw: claim')
-      return self.clients.claim()
-    })
+  event.waitUntil(
+    self.clients.claim()
   )
 })
 
@@ -85,38 +58,108 @@ function shouldUseAppHtml (event) {
   return true
 }
 
+
+var _db = null
+function openStore () {
+  return new Promise(function(resolve, reject) {
+    if (_db) {
+      var store = _db.transaction("version", "readwrite").objectStore("version")
+      resolve(store)
+      return
+    }
+
+    // Open (or create) the database
+    var open = indexedDB.open("MyDatabase", 3);
+
+    // Create the schema
+    open.onupgradeneeded = function (event) {
+      var db = event.target.result // or open.result
+      db.createObjectStore("version", {keyPath: 'id'})
+    }
+
+    open.onsuccess = function (event) {
+      var db = event.target.result // or open.result
+      _db = db // save in global
+      var store = db.transaction("version", "readwrite").objectStore("version")
+      resolve(store)
+    }
+  })
+}
+
+function putVersion(version) {
+  openStore().then(function (store) {
+    store.put({id: 'version', value: version})
+  })
+}
+
+function getVersion(version) {
+  return new Promise(function(resolve, reject) {
+    openStore().then(function (store) {
+      var req = store.get('version')
+      req.onsuccess = function(event){
+        resolve(event.target.result.value)
+      }
+      req.onerror = function (event) {
+        reject(event)
+      }
+    }).catch(function (err) {
+      reject(err)
+    })
+  })
+}
+
+putVersion('hoihoi')
+
 this.addEventListener('fetch', function (event) {
-  event.respondWith(
-    // 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
+
+  // 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
+  var cookie = event.request.headers.get('Cookie')
+  console.log('cookie:', cookie)
 //    var pathname = new URL(event.request.url).pathname
 //    if (pathname = '/clear_cache') {
 
 //    }
 
-    caches.open(CACHENAME).then(function(cache) {
-      return cache.match(event.request).then(function (response) {
-        if (response) {
-          console.log('sw: respond from cache', event.request.url)
-          return response
-        }
 
-        if (shouldUseAppHtml(event)) {
-          return caches.match('/app.html').then(function (response) {
-            if (response) {
-              console.log('sw: respond app.html', event.request.url)
-              return response
+  event.respondWith(
+    getVersion().then(function(version) {
+      return caches.open(version).then(function(cache) {
+        return cache.match(event.request).then(function (response) {
+          if (response) {
+            console.log('sw: respond from cache', event.request.url)
+            return response
+          }
+
+          if (shouldUseAppHtml(event)) {
+            return caches.match('/app.html').then(function (response) {
+              if (response) {
+                console.log('sw: respond app.html', event.request.url)
+                return response
+              }
+
+              console.log('sw: fetch', event.request.url)
+              return fetch(event.request, {credentials: 'include'})
+            })
+          }
+
+          console.log('sw: fetch', event.request.url)
+          return fetch(event.request).then(function(response) {
+            var shouldCache = true
+            if (shouldCache) {
+              console.log('sw: save cache', event.request.url)
+  //            return caches.open(CACHENAME).then(function(cache) {
+              cache.put(event.request, response.clone());
+              return response;
+  //            });
+            } else {
+              return response;
             }
-
-            console.log('sw: fetch', event.request.url)
-            return fetch(event.request, {credentials: 'include'})
           })
-        }
 
-        console.log('sw: fetch', event.request.url)
-        return fetch(event.request, {credentials: 'include'})
+//          return fetch(event.request, {credentials: 'include'})
+        })
       })
     })
-
   )
 })
 
