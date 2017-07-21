@@ -1,18 +1,18 @@
 /* global caches self URL fetch */
-var NOCACHE_PATHS = [
+const NOCACHE_PATHS = [
   '/sw.js',
   '/api/',
   '/.+?/.+?/slide',
   '/.+?/.+?.json'
 ]
 
-var ASSETS = [
+const ASSETS = [
   '/css/',
   '/img/',
   '/fonts/'
 ]
 
-var ASSET_HOSTS = [
+const ASSET_HOSTS = [
   'localhost',
   'scrapbox.io',
   'staging.scrapbox.io',
@@ -34,8 +34,8 @@ self.addEventListener('activate', function (event) {
 })
 
 function isNoCachePath(pathname) {
-  for (var path of NOCACHE_PATHS) {
-    var reg = new RegExp(path)
+  for (let path of NOCACHE_PATHS) {
+    const reg = new RegExp(path)
     if (reg.test(pathname)) return true
   }
   return false
@@ -56,14 +56,14 @@ function isAssetPath(pathname) {
 }
 
 function useAppHtml (request) {
-  var url = new URL(request.url)
+  const url = new URL(request.url)
 
   if (!isAssetHost(url.hostname)) return false
   if (isAssetPath(url.pathname)) return false
   if (isNoCachePath(url.pathname)) return false
   if (request.method !== 'GET') return false
 
-  var accept = request.headers.get('Accept')
+  const accept = request.headers.get('Accept')
   if (!accept || accept.indexOf('text/html') < 0) {
    return false
   }
@@ -72,7 +72,7 @@ function useAppHtml (request) {
 }
 
 function shouldCache (request, response) {
-  var url = new URL(request.url)
+  const url = new URL(request.url)
 
   if (!isAssetHost(url.hostname)) return false
   if (isNoCachePath(url.pathname)) return false
@@ -83,62 +83,76 @@ function shouldCache (request, response) {
 }
 
 
-var _db = null
-function openStore (readOnly = false) {
-  var permission = readOnly ? "readonly" : "readwrite"
-  return new Promise(function(resolve, reject) {
-    if (_db) {
-      var store = _db.transaction("version", permission).objectStore("version")
-      resolve(store)
-      return
-    }
+let _db = null
+function openDB () {
+  return new Promise(function (resolve, reject) {
+    if (_db) return resolve(_db)
 
     // Open (or create) the database
-    var open = indexedDB.open("MyDatabase", 3);
+    const open = indexedDB.open('MyDatabase', 3);
 
     // Create the schema
     open.onupgradeneeded = function (event) {
-      var db = event.target.result // or open.result
-      db.createObjectStore("version", {keyPath: 'id'})
+      const db = event.target.result // or open.result
+      db.createObjectStore('version', {keyPath: 'id'})
     }
 
     open.onsuccess = function (event) {
-      var db = event.target.result // or open.result
+      const db = event.target.result // or open.result
       _db = db // save in global
-      var store = db.transaction("version", permission).objectStore("version")
-      resolve(store)
+      resolve(db)
+    }
+
+    open.onblocked = function (event) {
+      reject(event)
+    }
+
+    open.onerror = function (event) {
+      reject(event)
     }
   })
 }
 
-function putVersion(version) {
-  openStore().then(function (store) {
-    store.put({id: 'version', value: version})
+function setItem (storeName, data) {
+  return openDB().then(function (db) {
+    const store = db.transaction(storeName, 'readwrite').objectStore(storeName)
+    store.put(data)
   })
 }
 
-function getVersion(version) {
-  return openStore(true).then(function (store) {
+function getItem (storeName, id) {
+  return openDB().then(function (db) {
     return new Promise(function(resolve, reject) {
-      var req = store.get('version')
-      req.onsuccess = function(event){
-        resolve(event.target.result.value)
+      const store = db.transaction(storeName, 'readonly').objectStore(storeName)
+      const request = store.get(id)
+      request.onsuccess = function(event){
+        resolve(event.target.result)
       }
-      req.onerror = function (event) {
+      request.onerror = function (event) {
         reject(event)
       }
     })
   })
 }
 
-putVersion('hoihoi')
+function setVersion (value) {
+  return setItem('version', {id: 'version', value: value})
+}
+
+function getVersion () {
+  return getItem('version', 'version').then(function (result) {
+    return result.value
+  })
+}
+
+setVersion('hoihoi')
 
 this.addEventListener('fetch', function (event) {
-  var request = event.request
+  let request = event.request
 
   // TODO: 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
   if (useAppHtml(request)) {
-    var url = new URL(request.url).origin + '/app.html'
+    const url = new URL(request.url).origin + '/app.html'
     request = new Request(url, {
         method: request.method,
         headers: request.headers,
