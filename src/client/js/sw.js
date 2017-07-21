@@ -141,11 +141,12 @@ function setVersion (value) {
 
 function getVersion () {
   return getItem('version', 'version').then(function (result) {
+    if (!result) throw 'cache version is not set'
     return result.value
   })
 }
 
-setVersion('hoihoi2')
+// setVersion('hoihoi2')
 
 function createAppHtmlRequest(request) {
   const url = new URL(request.url).origin + '/app.html'
@@ -157,7 +158,6 @@ function createAppHtmlRequest(request) {
       redirect: 'manual'   // let browser handle redirects
   })
 }
-
 
 function deleteOldCache(currentVersion) {
   return caches.keys().then(function (keys) {
@@ -172,11 +172,9 @@ function deleteOldCache(currentVersion) {
   })
 }
 
-
 this.addEventListener('fetch', function (event) {
   let request = event.request
 
-  // TODO: 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
   if (useAppHtml(request)) {
     request = createAppHtmlRequest(request)
   }
