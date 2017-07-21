@@ -93,12 +93,12 @@ function openDB () {
 
     // Create the schema
     open.onupgradeneeded = function (event) {
-      const db = event.target.result // or open.result
+      const db = event.target.result
       db.createObjectStore('version', {keyPath: 'id'})
     }
 
     open.onsuccess = function (event) {
-      const db = event.target.result // or open.result
+      const db = event.target.result
       _db = db // save in global
       resolve(db)
     }
