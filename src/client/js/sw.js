@@ -147,56 +147,49 @@ function getVersion () {
 
 setVersion('hoihoi')
 
+function createAppHtmlRequest(request) {
+  const url = new URL(request.url).origin + '/app.html'
+  return new Request(url, {
+      method: request.method,
+      headers: request.headers,
+      mode: 'same-origin', // need to set this properly
+      credentials: request.credentials,
+      redirect: 'manual'   // let browser handle redirects
+  })
+}
+
 this.addEventListener('fetch', function (event) {
   let request = event.request
 
   // TODO: 特定のfetchがあれば、キャッシュをクリアするというのを試してみたい
   if (useAppHtml(request)) {
-    const url = new URL(request.url).origin + '/app.html'
-    request = new Request(url, {
-        method: request.method,
-        headers: request.headers,
-        mode: 'same-origin', // need to set this properly
-        credentials: request.credentials,
-        redirect: 'manual'   // let browser handle redirects
-    })
+    request = createAppHtmlRequest(request)
   }
+
+  let tryFetched = false
 
   event.respondWith(
     getVersion().then(function(version) {
-      return caches.open(version).then(function(cache) {
-        return cache.match(request).then(function (response) {
-          if (response) {
-            console.log('sw: respond from cache', request.url)
-            return response
-          }
-/*
-          if (shouldUseAppHtml(request)) {
-            return caches.match('/app.html').then(function (response) {
-              if (response) {
-                console.log('sw: respond app.html', request.url)
-                return response
-              }
-
-              console.log('sw: fetch', request.url)
-              return fetch(request, {credentials: 'include'})
-            })
-          }
-*/
-          console.log('sw: fetch', request.url)
-          return fetch(request).then(function(response) {
-            if (shouldCache(request, response)) {
-              console.log('sw: save cache', request.url)
-  //            return caches.open(CACHENAME).then(function(cache) {
-              cache.put(request, response.clone());
-              return response;
-  //            });
-            } else {
-              return response;
-            }
-          })
-        })
-      })
+      return caches.open(version)
+    }).then(function(cache) {
+      return cache.match(request)
+    }).then(function (response) {
+      if (response) {
+        console.log('sw: respond from cache', request.url)
+        return response
+      }
+      console.log('sw: fetch', request.url)
+      tryFetched = true
+      return fetch(request)
+    }).then(function(response) {
+      if (tryFetched && shouldCache(request, response)) {
+        console.log('sw: save cache', request.url)
+        cache.put(request, response.clone())
+      }
+      return response
+    }).catch(function(err) {
+      if (!tryFetched) return fetch(request)
+      throw(err)
     })
   )
 })
