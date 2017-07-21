@@ -145,7 +145,7 @@ function getVersion () {
   })
 }
 
-setVersion('hoihoi')
+setVersion('hoihoi2')
 
 function createAppHtmlRequest(request) {
   const url = new URL(request.url).origin + '/app.html'
@@ -157,6 +157,21 @@ function createAppHtmlRequest(request) {
       redirect: 'manual'   // let browser handle redirects
   })
 }
+
+/*
+function deleteCache(currentKey) {
+  caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (k) {
+      if (k !== currentKey && k.indexOf('app-assets-') === 0) {
+        console.log('sw: delete cache', k)
+        return caches.delete(k)
+      } else {
+        console.log('sw: keep cache', k)
+        return Promise.resolve()
+      }
+    }))
+}
+*/
 
 this.addEventListener('fetch', function (event) {
   let request = event.request
@@ -170,23 +185,23 @@ this.addEventListener('fetch', function (event) {
 
   event.respondWith(
     getVersion().then(function(version) {
-      return caches.open(version)
-    }).then(function(cache) {
-      return cache.match(request)
-    }).then(function (response) {
-      if (response) {
-        console.log('sw: respond from cache', request.url)
-        return response
-      }
-      console.log('sw: fetch', request.url)
-      tryFetched = true
-      return fetch(request)
-    }).then(function(response) {
-      if (tryFetched && shouldCache(request, response)) {
-        console.log('sw: save cache', request.url)
-        cache.put(request, response.clone())
-      }
-      return response
+      return caches.open(version).then(function(cache) {
+        return cache.match(request).then(function (response) {
+          if (response) {
+            console.log('sw: respond from cache', request.url)
+            return response
+          }
+          console.log('sw: fetch', request.url)
+          tryFetched = true
+          return fetch(request).then(function(response) {
+            if (shouldCache(request, response)) {
+              console.log('sw: save cache', request.url)
+              cache.put(request, response.clone())
+            }
+            return response
+          })
+        })
+      })
     }).catch(function(err) {
       if (!tryFetched) return fetch(request)
       throw(err)
