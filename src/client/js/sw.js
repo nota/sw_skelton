@@ -158,20 +158,20 @@ function createAppHtmlRequest(request) {
   })
 }
 
-/*
-function deleteCache(currentKey) {
-  caches.keys().then(function (keys) {
-    return Promise.all(keys.map(function (k) {
-      if (k !== currentKey && k.indexOf('app-assets-') === 0) {
-        console.log('sw: delete cache', k)
-        return caches.delete(k)
+
+function deleteOldCache(currentVersion) {
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      if (key !== currentVersion) {
+        console.log('sw: delete old cache', key)
+        return caches.delete(key)
       } else {
-        console.log('sw: keep cache', k)
         return Promise.resolve()
       }
     }))
+  })
 }
-*/
+
 
 this.addEventListener('fetch', function (event) {
   let request = event.request
@@ -189,6 +189,7 @@ this.addEventListener('fetch', function (event) {
         return cache.match(request).then(function (response) {
           if (response) {
             console.log('sw: respond from cache', request.url)
+            deleteOldCache(version)
             return response
           }
           console.log('sw: fetch', request.url)
