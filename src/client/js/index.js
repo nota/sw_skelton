@@ -1,4 +1,6 @@
 import 'babel-polyfill'
 
-require('./register-serviceworker')
+import registerServiceworker from './register-serviceworker'
+require('./check-update')
 
+registerServiceworker()

@@ -1,13 +1,19 @@
 
 console.log('Hello by index.js')
-import request from 'superagent'
 
 var shouldReloadImmediately = true
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
+export default async function initialize () {
+
+  if (!('serviceWorker' in navigator)) {
+    return console.error('Service worker is not available')
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+
     // registration worked
-    var status
+    let status
     if (reg.installing) {
       status = 'installing'
     } else if (reg.waiting) {
@@ -19,9 +25,9 @@ if ('serviceWorker' in navigator) {
     }
     console.log('Service worker is registered:', status)
 
-    var hasExistingActiveWorker = !!reg.active
+    let hasExistingActiveWorker = !!reg.active
 
-    reg.addEventListener('updatefound', function (event) {
+    reg.addEventListener('updatefound', (event) => {
       // A new worker is coming!!
       console.log('New service worker is found', reg)
 
@@ -39,75 +45,16 @@ if ('serviceWorker' in navigator) {
       }
 
       // install中の新しいservice workerの状態を監視する
-      reg.installing.addEventListener('statechange', function (event) {
+      reg.installing.addEventListener('statechange', (event) => {
         console.log('Service worker state changed', event.target)
         if (event.target.state === 'activated') {
-          document.getElementById('message').innerHTML = 'there is a new update!'
-          var reloadButton = document.getElementById('reload_btn')
-          reloadButton.style.display = 'inline-block'
-          // 自動でリロードをかける
-          // 不要ならコメントアウト
-//          if (shouldReloadImmediately) {
-//            setTimeout(function () {
-//              window.location.reload()
-//            }, 300)
-//          }
+          console.log('activeted!!')
         }
       })
     })
-  }).catch(function (error) {
+  } catch(err) {
     // registration failed
-    console.error('registration failed with ' + error)
-  })
-} else {
-  console.log('Service worker is not available')
-}
-
-// Service workerに変化がないかリモートにリクエストして確認する。
-// reg.updateはservice workerをアップデートする。
-// もしworkerに変化があれば、updatefoundが呼ばれる。
-// なければ何も起きない。
-// 利用中に、アプリの更新をpush通知などを受け取って、
-// 発火するようにすると、次のリロード時には
-// 新機能が早速使えるようになるので良さそうだ。
-// リロードを2回しなくて良くなるのが利点だ。
-async function checkForUpdate () {
-  console.log('checkForUpdate')
-  const ret = await request.get('/api/client_version')
-  console.log(ret)
-
-/*
-  shouldReloadImmediately = false
-  console.log('Checking for update...')
-  navigator.serviceWorker.getRegistration('/').then(function (reg) {
-    return reg.update()
-  }).then(function () {
-    console.log('Checking for update... done')
-  })
-*/
-}
-
-// 定期的に新しいリソースがないか確認しにいく
-setInterval(function () {
-  checkForUpdate()
-}, 10 * 1000)
-
-window.onload = function onLoad () {
-  console.log('Window has been loaded')
-  var url = window.location.href
-
-  document.getElementById('message').innerHTML = url
-
-  var checkForUpdateButton = document.getElementById('check_for_update_btn')
-  var reloadButton = document.getElementById('reload_btn')
-
-  checkForUpdateButton.onclick = function () {
-    checkForUpdate()
-  }
-
-  reloadButton.style.display = 'none'
-  reloadButton.onclick = function () {
-    console.log('relaod now')
-    window.location.reload()
+    console.error('Serviceworker registration failed with ', err)
   }
 }
+
