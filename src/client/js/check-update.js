@@ -47,10 +47,14 @@ async function checkForUpdate () {
 */
 }
 
+async function updateNow () {
+  console.log('Update now')
+  await setVersion(_newVersion)
+  window.location.reload()
+}
+
 // 定期的に新しいリソースがないか確認しにいく
-setInterval(function () {
-  checkForUpdate()
-}, 10 * 1000)
+setInterval(() => { checkForUpdate() }, 10 * 1000)
 
 window.onload = async function onLoad () {
   console.log('Window has been loaded')
@@ -65,13 +69,6 @@ window.onload = async function onLoad () {
   const checkForUpdateButton = document.getElementById('check_for_update_btn')
   const updateButton = document.getElementById('update_btn')
 
-  checkForUpdateButton.onclick = function () {
-    checkForUpdate()
-  }
-
-  updateButton.onclick = async function () {
-    console.log('Update now')
-    await setVersion(_newVersion)
-    window.location.reload()
-  }
+  checkForUpdateButton.onclick = () => { checkForUpdate() }
+  updateButton.onclick = () => { updateNow() }
 }
