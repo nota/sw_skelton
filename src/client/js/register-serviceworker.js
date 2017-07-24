@@ -1,13 +1,14 @@
 console.log('Hello by index.js')
 
 export default async function initialize () {
+  const serviceWorker = navigator.serviceWorker
 
-  if (!('serviceWorker' in navigator)) {
+  if (!serviceWorker) {
     return console.error('Service worker is not available')
   }
 
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    const reg = await serviceWorker.register('/sw.js', {scope: '/'})
 
     // registration worked
     let status
