@@ -5,7 +5,6 @@ var shouldReloadImmediately = true
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
     // registration worked
-
     var status
     if (reg.installing) {
       status = 'installing'
