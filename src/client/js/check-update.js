@@ -25,26 +25,6 @@ async function checkForUpdate () {
     const updateAlert = document.getElementById('new_update_alert')
     updateAlert.style.display = 'inline-block'
   }
-
-
-          // 自動でリロードをかける
-          // 不要ならコメントアウト
-//          if (shouldReloadImmediately) {
-//            setTimeout(function () {
-//              window.location.reload()
-//            }, 300)
-//          }
-
-
-/*
-  shouldReloadImmediately = false
-  console.log('Checking for update...')
-  navigator.serviceWorker.getRegistration('/').then(function (reg) {
-    return reg.update()
-  }).then(function () {
-    console.log('Checking for update... done')
-  })
-*/
 }
 
 async function updateNow () {

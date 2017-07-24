@@ -15,7 +15,9 @@ app.get('/app.html', function (req, res) {
 
 app.get('/api/client_version', function (req, res) {
   md5File('public/index.js').then(hash => {
-    res.json({ version: hash.substring(0, 8) })
+    md5File('public/css/app.css').then(hash2 => {
+      res.json({ version: hash.substring(0, 8) + "_" + hash2.substring(0, 8) })
+    })
   })
 })
 
