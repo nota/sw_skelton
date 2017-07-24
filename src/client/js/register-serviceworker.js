@@ -1,7 +1,4 @@
-
 console.log('Hello by index.js')
-
-var shouldReloadImmediately = true
 
 export default async function initialize () {
 

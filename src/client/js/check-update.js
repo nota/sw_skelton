@@ -1,19 +1,32 @@
 import request from 'superagent'
+import {setVersion, getVersion} from './version'
 
 // Clientアセットに変化がないかリモートにリクエストして確認する。
 // 利用中に、アプリの更新をpush通知などを受け取って、
 // 発火するようにすると、次のリロード時には
 // 新機能が早速使えるようになるので良さそうだ。
 // リロードを2回しなくて良くなるのが利点だ。
+
+let _newVersion
+
 async function checkForUpdate () {
   console.log('checkForUpdate')
   const response = await request.get('/api/client_version')
-  console.log(response)
+  //console.log(response)
   console.log(response.body.version)
 
-//          document.getElementById('message').innerHTML = 'there is a new update!'
-//          var reloadButton = document.getElementById('reload_btn')
-//          reloadButton.style.display = 'inline-block'
+  const newVersion = response.body.version
+  _newVersion = newVersion
+
+  const currentVersion = await getVersion()
+
+  if (newVersion != currentVersion) {
+    document.getElementById('update_message').innerHTML = 'there is a new update!'
+    const updateAlert = document.getElementById('new_update_alert')
+    updateAlert.style.display = 'inline-block'
+  }
+
+
           // 自動でリロードをかける
           // 不要ならコメントアウト
 //          if (shouldReloadImmediately) {
@@ -39,22 +52,26 @@ setInterval(function () {
   checkForUpdate()
 }, 10 * 1000)
 
-window.onload = function onLoad () {
+window.onload = async function onLoad () {
   console.log('Window has been loaded')
   const url = window.location.href
 
-  document.getElementById('message').innerHTML = url
+  const version = await getVersion()
+
+  const message = `url: ${url}<br>version: ${version}`
+
+  document.getElementById('message').innerHTML = message
 
   const checkForUpdateButton = document.getElementById('check_for_update_btn')
-  const reloadButton = document.getElementById('reload_btn')
+  const updateButton = document.getElementById('update_btn')
 
   checkForUpdateButton.onclick = function () {
     checkForUpdate()
   }
 
-  reloadButton.style.display = 'none'
-  reloadButton.onclick = function () {
-    console.log('relaod now')
+  updateButton.onclick = async function () {
+    console.log('Update now')
+    await setVersion(_newVersion)
     window.location.reload()
   }
 }

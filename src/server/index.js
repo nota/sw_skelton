@@ -25,8 +25,8 @@ app.get('/note/*', function (req, res) {
   res.render('app')
 })
 
-app.use(express.static(path.join(__dirname, '/public')))
-app.set('views', './views')
+app.use(express.static(path.join(__dirname, '../../public')))
+app.set('views', `${__dirname}/views`)
 app.set('view engine', 'ejs')
 var port = process.env.PORT || 2000
 app.listen(port, function () {
