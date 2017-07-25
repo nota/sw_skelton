@@ -51,4 +51,6 @@ window.onload = async function onLoad () {
 
   checkForUpdateButton.onclick = () => { checkForUpdate() }
   updateButton.onclick = () => { updateNow() }
+
+  checkForUpdate()
 }
