@@ -54,7 +54,6 @@
     "gulp-environments": "^0.1.2",
     "gulp-iconfont": "^8.0.1",
     "gulp-iconfont-css": "^2.1.0",
-    "gulp-replace": "^0.5.4",
     "highlight.js": "^9.12.0",
     "node-sass": "^3.8.0",
     "uglifyify": "^3.0.2"

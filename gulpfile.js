@@ -5,13 +5,6 @@ const gulp = require('gulp')
 const environments = require('gulp-environments')
 const iconfont = require('gulp-iconfont')
 const iconfontCss = require('gulp-iconfont-css')
-const replace = require('gulp-replace')
-const glob = require('glob-promise')
-
-const development = environments.development
-const production = environments.production
-console.log('development', development())
-console.log('production', production())
 
 const config = {
   nodeModuleDir: './node_modules'
@@ -63,7 +56,7 @@ gulp.task('iconfont', function () {
     .pipe(gulp.dest('./public/fonts/'))
 })
 
-// service workerのASSETSとCHECKSUMを作ってsw.jsを作成
+// service workerのJSをコピーする
 gulp.task('serviceworker', function () {
   return gulp.src(['./src/client/js/sw.js'])
     .pipe(gulp.dest('./public/'))
