@@ -13,7 +13,13 @@ let _newVersion
 
 export async function checkForUpdate () {
   debug('fething...')
-  const response = await request.get('/api/client_version')
+  let response
+  try {
+    response = await request.get('/api/client_version')
+  } catch (err) {
+    console.warn('Can not fetch the lastest version')
+    return
+  }
   debug(`fetched: ${response.body.version}`)
 
   const newVersion = response.body.version
