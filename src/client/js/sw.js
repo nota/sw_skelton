@@ -5,7 +5,7 @@ const NOCACHE_PATHS = [
   '/.+?/.+?/slide',
   '/.+?/.+?.json'
 ]
-
+;
 const ASSETS = [
   '/css/',
   '/img/',

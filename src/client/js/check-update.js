@@ -1,3 +1,5 @@
+const debug = require('./debug')(__filename)
+
 import request from 'superagent'
 import {setVersion, getVersion} from './version'
 
@@ -10,10 +12,10 @@ import {setVersion, getVersion} from './version'
 let _newVersion
 
 async function checkForUpdate () {
-  console.log('checkForUpdate')
+  debug('checkForUpdate')
   const response = await request.get('/api/client_version')
   //console.log(response)
-  console.log(response.body.version)
+  debug(response.body.version)
 
   const newVersion = response.body.version
   _newVersion = newVersion
@@ -28,7 +30,7 @@ async function checkForUpdate () {
 }
 
 async function updateNow () {
-  console.log('Update now')
+  debug('Update now')
   await setVersion(_newVersion)
   window.location.reload()
 }
@@ -37,7 +39,7 @@ async function updateNow () {
 setInterval(() => { checkForUpdate() }, 10 * 1000)
 
 window.onload = async function onLoad () {
-  console.log('Window has been loaded')
+  debug('Window has been loaded')
   const url = window.location.href
 
   const version = await getVersion()

@@ -45,6 +45,7 @@
     "bootstrap-sass": "^3.3.7",
     "browserify": "^13.1.0",
     "browserify-shim": "^3.8.14",
+    "debug": "^3.0.0",
     "del": "^2.2.2",
     "ejs": "^2.5.6",
     "express": "^4.15.3",
@@ -57,6 +58,7 @@
     "highlight.js": "^9.12.0",
     "md5-file": "^3.1.1",
     "node-sass": "^3.8.0",
+    "path": "^0.12.7",
     "superagent": "^3.5.2",
     "uglifyify": "^3.0.2"
   },

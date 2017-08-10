@@ -1,6 +1,8 @@
-console.log('Hello by index.js')
+const debug = require('./debug')(__filename)
 
 export default async function initialize () {
+  debug('initialize')
+
   const serviceWorker = navigator.serviceWorker
 
   if (!serviceWorker) {
@@ -21,38 +23,25 @@ export default async function initialize () {
     } else {
       status = 'unknown'
     }
-    console.log('Service worker is registered:', status)
-
-    let hasExistingActiveWorker = !!reg.active
+    debug(`registered. state is ${status}`)
 
     reg.addEventListener('updatefound', (event) => {
-      // A new worker is coming!!
-      console.log('New service worker is found', reg)
+      debug('new service worker is found')
 
       if (!reg.installing) {
-        console.log('not installing')
+        debug('not installing')
         return
       }
 
-      console.log('installing', reg.installing)
-
-      if (!hasExistingActiveWorker) {
-        console.log('this is the first worker, so do not prompt')
-        hasExistingActiveWorker = true
-        return
-      }
+      debug('installing')
 
       // install中の新しいservice workerの状態を監視する
       reg.installing.addEventListener('statechange', (event) => {
-        console.log('Service worker state changed', event.target)
-        if (event.target.state === 'activated') {
-          console.log('activeted!!')
-        }
+        debug(event.target.state)
       })
     })
   } catch(err) {
-    // registration failed
-    console.error('Serviceworker registration failed with ', err)
+    console.error('Service worker registration failed with ', err)
   }
 }
 
