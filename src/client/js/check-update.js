@@ -17,7 +17,7 @@ export async function checkForUpdate () {
   try {
     response = await request.get('/api/client_version')
   } catch (err) {
-    console.warn('Can not fetch the lastest version')
+    console.warn('Can not fetch the latest version')
     return
   }
   debug(`fetched: ${response.body.version}`)
