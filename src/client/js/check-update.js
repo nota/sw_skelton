@@ -11,10 +11,9 @@ import {setVersion, getVersion} from './version'
 
 let _newVersion
 
-async function checkForUpdate () {
+export async function checkForUpdate () {
   debug('fething...')
   const response = await request.get('/api/client_version')
-  //console.log(response)
   debug(`fetched: ${response.body.version}`)
 
   const newVersion = response.body.version
@@ -24,43 +23,15 @@ async function checkForUpdate () {
   debug(`currrent version: ${currentVersion}`)
 
   if (!currentVersion) {
-    debug('write to DB')
+    debug('write version to DB')
     await setVersion(_newVersion)
-    return
+    return false
   }
 
-  if (newVersion != currentVersion) {
-    debug('update found')
-    document.getElementById('update_message').innerHTML = 'there is a new update!'
-    const updateAlert = document.getElementById('new_update_alert')
-    updateAlert.style.display = 'inline-block'
-  }
+  return (newVersion != currentVersion)
 }
 
-async function updateNow () {
-  debug('update now')
+export async function updateNow () {
   await setVersion(_newVersion)
   window.location.reload()
-}
-
-// 定期的に新しいリソースがないか確認しにいく
-setInterval(() => { checkForUpdate() }, 10 * 1000)
-
-window.onload = async function onLoad () {
-  debug('window has been loaded')
-  const url = window.location.href
-
-  const version = await getVersion()
-
-  const message = `url: ${url}<br>current version: ${version}`
-
-  document.getElementById('message').innerHTML = message
-
-  const checkForUpdateButton = document.getElementById('check_for_update_btn')
-  const updateButton = document.getElementById('update_btn')
-
-  checkForUpdateButton.onclick = () => { checkForUpdate() }
-  updateButton.onclick = () => { updateNow() }
-
-  checkForUpdate()
 }

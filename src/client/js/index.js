@@ -1,6 +1,6 @@
 import 'babel-polyfill'
 
 import registerServiceworker from './register-serviceworker'
-require('./check-update')
+require('./setup-ui')
 
 registerServiceworker()
