@@ -12,17 +12,25 @@ import {setVersion, getVersion} from './version'
 let _newVersion
 
 async function checkForUpdate () {
-  debug('checkForUpdate')
+  debug('fething...')
   const response = await request.get('/api/client_version')
   //console.log(response)
-  debug(response.body.version)
+  debug(`fetched: ${response.body.version}`)
 
   const newVersion = response.body.version
   _newVersion = newVersion
 
   const currentVersion = await getVersion()
+  debug(`currrent version: ${currentVersion}`)
+
+  if (!currentVersion) {
+    debug('write to DB')
+    await setVersion(_newVersion)
+    return
+  }
 
   if (newVersion != currentVersion) {
+    debug('update found')
     document.getElementById('update_message').innerHTML = 'there is a new update!'
     const updateAlert = document.getElementById('new_update_alert')
     updateAlert.style.display = 'inline-block'
@@ -30,7 +38,7 @@ async function checkForUpdate () {
 }
 
 async function updateNow () {
-  debug('Update now')
+  debug('update now')
   await setVersion(_newVersion)
   window.location.reload()
 }
@@ -39,12 +47,12 @@ async function updateNow () {
 setInterval(() => { checkForUpdate() }, 10 * 1000)
 
 window.onload = async function onLoad () {
-  debug('Window has been loaded')
+  debug('window has been loaded')
   const url = window.location.href
 
   const version = await getVersion()
 
-  const message = `url: ${url}<br>version: ${version}`
+  const message = `url: ${url}<br>current version: ${version}`
 
   document.getElementById('message').innerHTML = message
 

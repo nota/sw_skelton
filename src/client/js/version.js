@@ -6,7 +6,7 @@ export function setVersion (value) {
 
 export function getVersion () {
   return getItem('version', 'version').then(function (result) {
-    if (!result) throw 'cache version is not set'
+    if (!result) return undefined
     return result.value
   })
 }

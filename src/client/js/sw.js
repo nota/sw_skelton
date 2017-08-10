@@ -5,7 +5,7 @@ const NOCACHE_PATHS = [
   '/.+?/.+?/slide',
   '/.+?/.+?.json'
 ]
-;
+
 const ASSETS = [
   '/css/',
   '/img/',
@@ -89,7 +89,7 @@ function openDB () {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open('MyDatabase', 3);
+    const open = indexedDB.open('MyDatabase', 1);
 
     // Create the schema
     open.onupgradeneeded = function (event) {
