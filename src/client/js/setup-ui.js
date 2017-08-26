@@ -9,7 +9,7 @@ window.onload = async function onLoad () {
 
   const version = await getVersion()
 
-  const message = `url: ${url}<br>current version: ${version}`
+  const message = `url: ${url}<br>local version: ${version}`
 
   document.getElementById('message').innerHTML = message
 

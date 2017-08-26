@@ -19,6 +19,9 @@ const ASSET_HOSTS = [
   'maxcdn.bootstrapcdn.com'
 ]
 
+const DB_NAME = 'cache'
+const STORE_NAME = 'version'
+
 console.log('sw: hello')
 
 this.addEventListener('install', function (event) {
@@ -89,12 +92,12 @@ function openDB () {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open('MyDatabase', 1);
+    const open = indexedDB.open(DB_NAME, 1);
 
     // Create the schema
     open.onupgradeneeded = function (event) {
       const db = event.target.result
-      db.createObjectStore('version', {keyPath: 'key'})
+      db.createObjectStore(STORE_NAME, {keyPath: 'key'})
     }
 
     open.onsuccess = function (event) {
@@ -113,17 +116,17 @@ function openDB () {
   })
 }
 
-function setItem (store, key, value) {
+function setItem (key, value) {
   return openDB().then(function (db) {
-    const objectStore = db.transaction(store, 'readwrite').objectStore(store)
+    const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
     objectStore.put({key: key, value: value})
   })
 }
 
-function getItem (store, key) {
+function getItem (key) {
   return openDB().then(function (db) {
     return new Promise(function(resolve, reject) {
-      const objectStore = db.transaction(store, 'readonly').objectStore(store)
+      const objectStore = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME)
       const request = objectStore.get(key)
       request.onsuccess = function(event){
         resolve(event.target.result)
@@ -136,11 +139,11 @@ function getItem (store, key) {
 }
 
 function setVersion (value) {
-  return setItem('version', 'version', value)
+  return setItem('version', value)
 }
 
 function getVersion () {
-  return getItem('version', 'version').then(function (result) {
+  return getItem('version').then(function (result) {
     if (!result) throw 'cache version is not set'
     return result.value
   })

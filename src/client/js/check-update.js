@@ -12,6 +12,9 @@ import {setVersion, getVersion} from './version'
 let _newVersion
 
 export async function checkForUpdate () {
+  const currentVersion = await getVersion()
+  debug('local version', currentVersion)
+
   debug('fething...')
   let response
   try {
@@ -20,13 +23,10 @@ export async function checkForUpdate () {
     console.warn('Can not fetch the latest version')
     return
   }
-  debug('fetched', response.body.version)
+  debug('remote version', response.body.version)
 
   const newVersion = response.body.version
   _newVersion = newVersion
-
-  const currentVersion = await getVersion()
-  debug('currrent version', currentVersion)
 
   if (!currentVersion) {
     debug('write version to DB')

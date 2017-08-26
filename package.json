@@ -20,7 +20,7 @@
     "watch": "./node_modules/.bin/run-p watch:**",
     "watch:babel": "npm run build:babel -- --watch",
     "watch:watchify": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/client/js/index.js -o public/index.js",
-    "watch:serviceworker": "./node_modules/.bin/chokidar 'src/servicewroker/*.js' -c 'npm run build:serviceworker' --initial",
+    "watch:serviceworker": "./node_modules/.bin/chokidar 'src/serviceworker/*.js' -c 'npm run build:serviceworker' --initial",
     "watch:sass": "./node_modules/.bin/chokidar 'src/client/css/**/*.scss' -c 'npm run build:sass -- --source-map-embed' --initial",
     "watch:gulp": "./node_modules/.bin/gulp watch",
     "clean": "gulp clean"
@@ -58,6 +58,7 @@
     "gulp-iconfont": "^8.0.1",
     "gulp-iconfont-css": "^2.1.0",
     "highlight.js": "^9.12.0",
+    "md5": "^2.2.1",
     "md5-file": "^3.1.1",
     "node-sass": "^3.8.0",
     "path": "^0.12.7",
