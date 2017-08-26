@@ -16,7 +16,10 @@ window.onload = async function onLoad () {
   const checkForUpdateButton = document.getElementById('check_for_update_btn')
   const updateButton = document.getElementById('update_btn')
 
-  checkForUpdateButton.onclick = () => { checkForUpdate() }
+  checkForUpdateButton.onclick = (e) => {
+    checkForUpdate()
+    e.preventDefault()
+  }
   updateButton.onclick = () => { updateNow() }
 
   checkUpdateAndPrompt()
@@ -26,9 +29,10 @@ async function checkUpdateAndPrompt () {
   const updated = await checkForUpdate()
   if  (!updated) return
 
-  document.getElementById('update_message').innerHTML = 'there is a new update!'
   const updateAlert = document.getElementById('new_update_alert')
-  updateAlert.style.display = 'inline-block'
+  updateAlert.style.display = 'block'
+  const body = document.body
+  body.className = 'update-found'
 }
 
 // 定期的に新しいリソースがないか確認しにいく

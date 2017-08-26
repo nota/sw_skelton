@@ -7,15 +7,42 @@ h1 {
   color: blue;
 }
 
+body.update-found {
+  padding-top: 40px;
+}
+
 .update-alert-bar {
-  background-color: blue;
   position: fixed;
   height: 40px;
   text-align: center;
-  color: #fff;
-  font-weight: bold;
+  top: 0;
+  left: 0;
+  width: 100%;
 
-  button {
-    background-color: none;
+  a {
+    display: block;
+    background-color: #34c1ae;
+    width: 100%;
+    border: 0;
+    height: 40px;
+    line-height: 40px;
+    font-weight: bold;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #2b9486;
+    }
+
   }
+}
+
+.text {
+  color: #666;
+  font-size: 18px;
+  width: 400px;
+  margin: 50px auto;
+  text-align: left;
+  line-height: 150%;
 }
