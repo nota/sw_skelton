@@ -26,7 +26,6 @@ async function checkUpdateAndPrompt () {
   const updated = await checkForUpdate()
   if  (!updated) return
 
-  debug('update found')
   document.getElementById('update_message').innerHTML = 'there is a new update!'
   const updateAlert = document.getElementById('new_update_alert')
   updateAlert.style.display = 'inline-block'

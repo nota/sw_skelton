@@ -13,9 +13,7 @@ let _newVersion
 
 export async function checkForUpdate () {
   const currentVersion = await getVersion()
-  debug('local version', currentVersion)
-
-  debug('fething...')
+  debug('checking...')
   let response
   try {
     response = await request.get('/api/client_version')
@@ -23,21 +21,26 @@ export async function checkForUpdate () {
     console.warn('Can not fetch the latest version')
     return
   }
-  debug('remote version', response.body.version)
-
   const newVersion = response.body.version
   _newVersion = newVersion
 
+  const isUpdateFound = (newVersion != currentVersion)
+  if (isUpdateFound)
+    debug('new updated is found', newVersion, 'current:', currentVersion)
+  else
+    debug('no update', newVersion, 'current:', currentVersion)
+
   if (!currentVersion) {
-    debug('write version to DB')
+    debug('save initial version in DB')
     await setVersion(_newVersion)
     return false
   }
 
-  return (newVersion != currentVersion)
+  return isUpdateFound
 }
 
 export async function updateNow () {
+  debug('update now')
   await setVersion(_newVersion)
   window.location.reload()
 }
