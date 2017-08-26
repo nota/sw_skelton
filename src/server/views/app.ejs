@@ -9,17 +9,18 @@
   <link rel="stylesheet" type="text/css" href="/app2.css">
 </head>
 <body>
+  <div id="new_update_alert" class="update-alert-bar" style="display: none;">
+    <button id="update_btn" class="btn btn-primary">
+      新しいバージョンが見つかりました。ここを押してアップデートしましょう。
+    </button>
+  </div>
+
   <h1>
     <img src="/img/logo.png" width="50" />
     Hello, service worker
   </h1>
 
-  <div id="new_update_alert" class="alert alert-info" style="display: none;">
-    <span id="update_message">New Version is available</span>
-    <button id="update_btn" class="btn btn-primary">
-      Update now
-    </button>
-  </div>
+
 
   <p id="message"></p>
   <p>
