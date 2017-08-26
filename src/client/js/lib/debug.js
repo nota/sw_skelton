@@ -2,7 +2,7 @@
 
 import Debug from 'debug'
 import path from 'path'
-import pkg from '../../../package.json'
+import pkg from '../../../../package.json'
 
 const PATH_HEADS = [
   '/src/client/js',

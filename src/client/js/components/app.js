@@ -1,10 +1,10 @@
-const debug = require('../debug')(__filename)
+const debug = require('../lib/debug')(__filename)
 
 import React from 'react'
 import {Component} from 'react'
 
-import {checkForUpdate, updateNow} from '../check-update'
-import {getVersion} from '../version'
+import {checkForUpdate, updateNow} from '../lib/check-update'
+import {getVersion} from '../lib/version'
 
 export default class App extends Component {
   constructor (props) {
@@ -17,8 +17,7 @@ export default class App extends Component {
     const version = await getVersion()
     const url = window.location.href
     this.setState({version, url})
-//    const message = `url: ${url}<br>local version: ${version}`
-    // 定期的に新しいリソースがないか確認しにいく
+
     setInterval(this.checkUpdateAndPrompt.bind(this), 10 * 1000)
     this.checkUpdateAndPrompt()
   }
@@ -59,7 +58,7 @@ export default class App extends Component {
           )
         }
         <p>
-          <button className='btn btn-default'>
+          <button className='btn btn-default' onClick={this.checkUpdateAndPrompt.bind(this)}>
             Check for update
           </button>
           &nbsp;
