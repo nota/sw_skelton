@@ -10,7 +10,7 @@ export default async function initialize () {
   }
 
   try {
-    const reg = await serviceWorker.register('/sw.js', {scope: '/'})
+    const reg = await serviceWorker.register('/servieworker.js', {scope: '/'})
     const state = (() => {
       if (reg.installing) return 'installing'
       if (reg.waiting) return 'wating'

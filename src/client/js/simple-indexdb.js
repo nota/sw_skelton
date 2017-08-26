@@ -4,12 +4,12 @@ export function openDB () {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open('MyDatabase', 1);
+    const open = indexedDB.open('cache', 1);
 
     // Create the schema
     open.onupgradeneeded = function (event) {
       const db = event.target.result
-      db.createObjectStore('version', {keyPath: 'id'})
+      db.createObjectStore('version', {keyPath: 'key'})
     }
 
     open.onsuccess = function (event) {
@@ -28,18 +28,18 @@ export function openDB () {
   })
 }
 
-export function setItem (storeName, data) {
+export function setItem (store, key, value) {
   return openDB().then(function (db) {
-    const store = db.transaction(storeName, 'readwrite').objectStore(storeName)
-    store.put(data)
+    const objectStore = db.transaction(store, 'readwrite').objectStore(store)
+    objectStore.put({key, value})
   })
 }
 
-export function getItem (storeName, id) {
+export function getItem (store, key) {
   return openDB().then(function (db) {
     return new Promise(function(resolve, reject) {
-      const store = db.transaction(storeName, 'readonly').objectStore(storeName)
-      const request = store.get(id)
+      const objectStore = db.transaction(store, 'readonly').objectStore(store)
+      const request = objectStore.get(key)
       request.onsuccess = function(event){
         resolve(event.target.result)
       }

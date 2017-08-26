@@ -1,7 +1,7 @@
 import {setItem, getItem} from './simple-indexdb'
 
 export function setVersion (value) {
-  return setItem('version', {id: 'version', value: value})
+  return setItem('version', 'version', value)
 }
 
 export function getVersion () {

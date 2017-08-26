@@ -27,7 +27,7 @@ this.addEventListener('install', function (event) {
   )
 })
 
-self.addEventListener('activate', function (event) {
+this.addEventListener('activate', function (event) {
   event.waitUntil(
     self.clients.claim()
   )
@@ -94,7 +94,7 @@ function openDB () {
     // Create the schema
     open.onupgradeneeded = function (event) {
       const db = event.target.result
-      db.createObjectStore('version', {keyPath: 'id'})
+      db.createObjectStore('version', {keyPath: 'key'})
     }
 
     open.onsuccess = function (event) {
@@ -113,18 +113,18 @@ function openDB () {
   })
 }
 
-function setItem (storeName, data) {
+function setItem (store, key, value) {
   return openDB().then(function (db) {
-    const store = db.transaction(storeName, 'readwrite').objectStore(storeName)
-    store.put(data)
+    const objectStore = db.transaction(store, 'readwrite').objectStore(store)
+    objectStore.put({key: key, value: value})
   })
 }
 
-function getItem (storeName, id) {
+function getItem (store, key) {
   return openDB().then(function (db) {
     return new Promise(function(resolve, reject) {
-      const store = db.transaction(storeName, 'readonly').objectStore(storeName)
-      const request = store.get(id)
+      const objectStore = db.transaction(store, 'readonly').objectStore(store)
+      const request = objectStore.get(key)
       request.onsuccess = function(event){
         resolve(event.target.result)
       }
@@ -136,7 +136,7 @@ function getItem (storeName, id) {
 }
 
 function setVersion (value) {
-  return setItem('version', {id: 'version', value: value})
+  return setItem('version', {key: 'version', value: value})
 }
 
 function getVersion () {

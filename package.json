@@ -13,6 +13,7 @@
     "build": "./node_modules/.bin/run-s build:**",
     "build:babel": "./node_modules/.bin/babel src/ --out-dir build/ --source-maps inline",
     "build:browserify": "browserify --verbose -t [ babelify ] -g uglifyify src/client/js/index.js -o public/index.js",
+    "build:serviceworker": "browserify --verbose -t [ babelify ] -g uglifyify src/serviceworker/index.js -o public/serviceworker.js",
     "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/css/",
     "build:gulp": "gulp build && gulp serviceworker",
     "test": "standard",
