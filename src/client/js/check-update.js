@@ -20,13 +20,13 @@ export async function checkForUpdate () {
     console.warn('Can not fetch the latest version')
     return
   }
-  debug(`fetched: ${response.body.version}`)
+  debug('fetched', response.body.version)
 
   const newVersion = response.body.version
   _newVersion = newVersion
 
   const currentVersion = await getVersion()
-  debug(`currrent version: ${currentVersion}`)
+  debug('currrent version', currentVersion)
 
   if (!currentVersion) {
     debug('write version to DB')

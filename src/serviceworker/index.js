@@ -1,6 +1,6 @@
 /* global caches self URL fetch */
 const NOCACHE_PATHS = [
-  '/sw.js',
+  '/serviceworker.js',
   '/api/',
   '/.+?/.+?/slide',
   '/.+?/.+?.json'
@@ -136,7 +136,7 @@ function getItem (store, key) {
 }
 
 function setVersion (value) {
-  return setItem('version', {key: 'version', value: value})
+  return setItem('version', 'version', value)
 }
 
 function getVersion () {

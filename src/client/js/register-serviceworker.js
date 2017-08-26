@@ -10,14 +10,14 @@ export default async function initialize () {
   }
 
   try {
-    const reg = await serviceWorker.register('/servieworker.js', {scope: '/'})
+    const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
     const state = (() => {
       if (reg.installing) return 'installing'
       if (reg.waiting) return 'wating'
       if (reg.active) return 'active'
       return 'unknown'
     })()
-    debug(`registered. state is ${state}`)
+    debug('registered', state)
 
     reg.addEventListener('updatefound', (event) => {
       debug('new service worker is found')
@@ -25,7 +25,7 @@ export default async function initialize () {
       debug('installing')
       // install中の新しいservice workerの状態を監視する
       reg.installing.addEventListener('statechange', (event) => {
-        debug(event.target.state)
+        debug('statechange', event.target.state)
       })
     })
   } catch(err) {
