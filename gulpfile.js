@@ -56,18 +56,11 @@ gulp.task('iconfont', function () {
     .pipe(gulp.dest('./public/fonts/'))
 })
 
-// service workerのJSをコピーする
-gulp.task('serviceworker', function () {
-  return gulp.src(['./src/serviceworker/index.js'])
-    .pipe(gulp.dest('./public/serviceworker.js'))
-})
-
 // ファイルの変更を監視する
 // ファイルが変更されたら自動的にコンパイルする
 gulp.task('watch', ['build'], () => {
   gulp.watch('src/client/img/**', ['img'])
   gulp.watch('src/client/fonts/**', ['iconfont'])
-  gulp.watch('src/serviceworker/index.js', ['serviceworker'])
 })
 
 // 作業フォルダをクリーンな状態に戻す
