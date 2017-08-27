@@ -14,12 +14,15 @@ const ASSETS = [
   '/fonts/'
 ]
 
-const ASSET_HOSTS = [
+const MY_HOSTS = [
   'localhost',
   'scrapbox.io',
-  'staging.scrapbox.io',
-  'maxcdn.bootstrapcdn.com'
+  'staging.scrapbox.io'
 ]
+
+const ASSET_HOSTS = MY_HOSTS.concat([
+  'maxcdn.bootstrapcdn.com'
+])
 
 const DB_NAME = 'cache'
 const STORE_NAME = 'version'
@@ -46,6 +49,13 @@ function isNoCachePath (pathname) {
   return false
 }
 
+function isMyHost (hostname) {
+  for (let host of MY_HOSTS) {
+    if (host === hostname) return true
+  }
+  return false
+}
+
 function isAssetHost (hostname) {
   for (let host of ASSET_HOSTS) {
     if (host === hostname) return true
@@ -63,7 +73,7 @@ function isAssetPath (pathname) {
 function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
-  if (!isAssetHost(url.hostname)) return false
+  if (!isMyHost(url.hostname)) return false
   if (isAssetPath(url.pathname)) return false
   if (isNoCachePath(url.pathname)) return false
   if (req.method !== 'GET') return false
