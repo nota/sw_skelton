@@ -12,15 +12,32 @@ app.get('/app.html', (req, res) => {
   res.render('app')
 })
 
-app.get('/api/client_version', async (req, res) => {
+async function getVersion() {
   const paths = [
     'public/index.js',
     'src/server/views/app.ejs',
     'public/css/app.css'
   ]
   const hashes = await Promise.all(paths.map(path => md5File(path)))
-  const version = md5(hashes.join('')).substring(0, 8)
+  return md5(hashes.join('')).substring(0, 8)
+}
+
+app.get('/api/client_version', async (req, res) => {
+  const version = await getVersion()
   res.json({ version })
+})
+
+app.get('/api/cacheall', async (req, res) => {
+  const version = await getVersion()
+  const cacheall = [
+    '/app.html',
+    '/css/app.css'
+  ]
+  res.json({
+    name: 'sw_app',
+    version,
+    cacheall
+  })
 })
 
 

@@ -175,11 +175,44 @@ function deleteOldCache(currentVersion) {
   })
 }
 
+function isCacheAllCommand(request) {
+  const url = new URL(request.url)
+
+  if (!isAssetHost(url.hostname)) return false
+
+  return (url.pathname === '/api/cacheall')
+}
+
+function cacheAll (manifest) {
+  return caches.open(manifest.version).then(function(cache) {
+    return cache.addAll(manifest.cacheall)
+//    .then(function() {
+//      // install 成功
+//      return setVersion(manifest.version)
+//    })
+  })
+}
+
 this.addEventListener('fetch', function (event) {
   let request = event.request
 
   if (useAppHtml(request)) {
     request = createAppHtmlRequest(request)
+  }
+
+  if (isCacheAllCommand(request)) {
+    console.log('sw: cache all')
+    event.respondWith(
+      fetch(request).then(function(response) {
+        return response.clone().json().then(function(manifest) {
+          return cacheAll(manifest).then(function() {
+            console.log('sw: cache all done')
+            return response
+          })
+        })
+      })
+    )
+    return
   }
 
   let tryFetched = false
