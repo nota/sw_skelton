@@ -55,5 +55,5 @@ export default new class AssetCacheStore extends EventEmitter {
     await setVersion(this._newVersion)
     window.location.reload()
   }
-}
+}()
 
