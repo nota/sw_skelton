@@ -181,7 +181,7 @@ function isCacheAllRequest (req) {
 
   if (!isAssetHost(url.hostname)) return false
 
-  return (url.pathname === '/api/cacheall')
+  return (url.pathname === '/api/assets/cacheall')
 }
 
 function cacheAll (manifest) {

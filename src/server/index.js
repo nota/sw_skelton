@@ -22,12 +22,12 @@ async function getVersion () {
   return md5(hashes.join('')).substring(0, 8)
 }
 
-app.get('/api/client_version', async (req, res) => {
+app.get('/api/assets/version', async (req, res) => {
   const version = await getVersion()
   res.json({ version })
 })
 
-app.get('/api/cacheall', async (req, res) => {
+app.get('/api/assets/cacheall', async (req, res) => {
   const version = await getVersion()
   const cacheall = [
     '/app.html',

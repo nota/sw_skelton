@@ -24,7 +24,7 @@ export default new class AssetCacheStore extends EventEmitter {
     debug('checking...')
     let response
     try {
-      response = await request.get('/api/client_version')
+      response = await request.get('/api/assets/version')
     } catch (err) {
       return console.warn('Can not fetch the latest version')
     }
@@ -39,7 +39,7 @@ export default new class AssetCacheStore extends EventEmitter {
     debug('new updated is found')
     try {
       debug('cache all new version')
-      await request.get('/api/cacheall')
+      await request.get('/api/assets/cacheall')
     } catch (err) {
       return console.error('Can not cache all', err)
     }
