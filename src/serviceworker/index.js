@@ -58,7 +58,7 @@ function isAssetPath(pathname) {
   return false
 }
 
-function useAppHtml (req) {
+function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
   if (!isAssetHost(url.hostname)) return false
@@ -175,7 +175,7 @@ function deleteOldCache(currentVersion) {
   })
 }
 
-function isCacheAllCommand(req) {
+function isCacheAllRequest(req) {
   const url = new URL(req.url)
 
   if (!isAssetHost(url.hostname)) return false
@@ -196,11 +196,11 @@ function cacheAll (manifest) {
 this.addEventListener('fetch', function (event) {
   let req = event.request
 
-  if (useAppHtml(req)) {
+  if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
 
-  if (isCacheAllCommand(req)) {
+  if (isCacheAllRequest(req)) {
     console.log('sw: cache all')
     event.respondWith(
       fetch(req).then(function(res) {
