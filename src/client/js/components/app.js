@@ -1,7 +1,6 @@
-const debug = require('../lib/debug')(__filename)
+// const debug = require('../lib/debug')(__filename)
 
-import React from 'react'
-import {Component} from 'react'
+import React, {Component} from 'react'
 
 import {checkForUpdate, updateNow} from '../lib/check-update'
 import {getVersion} from '../lib/version'
@@ -24,7 +23,7 @@ export default class App extends Component {
 
   async checkUpdateAndPrompt () {
     const updated = await checkForUpdate()
-    if  (!updated) return
+    if (!updated) return
 
     this.setState({updateFound: true})
   }

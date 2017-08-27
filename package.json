@@ -54,7 +54,6 @@
     "font-awesome": "^4.6.3",
     "glob-promise": "^1.0.6",
     "gulp": "^3.9.1",
-    "gulp-environments": "^0.1.2",
     "gulp-iconfont": "^8.0.1",
     "gulp-iconfont-css": "^2.1.0",
     "highlight.js": "^9.12.0",

@@ -1,4 +1,6 @@
 /* global caches self URL fetch */
+/* eslint-env browser */
+
 const NOCACHE_PATHS = [
   '/serviceworker.js',
   '/api/',
@@ -36,7 +38,7 @@ this.addEventListener('activate', function (event) {
   )
 })
 
-function isNoCachePath(pathname) {
+function isNoCachePath (pathname) {
   for (let path of NOCACHE_PATHS) {
     const reg = new RegExp(path)
     if (reg.test(pathname)) return true
@@ -44,16 +46,16 @@ function isNoCachePath(pathname) {
   return false
 }
 
-function isAssetHost(hostname) {
-  for (let asset_host of ASSET_HOSTS) {
-    if (asset_host === hostname) return true
+function isAssetHost (hostname) {
+  for (let host of ASSET_HOSTS) {
+    if (host === hostname) return true
   }
   return false
 }
 
-function isAssetPath(pathname) {
-  for (let asset_path of ASSETS) {
-    if (pathname.indexOf(asset_path) === 0) return true
+function isAssetPath (pathname) {
+  for (let path of ASSETS) {
+    if (pathname.indexOf(path) === 0) return true
   }
   return false
 }
@@ -68,7 +70,7 @@ function isAppHtmlRequest (req) {
 
   const accept = req.headers.get('Accept')
   if (!accept || accept.indexOf('text/html') < 0) {
-   return false
+    return false
   }
 
   return true
@@ -85,14 +87,13 @@ function shouldCache (req, res) {
   return true
 }
 
-
 let _db = null
 function openDB () {
   return new Promise(function (resolve, reject) {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open(DB_NAME, 1);
+    const open = indexedDB.open(DB_NAME, 1)
 
     // Create the schema
     open.onupgradeneeded = function (event) {
@@ -125,10 +126,10 @@ function setItem (key, value) {
 
 function getItem (key) {
   return openDB().then(function (db) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       const objectStore = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME)
       const req = objectStore.get(key)
-      req.onsuccess = function(event){
+      req.onsuccess = function (event) {
         resolve(event.target.result)
       }
       req.onerror = function (event) {
@@ -144,25 +145,25 @@ function setVersion (value) {
 
 function getVersion () {
   return getItem('version').then(function (result) {
-    if (!result) throw 'cache version is not set'
+    if (!result) throw new Error('cache version is not set')
     return result.value
   })
 }
 
 // setVersion('hoihoi2')
 
-function createAppHtmlRequest(req) {
+function createAppHtmlRequest (req) {
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
-      method: req.method,
-      headers: req.headers,
-      mode: 'same-origin', // need to set this properly
-      credentials: req.credentials,
-      redirect: 'manual'   // let browser handle redirects
+    method: req.method,
+    headers: req.headers,
+    mode: 'same-origin', // need to set this properly
+    credentials: req.credentials,
+    redirect: 'manual'   // let browser handle redirects
   })
 }
 
-function deleteOldCache(currentVersion) {
+function deleteOldCache (currentVersion) {
   return caches.keys().then(function (keys) {
     return Promise.all(keys.map(function (key) {
       if (key !== currentVersion) {
@@ -175,7 +176,7 @@ function deleteOldCache(currentVersion) {
   })
 }
 
-function isCacheAllRequest(req) {
+function isCacheAllRequest (req) {
   const url = new URL(req.url)
 
   if (!isAssetHost(url.hostname)) return false
@@ -184,7 +185,7 @@ function isCacheAllRequest(req) {
 }
 
 function cacheAll (manifest) {
-  return caches.open(manifest.version).then(function(cache) {
+  return caches.open(manifest.version).then(function (cache) {
     return cache.addAll(manifest.cacheall)
 //    .then(function() {
 //      // install 成功
@@ -203,9 +204,9 @@ this.addEventListener('fetch', function (event) {
   if (isCacheAllRequest(req)) {
     console.log('sw: cache all')
     event.respondWith(
-      fetch(req).then(function(res) {
-        return res.clone().json().then(function(manifest) {
-          return cacheAll(manifest).then(function() {
+      fetch(req).then(function (res) {
+        return res.clone().json().then(function (manifest) {
+          return cacheAll(manifest).then(function () {
             console.log('sw: cache all done')
             return res
           })
@@ -218,8 +219,8 @@ this.addEventListener('fetch', function (event) {
   let tryFetched = false
 
   event.respondWith(
-    getVersion().then(function(version) {
-      return caches.open(version).then(function(cache) {
+    getVersion().then(function (version) {
+      return caches.open(version).then(function (cache) {
         return cache.match(req).then(function (res) {
           if (res) {
             console.log('sw: respond from cache', req.url)
@@ -228,7 +229,7 @@ this.addEventListener('fetch', function (event) {
           }
           console.log('sw: fetch', req.url)
           tryFetched = true
-          return fetch(req).then(function(res) {
+          return fetch(req).then(function (res) {
             if (shouldCache(req, res)) {
               console.log('sw: save cache', req.url)
               cache.put(req, res.clone())
@@ -237,9 +238,9 @@ this.addEventListener('fetch', function (event) {
           })
         })
       })
-    }).catch(function(err) {
+    }).catch(function (err) {
       if (!tryFetched) return fetch(req)
-      throw(err)
+      throw (err)
     })
   )
 })

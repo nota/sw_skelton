@@ -2,7 +2,6 @@
 
 const del = require('del')
 const gulp = require('gulp')
-const environments = require('gulp-environments')
 const iconfont = require('gulp-iconfont')
 const iconfontCss = require('gulp-iconfont-css')
 

@@ -12,7 +12,7 @@ app.get('/app.html', (req, res) => {
   res.render('app')
 })
 
-async function getVersion() {
+async function getVersion () {
   const paths = [
     'public/index.js',
     'src/server/views/app.ejs',
@@ -44,7 +44,6 @@ app.get('/api/cacheall', async (req, res) => {
     cacheall
   })
 })
-
 
 app.get('/note/*', (req, res) => {
   res.render('app')

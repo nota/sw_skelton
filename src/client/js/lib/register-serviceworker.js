@@ -28,7 +28,7 @@ export default async function initialize () {
         debug('statechange', event.target.state)
       })
     })
-  } catch(err) {
+  } catch (err) {
     console.error('Service worker registration failed with ', err)
   }
 }

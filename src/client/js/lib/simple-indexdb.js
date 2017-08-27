@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 let _db = null
 
 const DB_NAME = 'cache'
@@ -8,7 +10,7 @@ export function openDB () {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open(DB_NAME, 1);
+    const open = indexedDB.open(DB_NAME, 1)
 
     // Create the schema
     open.onupgradeneeded = function (event) {
@@ -41,10 +43,10 @@ export function setItem (key, value) {
 
 export function getItem (key) {
   return openDB().then(function (db) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       const objectStore = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME)
       const request = objectStore.get(key)
-      request.onsuccess = function(event){
+      request.onsuccess = function (event) {
         resolve(event.target.result)
       }
       request.onerror = function (event) {
