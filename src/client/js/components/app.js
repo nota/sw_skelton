@@ -9,7 +9,7 @@ export default class App extends Component {
 
     this.state = {}
 
-    this.AssetCacheStore = this.onAssetCacheChanged.bind(this)
+    this.onAssetCacheChanged = this.onAssetCacheChanged.bind(this)
     AssetCacheStore.on('change', this.onAssetCacheChanged)
   }
 
