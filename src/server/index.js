@@ -31,10 +31,12 @@ app.get('/api/cacheall', async (req, res) => {
   const version = await getVersion()
   const cacheall = [
     '/app.html',
+    '/app2.css',
     '/css/app.css',
     '/css/icons.css',
+    '/img/logo.png',
     '/index.js',
-
+    'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
   res.json({
     name: 'sw_app',

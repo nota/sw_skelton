@@ -58,15 +58,15 @@ function isAssetPath(pathname) {
   return false
 }
 
-function useAppHtml (request) {
-  const url = new URL(request.url)
+function useAppHtml (req) {
+  const url = new URL(req.url)
 
   if (!isAssetHost(url.hostname)) return false
   if (isAssetPath(url.pathname)) return false
   if (isNoCachePath(url.pathname)) return false
-  if (request.method !== 'GET') return false
+  if (req.method !== 'GET') return false
 
-  const accept = request.headers.get('Accept')
+  const accept = req.headers.get('Accept')
   if (!accept || accept.indexOf('text/html') < 0) {
    return false
   }
@@ -74,13 +74,13 @@ function useAppHtml (request) {
   return true
 }
 
-function shouldCache (request, response) {
-  const url = new URL(request.url)
+function shouldCache (req, res) {
+  const url = new URL(req.url)
 
   if (!isAssetHost(url.hostname)) return false
   if (isNoCachePath(url.pathname)) return false
-  if (request.method !== 'GET') return false
-  if (!response.ok && response.status !== 0) return false
+  if (req.method !== 'GET') return false
+  if (!res.ok && res.status !== 0) return false
 
   return true
 }
@@ -127,11 +127,11 @@ function getItem (key) {
   return openDB().then(function (db) {
     return new Promise(function(resolve, reject) {
       const objectStore = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME)
-      const request = objectStore.get(key)
-      request.onsuccess = function(event){
+      const req = objectStore.get(key)
+      req.onsuccess = function(event){
         resolve(event.target.result)
       }
-      request.onerror = function (event) {
+      req.onerror = function (event) {
         reject(event)
       }
     })
@@ -151,13 +151,13 @@ function getVersion () {
 
 // setVersion('hoihoi2')
 
-function createAppHtmlRequest(request) {
-  const url = new URL(request.url).origin + '/app.html'
+function createAppHtmlRequest(req) {
+  const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
-      method: request.method,
-      headers: request.headers,
+      method: req.method,
+      headers: req.headers,
       mode: 'same-origin', // need to set this properly
-      credentials: request.credentials,
+      credentials: req.credentials,
       redirect: 'manual'   // let browser handle redirects
   })
 }
@@ -175,8 +175,8 @@ function deleteOldCache(currentVersion) {
   })
 }
 
-function isCacheAllCommand(request) {
-  const url = new URL(request.url)
+function isCacheAllCommand(req) {
+  const url = new URL(req.url)
 
   if (!isAssetHost(url.hostname)) return false
 
@@ -194,20 +194,20 @@ function cacheAll (manifest) {
 }
 
 this.addEventListener('fetch', function (event) {
-  let request = event.request
+  let req = event.request
 
-  if (useAppHtml(request)) {
-    request = createAppHtmlRequest(request)
+  if (useAppHtml(req)) {
+    req = createAppHtmlRequest(req)
   }
 
-  if (isCacheAllCommand(request)) {
+  if (isCacheAllCommand(req)) {
     console.log('sw: cache all')
     event.respondWith(
-      fetch(request).then(function(response) {
-        return response.clone().json().then(function(manifest) {
+      fetch(req).then(function(res) {
+        return res.clone().json().then(function(manifest) {
           return cacheAll(manifest).then(function() {
             console.log('sw: cache all done')
-            return response
+            return res
           })
         })
       })
@@ -220,25 +220,25 @@ this.addEventListener('fetch', function (event) {
   event.respondWith(
     getVersion().then(function(version) {
       return caches.open(version).then(function(cache) {
-        return cache.match(request).then(function (response) {
-          if (response) {
-            console.log('sw: respond from cache', request.url)
+        return cache.match(req).then(function (res) {
+          if (res) {
+            console.log('sw: respond from cache', req.url)
             deleteOldCache(version)
-            return response
+            return res
           }
-          console.log('sw: fetch', request.url)
+          console.log('sw: fetch', req.url)
           tryFetched = true
-          return fetch(request).then(function(response) {
-            if (shouldCache(request, response)) {
-              console.log('sw: save cache', request.url)
-              cache.put(request, response.clone())
+          return fetch(req).then(function(res) {
+            if (shouldCache(req, res)) {
+              console.log('sw: save cache', req.url)
+              cache.put(req, res.clone())
             }
-            return response
+            return res
           })
         })
       })
     }).catch(function(err) {
-      if (!tryFetched) return fetch(request)
+      if (!tryFetched) return fetch(req)
       throw(err)
     })
   )
