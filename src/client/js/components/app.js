@@ -1,35 +1,36 @@
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-
-import {checkForUpdate, updateNow} from '../lib/check-update'
-import {getVersion} from '../lib/version'
+import AssetCacheStore from '../stores/asset-cache-store'
 
 export default class App extends Component {
   constructor (props) {
     super(props)
 
     this.state = {}
+
+    this.AssetCacheStore = this.onAssetCacheChanged.bind(this)
+    AssetCacheStore.on('change', this.onAssetCacheChanged)
   }
 
   async componentDidMount () {
-    const version = await getVersion()
+    const version = await AssetCacheStore.currentVersion()
     const url = window.location.href
     this.setState({version, url})
 
-    setInterval(this.checkUpdateAndPrompt.bind(this), 10 * 1000)
-    this.checkUpdateAndPrompt()
+    AssetCacheStore.checkForUpdateAutomatically()
   }
 
-  async checkUpdateAndPrompt () {
-    const updated = await checkForUpdate()
-    if (!updated) return
-
+  onAssetCacheChanged () {
     this.setState({updateFound: true})
   }
 
+  async checkUpdateAndPrompt () {
+    await AssetCacheStore.checkForUpdate()
+  }
+
   onClickUpdate () {
-    updateNow()
+    AssetCacheStore.updateNow()
   }
 
   render () {
