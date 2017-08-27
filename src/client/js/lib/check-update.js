@@ -19,24 +19,40 @@ export async function checkForUpdate () {
     response = await request.get('/api/client_version')
   } catch (err) {
     console.warn('Can not fetch the latest version')
-    return
+    return false
   }
   const newVersion = response.body.version
   _newVersion = newVersion
 
-  const isUpdateFound = (newVersion != currentVersion)
-  if (isUpdateFound)
-    debug('new updated is found', newVersion, 'current:', currentVersion)
-  else
-    debug('no update', newVersion, 'current:', currentVersion)
+  debug('remote:', newVersion, 'current:', currentVersion)
 
-  if (!currentVersion) {
-    debug('save initial version in DB')
-    await setVersion(_newVersion)
+  const isUpdateFound = (newVersion !== currentVersion)
+  if (!isUpdateFound) {
+    debug('no update')
     return false
   }
 
-  return isUpdateFound
+  debug('new updated is found')
+  try {
+    await installUpdate()
+  } catch (err) {
+    console.error('Can not cache all', err)
+    return false
+  }
+
+  if (!currentVersion) {
+    debug('save initial version in DB')
+    return false
+  }
+
+  return true
+}
+
+async function installUpdate () {
+  debug('cache all new version')
+  const res = await request.get('/api/cacheall')
+  debug('done. set new version in db', res.body.version)
+  await setVersion(res.body.version)
 }
 
 export async function updateNow () {

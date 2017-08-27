@@ -31,7 +31,10 @@ app.get('/api/cacheall', async (req, res) => {
   const version = await getVersion()
   const cacheall = [
     '/app.html',
-    '/css/app.css'
+    '/css/app.css',
+    '/css/icons.css',
+    '/index.js',
+
   ]
   res.json({
     name: 'sw_app',
