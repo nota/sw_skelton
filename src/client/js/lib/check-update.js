@@ -34,7 +34,8 @@ export async function checkForUpdate () {
 
   debug('new updated is found')
   try {
-    await installUpdate()
+    debug('cache all new version')
+    await request.get('/api/cacheall')
   } catch (err) {
     console.error('Can not cache all', err)
     return false
@@ -46,13 +47,6 @@ export async function checkForUpdate () {
   }
 
   return true
-}
-
-async function installUpdate () {
-  debug('cache all new version')
-  const res = await request.get('/api/cacheall')
-  debug('done. set new version in db', res.body.version)
-  await setVersion(res.body.version)
 }
 
 export async function updateNow () {

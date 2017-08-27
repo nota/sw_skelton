@@ -187,10 +187,10 @@ function isCacheAllRequest (req) {
 function cacheAll (manifest) {
   return caches.open(manifest.version).then(function (cache) {
     return cache.addAll(manifest.cacheall)
-//    .then(function() {
-//      // install 成功
-//      return setVersion(manifest.version)
-//    })
+      .then(function () {
+        // install 成功
+        return setVersion(manifest.version)
+      })
   })
 }
 
