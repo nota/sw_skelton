@@ -189,18 +189,16 @@ function deleteOldCache (currentVersion) {
 function isCacheAllRequest (req) {
   const url = new URL(req.url)
 
-  if (!isAssetHost(url.hostname)) return false
+  if (!isMyHost(url.hostname)) return false
 
   return (url.pathname === '/api/assets/cacheall')
 }
 
 function cacheAll (manifest) {
   return caches.open(manifest.version).then(function (cache) {
-    return cache.addAll(manifest.cacheall)
-      .then(function () {
-        // install 成功
-        return setVersion(manifest.version)
-      })
+    return cache.addAll(manifest.cacheall).then(function () {
+      return setVersion(manifest.version)
+    })
   })
 }
 
