@@ -15,7 +15,7 @@
     "build:browserify": "browserify --verbose -t [ babelify ] -g uglifyify src/client/js/index.js -o public/index.js",
     "build:serviceworker": "cp src/serviceworker/index.js public/serviceworker.js",
     "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/css/",
-    "build:gulp": "gulp build && gulp serviceworker",
+    "build:gulp": "gulp build",
     "test": "./node_modules/.bin/standard",
     "watch": "./node_modules/.bin/run-p watch:**",
     "watch:babel": "npm run build:babel -- --watch",
