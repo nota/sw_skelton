@@ -34,8 +34,11 @@ export default new class AssetCacheStore extends EventEmitter {
                         .get('/api/assets/version')
                         .timeout({response: 30000, deadline: 30000})
     } catch (err) {
-      console.warn('Can not fetch the latest version', err)
-      if (err.status) reportError() // オフライン以外の理由ならヤバイ
+      debug('Can not fetch the latest version')
+      if (err.status) {
+        reportError() // オフライン以外の理由ならヤバイ
+        throw(err)
+      }
       return
     }
 
@@ -55,7 +58,10 @@ export default new class AssetCacheStore extends EventEmitter {
       await request.get('/api/assets/cacheall')
     } catch (err) {
       console.error('Can not cache all', err)
-      if (err.status) reportError() // オフライン以外の理由ならヤバイ
+      if (err.status) {
+        reportError() // オフライン以外の理由ならヤバイ
+        throw(err)
+      }
       return
     }
 
