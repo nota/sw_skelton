@@ -205,6 +205,8 @@ this.addEventListener('fetch', function (event) {
           })
         })
       }).catch(function (err) {
+        // TODO: cacheAllの途中で404が出たりしても止まってしまう
+        // ブラウザの停止ボタンを押したりしても止まるのでは？
         const init = {
           status: 500,
           statusText: 'Internal Server Error',
