@@ -36,7 +36,7 @@ app.get('/api/assets/cacheall', async (req, res) => {
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
-  for (dir of ['css', 'fonts', 'img']) {
+  for (let dir of ['css', 'fonts', 'img']) {
     const files = await fs.readdir(`./public/${dir}`)
     cacheall = cacheall.concat(files.map(file => `/${dir}/${file}`))
   }

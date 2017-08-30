@@ -35,7 +35,7 @@ export default new class AssetCacheStore extends EventEmitter {
       debug('Can not fetch the latest version')
       if (err.status) {
         reportError() // オフライン以外の理由ならヤバイ
-        throw(err)
+        throw (err)
       }
       return
     }
@@ -58,7 +58,7 @@ export default new class AssetCacheStore extends EventEmitter {
       console.error('Can not cache all', err)
       if (err.status) {
         reportError() // オフライン以外の理由ならヤバイ
-        throw(err)
+        throw (err)
       }
       return
     }

@@ -4,8 +4,8 @@
 console.log('sw: hello')
 
 const NOCACHE_PATHS = [
-  '^/serviceworker\.js',
-  '^/api/',
+  '^/serviceworker\\.js',
+  '^/api/'
 ]
 
 const ASSET_PATHS = [
