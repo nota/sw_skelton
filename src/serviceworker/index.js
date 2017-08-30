@@ -2,30 +2,24 @@
 /* eslint-env browser */
 
 const NOCACHE_PATHS = [
-  '/serviceworker.js',
+  '/serviceworker\.js',
   '/api/',
-  '/.+?/.+?/slide',
-  '/.+?/.+?.json'
 ]
 
-const ASSETS = [
+const ASSET_PATHS = [
   '/css/',
   '/img/',
-  '/fonts/'
+  '/fonts/',
+  '/app.html',
+  '/index.js'
 ]
 
-const MY_HOSTS = [
-  'localhost',
-  'scrapbox.io',
-  'staging.scrapbox.io'
-]
-
-const ASSET_HOSTS = MY_HOSTS.concat([
+const THIRDPARTY_ASSET_HOSTS = [
   'maxcdn.bootstrapcdn.com'
-])
+]
 
 const DB_NAME = 'cache'
-const STORE_NAME = 'version'
+const STORE_NAME = 'config'
 
 console.log('sw: hello')
 
@@ -41,47 +35,39 @@ this.addEventListener('activate', function (event) {
   )
 })
 
-function isNoCachePath (pathname) {
-  for (let path of NOCACHE_PATHS) {
-    const reg = new RegExp(path)
-    if (reg.test(pathname)) return true
-  }
-  return false
+function isApiOrLandingPage (url) {
+  if (!isMyHost(url)) return false
+
+  return NOCACHE_PATHS.find(function (path) {
+    return new RegExp('^' + path).test(url.pathname)
+  })
 }
 
-function isMyHost (hostname) {
-  for (let host of MY_HOSTS) {
-    if (host === hostname) return true
-  }
-  return false
+function isMyHost (url) {
+  return location.hostname === url.hostname
 }
 
-function isAssetHost (hostname) {
-  for (let host of ASSET_HOSTS) {
-    if (host === hostname) return true
-  }
-  return false
+function isAsset (url) {
+  if (THIRDPARTY_ASSET_HOSTS.includes(url.hostname)) return true
+
+  return isMyHost(url) && ASSET_PATHS.find(function (path) {
+    return url.pathname.indexOf(path) === 0
+  })
 }
 
-function isAssetPath (pathname) {
-  for (let path of ASSETS) {
-    if (pathname.indexOf(path) === 0) return true
-  }
-  return false
+function acceptHtml (req) {
+  const accept = req.headers.get('Accept')
+  return accept && accept.includes('text/html')
 }
 
 function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
-  if (!isMyHost(url.hostname)) return false
-  if (isAssetPath(url.pathname)) return false
-  if (isNoCachePath(url.pathname)) return false
+  if (!isMyHost(url)) return false
+  if (isAsset(url)) return false
+  if (isApiOrLandingPage(url)) return false
   if (req.method !== 'GET') return false
-
-  const accept = req.headers.get('Accept')
-  if (!accept || accept.indexOf('text/html') < 0) {
-    return false
-  }
+  if (!acceptHtml(req)) return false
 
   return true
 }
@@ -89,8 +75,7 @@ function isAppHtmlRequest (req) {
 function shouldCache (req, res) {
   const url = new URL(req.url)
 
-  if (!isAssetHost(url.hostname)) return false
-  if (isNoCachePath(url.pathname)) return false
+  if (!isAsset(url)) return false
   if (req.method !== 'GET') return false
   if (!res.ok && res.status !== 0) return false
 
@@ -193,7 +178,7 @@ function deleteOldCache (currentVersion) {
 function isCacheAllRequest (req) {
   const url = new URL(req.url)
 
-  if (!isMyHost(url.hostname)) return false
+  if (!isMyHost(url)) return false
 
   return (url.pathname === '/api/assets/cacheall')
 }
@@ -218,10 +203,10 @@ this.addEventListener('fetch', function (event) {
     event.respondWith(
       fetch(req).then(function (res) {
         return res.clone().json().then(function (manifest) {
-          return cacheAll(manifest).then(function () {
+          //return cacheAll(manifest).then(function () {
             console.log('sw: cache all done')
             return res
-          })
+          //})
         })
       }).catch(function (err) {
         const init = {

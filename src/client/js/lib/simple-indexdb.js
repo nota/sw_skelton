@@ -3,7 +3,7 @@
 let _db = null
 
 const DB_NAME = 'cache'
-const STORE_NAME = 'version'
+const STORE_NAME = 'config'
 
 export function openDB () {
   return new Promise(function (resolve, reject) {
