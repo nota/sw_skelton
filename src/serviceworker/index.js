@@ -99,7 +99,7 @@ function shouldCache (req, res) {
 
 let _db = null
 function openDB () {
-  return new Promise(function (resolve, reject) {
+  const open = new Promise(function (resolve, reject) {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
@@ -125,6 +125,10 @@ function openDB () {
       reject(event)
     }
   })
+  const timeout = new Promise(function (resolve, reject) {
+    setTimeout(reject, 10000)
+  })
+  return Promise.race([open, timeout])
 }
 
 function setItem (key, value) {
@@ -219,6 +223,13 @@ this.addEventListener('fetch', function (event) {
             return res
           })
         })
+      }).catch(function (err) {
+        const init = {
+          status: 500,
+          statusText: 'Internal Server Error',
+          headers: {'Content-Type': 'text/plain'}
+        }
+        return new Response('cache all failed: ' + err.message, init)
       })
     )
     return
