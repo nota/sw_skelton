@@ -25,6 +25,8 @@ export default new class AssetCacheStore extends EventEmitter {
     const reportError = () => { window.checkVersionDone = false }
 
     const currentVersion = await this.currentVersion()
+    reportDone() // ここまで到達したことをマークする
+
     debug('checking...')
     let response
     try {
@@ -33,9 +35,9 @@ export default new class AssetCacheStore extends EventEmitter {
                         .timeout({response: 30000, deadline: 30000})
     } catch (err) {
       console.warn('Can not fetch the latest version', err)
-      if (err.status) return reportError() // オフライン以外の理由ならヤバイ
+      if (err.status) reportError() // オフライン以外の理由ならヤバイ
+      return
     }
-    reportDone() // ここで正常完了をマークする
 
     const newVersion = response.body.version
     this._newVersion = newVersion

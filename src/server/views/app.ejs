@@ -14,22 +14,22 @@
   <script type="text/javascript">
     // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
     setInterval(function() {
-      if (window.checkVersionDone) return
-      alert('service workerによる更新システムが動いていません!')
       const serviceWorker = navigator.serviceWorker
+      if (window.checkVersionDone || !serviceWorker) return
+      alert('service workerによる更新システムまたはコードが動いていません!')
       serviceWorker.register('/serviceworker.js', {scope: '/'}).then(function (reg) {
         return reg.unregister()
       }).then(function (result) {
         console.log('unregister', result)
-        alert('リロードします!')
+        if (!confirm('リロードしますか?')) return
         window.location.reload()
       }).catch(function (err) {
+        alert('開発元にお問い合わせください。')
+        window.location.href='/contact'
         console.error(err)
         alert(err.message)
       })
-    }, 30000)
-
-
-  </script>>
+    }, 10000)
+  </script>
 </body>
 </html>
