@@ -30,9 +30,7 @@ export default new class AssetCacheStore extends EventEmitter {
     debug('checking...')
     let response
     try {
-      response = await request
-                        .get('/api/assets/version')
-                        .timeout({response: 30000, deadline: 30000})
+      response = await request.get('/api/assets/version')
     } catch (err) {
       debug('Can not fetch the latest version')
       if (err.status) {
