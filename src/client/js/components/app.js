@@ -30,7 +30,7 @@ export default class App extends Component {
   }
 
   onClickUpdate () {
-    AssetCacheStore.updateNow()
+    window.location.reload()
   }
 
   render () {

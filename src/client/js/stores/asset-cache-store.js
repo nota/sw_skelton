@@ -1,7 +1,7 @@
 const debug = require('../lib/debug')(__filename)
 
 import request from 'superagent'
-import {setVersion, getVersion} from '../lib/version'
+import {getVersion} from '../lib/version'
 import {EventEmitter} from 'events'
 
 export default new class AssetCacheStore extends EventEmitter {
@@ -67,12 +67,6 @@ export default new class AssetCacheStore extends EventEmitter {
     if (!currentVersion) return debug('save initial version in DB')
 
     this.emit('change')
-  }
-
-  async updateNow () {
-    debug('update now')
-    await setVersion(this._newVersion)
-    window.location.reload()
   }
 }()
 
