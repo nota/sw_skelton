@@ -1,9 +1,11 @@
 /* global caches self URL fetch */
 /* eslint-env browser */
 
+console.log('sw: hello')
+
 const NOCACHE_PATHS = [
-  '/serviceworker\.js',
-  '/api/',
+  '^/serviceworker\.js',
+  '^/api/',
 ]
 
 const ASSET_PATHS = [
@@ -21,8 +23,6 @@ const THIRDPARTY_ASSET_HOSTS = [
 const DB_NAME = 'cache'
 const STORE_NAME = 'config'
 
-console.log('sw: hello')
-
 this.addEventListener('install', function (event) {
   event.waitUntil(
     self.skipWaiting()
@@ -35,16 +35,14 @@ this.addEventListener('activate', function (event) {
   )
 })
 
-function isApiOrLandingPage (url) {
-  if (!isMyHost(url)) return false
-
-  return NOCACHE_PATHS.find(function (path) {
-    return new RegExp('^' + path).test(url.pathname)
-  })
-}
-
 function isMyHost (url) {
   return location.hostname === url.hostname
+}
+
+function isApiOrLandingPage (url) {
+  return isMyHost(url) && NOCACHE_PATHS.find(function (path) {
+    return new RegExp(path).test(url.pathname)
+  })
 }
 
 function isAsset (url) {
@@ -60,26 +58,66 @@ function acceptHtml (req) {
   return accept && accept.includes('text/html')
 }
 
+function isGetRequest (req) {
+  return req.method === 'GET'
+}
+
 function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
-  if (!isMyHost(url)) return false
-  if (isAsset(url)) return false
-  if (isApiOrLandingPage(url)) return false
-  if (req.method !== 'GET') return false
-  if (!acceptHtml(req)) return false
-
-  return true
+  return (
+    isMyHost(url) &&
+    !isAsset(url) &&
+    !isApiOrLandingPage(url) &&
+    isGetRequest(req) &&
+    acceptHtml(req)
+  )
 }
 
 function shouldCache (req, res) {
   const url = new URL(req.url)
+  const ok = res.ok || res.status === 0 // XXX: status=0でokのときがある
 
-  if (!isAsset(url)) return false
-  if (req.method !== 'GET') return false
-  if (!res.ok && res.status !== 0) return false
+  return isAsset(url) && isGetRequest(req) && ok
+}
 
-  return true
+function isCacheAllRequest (req) {
+  const url = new URL(req.url)
+
+  const path = '/api/assets/cacheall'
+  return isMyHost(url) && url.pathname === path
+}
+
+function deleteOldCache (currentVersion) {
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      if (key !== currentVersion) {
+        console.log('sw: delete old cache', key)
+        return caches.delete(key)
+      } else {
+        return Promise.resolve()
+      }
+    }))
+  })
+}
+
+function cacheAll (manifest) {
+  return caches.open(manifest.version).then(function (cache) {
+    return cache.addAll(manifest.cacheall).then(function () {
+      return setVersion(manifest.version)
+    })
+  })
+}
+
+function createAppHtmlRequest (req) {
+  const url = new URL(req.url).origin + '/app.html'
+  return new Request(url, {
+    method: req.method,
+    headers: req.headers,
+    mode: 'same-origin', // need to set this properly
+    credentials: req.credentials,
+    redirect: 'manual'   // let browser handle redirects
+  })
 }
 
 let _db = null
@@ -149,46 +187,6 @@ function getVersion () {
   })
 }
 
-function createAppHtmlRequest (req) {
-  const url = new URL(req.url).origin + '/app.html'
-  return new Request(url, {
-    method: req.method,
-    headers: req.headers,
-    mode: 'same-origin', // need to set this properly
-    credentials: req.credentials,
-    redirect: 'manual'   // let browser handle redirects
-  })
-}
-
-function deleteOldCache (currentVersion) {
-  return caches.keys().then(function (keys) {
-    return Promise.all(keys.map(function (key) {
-      if (key !== currentVersion) {
-        console.log('sw: delete old cache', key)
-        return caches.delete(key)
-      } else {
-        return Promise.resolve()
-      }
-    }))
-  })
-}
-
-function isCacheAllRequest (req) {
-  const url = new URL(req.url)
-
-  if (!isMyHost(url)) return false
-
-  return (url.pathname === '/api/assets/cacheall')
-}
-
-function cacheAll (manifest) {
-  return caches.open(manifest.version).then(function (cache) {
-    return cache.addAll(manifest.cacheall).then(function () {
-      return setVersion(manifest.version)
-    })
-  })
-}
-
 this.addEventListener('fetch', function (event) {
   let req = event.request
 
@@ -201,10 +199,10 @@ this.addEventListener('fetch', function (event) {
     event.respondWith(
       fetch(req).then(function (res) {
         return res.clone().json().then(function (manifest) {
-          //return cacheAll(manifest).then(function () {
+          return cacheAll(manifest).then(function () {
             console.log('sw: cache all done')
             return res
-          //})
+          })
         })
       }).catch(function (err) {
         const init = {
