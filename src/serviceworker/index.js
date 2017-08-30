@@ -210,6 +210,7 @@ this.addEventListener('fetch', function (event) {
           statusText: 'Internal Server Error',
           headers: {'Content-Type': 'text/plain'}
         }
+        console.log(err)
         return new Response('cache all failed: ' + err.message, init)
       })
     )

@@ -32,7 +32,6 @@ app.get('/api/assets/cacheall', async (req, res) => {
   const version = await getVersion()
   let cacheall = [
     '/app.html',
-    '/app2.css',
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
