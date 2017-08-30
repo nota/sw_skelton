@@ -23,6 +23,8 @@ const THIRDPARTY_ASSET_HOSTS = [
 const DB_NAME = 'cache'
 const STORE_NAME = 'config'
 
+const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
+
 this.addEventListener('install', function (event) {
   event.waitUntil(
     self.skipWaiting()
@@ -88,10 +90,14 @@ function isCacheAllRequest (req) {
   return isMyHost(url) && url.pathname === path
 }
 
+function cacheKey (version) {
+  return version + POSTFIX
+}
+
 function deleteOldCache (currentVersion) {
   return caches.keys().then(function (keys) {
     return Promise.all(keys.map(function (key) {
-      if (key !== currentVersion) {
+      if (key !== cacheKey(currentVersion)) {
         console.log('sw: delete old cache', key)
         return caches.delete(key)
       } else {
@@ -102,7 +108,7 @@ function deleteOldCache (currentVersion) {
 }
 
 function cacheAll (manifest) {
-  return caches.open(manifest.version).then(function (cache) {
+  return caches.open(cacheKey(manifest.version)).then(function (cache) {
     return cache.addAll(manifest.cacheall).then(function () {
       return setVersion(manifest.version)
     })
@@ -223,7 +229,7 @@ this.addEventListener('fetch', function (event) {
 
   event.respondWith(
     getVersion().then(function (version) {
-      return caches.open(version).then(function (cache) {
+      return caches.open(cacheKey(version)).then(function (cache) {
         return cache.match(req).then(function (res) {
           if (res) {
             console.log('sw: respond from cache', req.url)
