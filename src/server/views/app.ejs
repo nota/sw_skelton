@@ -11,5 +11,25 @@
 <body>
   <div id="app-container"></div>
   <script src="/index.js"></script>
+  <script type="text/javascript">
+    // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
+    setInterval(function() {
+      if (window.checkVersionDone) return
+      alert('service workerによる更新システムが動いていません!')
+      const serviceWorker = navigator.serviceWorker
+      serviceWorker.register('/serviceworker.js', {scope: '/'}).then(function (reg) {
+        return reg.unregister()
+      }).then(function (result) {
+        console.log('unregister', result)
+        alert('リロードします!')
+        window.location.reload()
+      }).catch(function (err) {
+        console.error(err)
+        alert(err.message)
+      })
+    }, 30000)
+
+
+  </script>>
 </body>
 </html>

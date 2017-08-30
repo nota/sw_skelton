@@ -11,6 +11,7 @@ export default async function initialize () {
 
   try {
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
+    // XXX: ここから下のコードはすべてdebugのためにある
     const state = (() => {
       if (reg.installing) return 'installing'
       if (reg.waiting) return 'wating'
