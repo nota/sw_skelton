@@ -3,6 +3,7 @@ const app = express()
 const path = require('path')
 const md5File = require('md5-file/promise')
 const md5 = require('md5')
+const fs = require('mz/fs')
 
 app.get('/', (req, res) => {
   res.render('app')
@@ -29,15 +30,16 @@ app.get('/api/assets/version', async (req, res) => {
 
 app.get('/api/assets/cacheall', async (req, res) => {
   const version = await getVersion()
-  const cacheall = [
+  let cacheall = [
     '/app.html',
     '/app2.css',
-    '/css/app.css',
-    '/css/icons.css',
-    '/img/logo.png',
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
+  for (dir of ['css', 'fonts', 'img']) {
+    const files = await fs.readdir(`./public/${dir}`)
+    cacheall = cacheall.concat(files.map(file => `/${dir}/${file}`))
+  }
   res.json({
     name: 'sw_app',
     version,
