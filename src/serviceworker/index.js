@@ -259,6 +259,7 @@ this.addEventListener('fetch', function (event) {
       })
     }).catch(function (err) {
       if (!tryFetched) return fetch(req)
+      if (err instanceof TypeError && err.message === 'Failed to fetch') return
       throw (err)
     })
   )
