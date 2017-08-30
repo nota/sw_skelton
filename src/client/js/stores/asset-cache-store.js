@@ -9,13 +9,40 @@ const reportDone = () => { window.checkVersionDone = true }
 const reportError = () => { window.checkVersionDone = false }
 
 export default new class AssetCacheStore extends EventEmitter {
-  currentVersion () {
-    return getVersion()
-  }
-
   checkForUpdateAutomatically () {
     setInterval(this.checkForUpdate.bind(this), 10 * 1000)
     this.checkForUpdate()
+  }
+
+  async checkForUpdate () {
+    reportDone() // ここまで到達したことをマークする
+
+    const newVersion = await this.fetch()
+    if (!newVersion) return
+
+    await this.updateNow(newVersion)
+  }
+
+  // new versionが取得できてる場合に使う(web socketベースの実装とかによい)
+  async updateNow (newVersion) {
+    const currentVersion = await this.currentVersion()
+
+    debug('remote:', newVersion, 'current:', currentVersion)
+    if (newVersion === currentVersion) return
+
+    debug('new updated is found')
+    const result = await this.cacheall()
+    if (!result) return
+    if (currentVersion) this.emit('change')
+  }
+
+  async currentVersion () {
+    try {
+      return await getVersion()
+    } catch (err) {
+      reportError()
+      throw (err)
+    }
   }
 
   async fetch () {
@@ -49,35 +76,6 @@ export default new class AssetCacheStore extends EventEmitter {
       return false
     }
     return true
-  }
-
-  async checkForUpdate () {
-    const currentVersion = await this.currentVersion()
-    reportDone() // ここまで到達したことをマークする
-
-    const newVersion = await this.fetch()
-    if (!newVersion) return
-
-    debug('remote:', newVersion, 'current:', currentVersion)
-    if (newVersion === currentVersion) return
-
-    debug('new updated is found')
-    const result = await this.cacheall()
-    if (!result) return
-    if (currentVersion) this.emit('change')
-  }
-
-  // new versionが取得できてる場合に使う(web socketベースの実装とかによい)
-  async updateNow (newVersion) {
-    const currentVersion = await this.currentVersion()
-
-    debug('remote:', newVersion, 'current:', currentVersion)
-    if (newVersion === currentVersion) return
-
-    debug('new updated is found')
-    const result = await this.cacheall()
-    if (!result) return
-    if (currentVersion) this.emit('change')
   }
 }()
 
