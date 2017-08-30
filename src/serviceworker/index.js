@@ -149,8 +149,6 @@ function getVersion () {
   })
 }
 
-// setVersion('hoihoi2')
-
 function createAppHtmlRequest (req) {
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
