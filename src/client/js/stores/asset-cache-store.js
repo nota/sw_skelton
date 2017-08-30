@@ -5,11 +5,6 @@ import {getVersion} from '../lib/version'
 import {EventEmitter} from 'events'
 
 export default new class AssetCacheStore extends EventEmitter {
-  constructor () {
-    super()
-    this._newVersion = null
-  }
-
   currentVersion () {
     return getVersion()
   }
@@ -41,7 +36,6 @@ export default new class AssetCacheStore extends EventEmitter {
     }
 
     const newVersion = response.body.version
-    this._newVersion = newVersion
 
     debug('remote:', newVersion, 'current:', currentVersion)
 
