@@ -1,7 +1,7 @@
 const debug = require('./debug')(__filename)
 
 export async function registerServiceworker () {
-  if (localStorage.useServiceworker !== 'true') return
+  if (!isServicewokerEnabled()) return
 
   debug('register')
 
@@ -36,14 +36,24 @@ export async function registerServiceworker () {
   }
 }
 
-export function unregisterServiceworker () {
+export function isServicewokerEnabled () {
+  return localStorage.useServiceworker === 'true'
+}
+
+export async function enableServiceworker () {
+  localStorage.useServiceworker = true
+  await registerServiceworker()
+}
+
+export function disableServiceworker () {
   localStorage.useServiceworker = false
 
   const serviceWorker = navigator.serviceWorker
-  return serviceWorker.register('/serviceworker.js', {scope: '/'}).then(function (reg) {
-    return reg.unregister()
-  })
+  return serviceWorker.register('/serviceworker.js', {scope: '/'})
+    .then(function (reg) {
+      return reg.unregister()
+    })
 }
 
 // 緊急用
-window.unregisterServiceworker = unregisterServiceworker
+window.disableServiceworker = disableServiceworker

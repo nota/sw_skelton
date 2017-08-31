@@ -12,6 +12,7 @@ export default new class AssetCacheStore extends EventEmitter {
   constructor () {
     super()
     this.newVersion = null
+    this.hasUpdate = false
   }
 
   checkForUpdateAutomatically () {
@@ -39,12 +40,16 @@ export default new class AssetCacheStore extends EventEmitter {
 
     debug('remote:', newVersion, 'current:', currentVersion)
     if (newVersion === currentVersion) return
-    this.newVersion = newVersion
 
     debug('new updated is found')
+    this.newVersion = newVersion
+
     const result = await this.cacheall()
     if (!result) return
-    if (currentVersion) this.emit('change')
+    if (!currentVersion) return
+
+    this.hasUpdate = true
+    this.emit('change')
   }
 
   async currentVersion () {
