@@ -1,7 +1,7 @@
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AssetCacheStore from '../stores/asset-cache-store'
+import AppVersionStore from '../stores/app-version-store'
 import {enableServiceworker, disableServiceworker, isServicewokerEnabled} from '../lib/register-serviceworker'
 
 export default class App extends Component {
@@ -9,20 +9,20 @@ export default class App extends Component {
     super(props)
 
     this.state = {
-      hasUpdate: AssetCacheStore.hasUpdate
+      hasUpdate: AppVersionStore.hasUpdate
     }
 
     this.onAssetCacheChanged = this.onAssetCacheChanged.bind(this)
-    AssetCacheStore.on('change', this.onAssetCacheChanged)
+    AppVersionStore.on('change', this.onAssetCacheChanged)
   }
 
   async componentDidMount () {
-    const version = await AssetCacheStore.currentVersion()
+    const version = await AppVersionStore.currentVersion()
     const url = window.location.href
     this.setState({version, url})
 
     if (isServicewokerEnabled()) {
-      AssetCacheStore.checkForUpdateAutomatically()
+      AppVersionStore.checkForUpdateAutomatically()
     }
   }
 
@@ -31,7 +31,7 @@ export default class App extends Component {
   }
 
   async checkUpdateAndPrompt () {
-    await AssetCacheStore.checkForUpdate()
+    await AppVersionStore.checkForUpdate()
   }
 
   onClickUpdate () {
@@ -40,12 +40,12 @@ export default class App extends Component {
 
   async enableServiceworker () {
     await enableServiceworker()
-    AssetCacheStore.checkForUpdateAutomatically()
+    AppVersionStore.checkForUpdateAutomatically()
   }
 
   async disableServiceworker () {
     await disableServiceworker()
-    AssetCacheStore.stop()
+    AppVersionStore.stop()
     const result = confirm ('successfully disabled. Will yor reload?')
     if (result) location.reload()
   }
@@ -57,7 +57,7 @@ export default class App extends Component {
           this.state.hasUpdate && (
             <div className='update-alert-bar' onClick={this.onClickUpdate}>
               <a>
-                新しいバージョンが見つかりました。今すぐアップデート
+                Scrapboxが改良されました。今すぐ更新
               </a>
             </div>
           )

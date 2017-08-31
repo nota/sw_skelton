@@ -86,7 +86,7 @@ function shouldCache (req, res) {
 function isCacheAllRequest (req) {
   const url = new URL(req.url)
 
-  const path = '/api/assets/cacheall'
+  const path = '/api/app/cacheall'
   return isMyHost(url) && url.pathname === path
 }
 

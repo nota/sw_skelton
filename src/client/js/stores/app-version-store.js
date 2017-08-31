@@ -8,7 +8,7 @@ import {EventEmitter} from 'events'
 const reportDone = () => { window.checkVersionDone = true }
 const reportError = () => { window.checkVersionDone = false }
 
-export default new class AssetCacheStore extends EventEmitter {
+export default new class AppVersionStore extends EventEmitter {
   constructor () {
     super()
     this.newVersion = null
@@ -29,7 +29,20 @@ export default new class AssetCacheStore extends EventEmitter {
   async checkForUpdate () {
     reportDone() // ここまで到達したことをマークする
 
-    const newVersion = await this.fetch()
+    debug('checking...')
+    let response
+    try {
+      response = await request.get('/api/app/version')
+    } catch (err) {
+      debug('Can not fetch the latest version')
+      if (err.status) {
+        reportError() // オフライン以外の理由ならヤバイ
+        throw (err)
+      }
+      return
+    }
+
+    const newVersion = response.body.version
     if (!newVersion) return
 
     await this.updateNow(newVersion)
@@ -67,27 +80,10 @@ export default new class AssetCacheStore extends EventEmitter {
     }
   }
 
-  async fetch () {
-    debug('checking...')
-    let response
-    try {
-      response = await request.get('/api/assets/version')
-    } catch (err) {
-      debug('Can not fetch the latest version')
-      if (err.status) {
-        reportError() // オフライン以外の理由ならヤバイ
-        throw (err)
-      }
-      return
-    }
-
-    return response.body.version
-  }
-
   async cacheall () {
     try {
       debug('cache all new version')
-      await request.get('/api/assets/cacheall')
+      await request.get('/api/app/cacheall')
       debug('done')
     } catch (err) {
       console.error('Can not cache all', err)
