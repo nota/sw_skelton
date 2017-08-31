@@ -4,7 +4,7 @@ body {
 }
 
 h1 {
-  color: blue;
+  color: green;
 }
 
 .update-found {
@@ -13,7 +13,7 @@ h1 {
 
 .update-alert-bar {
   position: fixed;
-  height: 40px;
+  height: 36px;
   text-align: center;
   top: 0;
   left: 0;
@@ -24,8 +24,9 @@ h1 {
     background-color: #34c1ae;
     width: 100%;
     border: 0;
-    height: 40px;
-    line-height: 40px;
+    height: 36px;
+    line-height: 36px;
+    font-size: 14px;
     font-weight: bold;
     color: #fff;
     text-decoration: none;

@@ -1,7 +1,9 @@
 const debug = require('./debug')(__filename)
 
-export default async function initialize () {
-  debug('initialize')
+export async function registerServiceworker () {
+  if (localStorage.useServiceworker !== 'true') return
+
+  debug('register')
 
   const serviceWorker = navigator.serviceWorker
 
@@ -34,3 +36,14 @@ export default async function initialize () {
   }
 }
 
+export function unregisterServiceworker () {
+  localStorage.useServiceworker = false
+
+  const serviceWorker = navigator.serviceWorker
+  return serviceWorker.register('/serviceworker.js', {scope: '/'}).then(function (reg) {
+    return reg.unregister()
+  })
+}
+
+// 緊急用
+window.unregisterServiceworker = unregisterServiceworker

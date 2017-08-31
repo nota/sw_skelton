@@ -1,7 +1,7 @@
 const debug = require('../lib/debug')(__filename)
 
 import request from 'superagent'
-import {getVersion} from '../lib/version'
+import {getVersion, setVersion} from '../lib/version'
 import {EventEmitter} from 'events'
 
 // XXX: もしこのコードが正常に動いていない場合にservice worker自体を殺すためのフラグ
@@ -9,6 +9,11 @@ const reportDone = () => { window.checkVersionDone = true }
 const reportError = () => { window.checkVersionDone = false }
 
 export default new class AssetCacheStore extends EventEmitter {
+  constructor () {
+    super()
+    this.newVersion = null
+  }
+
   checkForUpdateAutomatically () {
     setInterval(this.checkForUpdate.bind(this), 10 * 1000)
     this.checkForUpdate()
@@ -23,12 +28,18 @@ export default new class AssetCacheStore extends EventEmitter {
     await this.updateNow(newVersion)
   }
 
+  async forceUpdate () {
+    await setVersion(this.newVersion)
+    location.reload()
+  }
+
   // new versionが取得できてる場合に使う(web socketベースの実装とかによい)
   async updateNow (newVersion) {
     const currentVersion = await this.currentVersion()
 
     debug('remote:', newVersion, 'current:', currentVersion)
     if (newVersion === currentVersion) return
+    this.newVersion = newVersion
 
     debug('new updated is found')
     const result = await this.cacheall()
