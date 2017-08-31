@@ -45,6 +45,7 @@ export default class App extends Component {
 
   async disableServiceworker () {
     await disableServiceworker()
+    AssetCacheStore.stop()
     const result = confirm ('successfully disabled. Will yor reload?')
     if (result) location.reload()
   }
@@ -56,7 +57,7 @@ export default class App extends Component {
           this.state.hasUpdate && (
             <div className='update-alert-bar' onClick={this.onClickUpdate}>
               <a>
-                新しいバージョンが見つかりました。ここを押してアップデートしましょう。
+                新しいバージョンが見つかりました。今すぐアップデート
               </a>
             </div>
           )

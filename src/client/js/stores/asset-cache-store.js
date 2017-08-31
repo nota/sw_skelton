@@ -16,8 +16,14 @@ export default new class AssetCacheStore extends EventEmitter {
   }
 
   checkForUpdateAutomatically () {
-    setInterval(this.checkForUpdate.bind(this), 10 * 1000)
+    if (this.timerId) return
+    this.timerId = setInterval(this.checkForUpdate.bind(this), 10 * 1000)
     this.checkForUpdate()
+  }
+
+  stop () {
+    clearInterval(this.timerId)
+    this.timerId = null
   }
 
   async checkForUpdate () {
