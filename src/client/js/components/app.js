@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
-import {enableServiceworker, disableServiceworker, isServicewokerEnabled} from '../lib/register-serviceworker'
+import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled} from '../lib/register-serviceworker'
 
 export default class App extends Component {
   constructor (props) {
@@ -21,7 +21,7 @@ export default class App extends Component {
     const url = window.location.href
     this.setState({version, url})
 
-    if (isServicewokerEnabled()) {
+    if (isServiceWorkerEnabled()) {
       AppVersionStore.checkForUpdateAutomatically()
     }
   }
@@ -38,13 +38,13 @@ export default class App extends Component {
     window.location.reload()
   }
 
-  async enableServiceworker () {
-    await enableServiceworker()
+  async enableServiceWorker () {
+    await enableServiceWorker()
     AppVersionStore.checkForUpdateAutomatically()
   }
 
-  async disableServiceworker () {
-    await disableServiceworker()
+  async disableServiceWorker () {
+    await disableServiceWorker()
     AppVersionStore.stop()
     const result = confirm ('successfully disabled. Will yor reload?')
     if (result) location.reload()
@@ -57,7 +57,7 @@ export default class App extends Component {
           this.state.hasUpdate && (
             <div className='update-alert-bar' onClick={this.onClickUpdate}>
               <a>
-                Scrapboxが改良されました。今すぐ更新
+                Scrapboxが更新されました。再読込しますか？
               </a>
             </div>
           )
@@ -83,11 +83,11 @@ export default class App extends Component {
 
         <p>
           {
-            isServicewokerEnabled() ?
-              <button className='btn btn-default btn-sm' onClick={this.disableServiceworker.bind(this)}>
+            isServiceWorkerEnabled() ?
+              <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
               </button> :
-              <button className='btn btn-default btn-sm' onClick={this.enableServiceworker.bind(this)}>
+              <button className='btn btn-default btn-sm' onClick={this.enableServiceWorker.bind(this)}>
                 Enable service worker
               </button>
           }

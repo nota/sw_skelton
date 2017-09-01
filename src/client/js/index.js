@@ -3,9 +3,9 @@ import 'babel-polyfill'
 import React from 'react'
 import {render} from 'react-dom'
 
-import {registerServiceworker} from './lib/register-serviceworker'
+import {registerServiceWorker} from './lib/register-serviceworker'
 
-registerServiceworker()
+registerServiceWorker()
 
 import App from './components/app'
 

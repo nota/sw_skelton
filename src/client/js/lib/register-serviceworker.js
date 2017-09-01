@@ -2,8 +2,8 @@ const debug = require('./debug')(__filename)
 
 import {setVersion} from '../lib/version'
 
-export async function registerServiceworker () {
-  if (!isServicewokerEnabled()) return
+export async function registerServiceWorker () {
+  if (!isServiceWorkerEnabled()) return
 
   debug('register')
 
@@ -38,17 +38,17 @@ export async function registerServiceworker () {
   }
 }
 
-export function isServicewokerEnabled () {
-  return localStorage.useServiceworker === 'true'
+export function isServiceWorkerEnabled () {
+  return localStorage.useServiceWorker === 'true'
 }
 
-export async function enableServiceworker () {
-  localStorage.useServiceworker = true
-  await registerServiceworker()
+export async function enableServiceWorker () {
+  localStorage.useServiceWorker = true
+  await registerServiceWorker()
 }
 
-export async function disableServiceworker () {
-  localStorage.useServiceworker = false
+export async function disableServiceWorker () {
+  localStorage.useServiceWorker = false
 
   const serviceWorker = navigator.serviceWorker
   const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
@@ -57,4 +57,4 @@ export async function disableServiceworker () {
 }
 
 // 緊急用
-window.disableServiceworker = disableServiceworker
+window.disableServiceWorker = disableServiceWorker
