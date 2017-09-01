@@ -39,16 +39,16 @@ export async function registerServiceWorker () {
 }
 
 export function isServiceWorkerEnabled () {
-  return localStorage.useServiceWorker === 'true'
+  return localStorage.enableServiceWorker === 'true'
 }
 
 export async function enableServiceWorker () {
-  localStorage.useServiceWorker = true
+  localStorage.enableServiceWorker = true
   await registerServiceWorker()
 }
 
 export async function disableServiceWorker () {
-  localStorage.useServiceWorker = false
+  localStorage.enableServiceWorker = false
 
   const serviceWorker = navigator.serviceWorker
   const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
