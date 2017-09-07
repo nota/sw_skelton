@@ -1,46 +1,63 @@
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AssetCacheStore from '../stores/asset-cache-store'
+import AppVersionStore from '../stores/app-version-store'
+import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled} from '../lib/register-serviceworker'
 
 export default class App extends Component {
   constructor (props) {
     super(props)
 
-    this.state = {}
+    this.state = {
+      hasUpdate: AppVersionStore.hasUpdate
+    }
 
     this.onAssetCacheChanged = this.onAssetCacheChanged.bind(this)
-    AssetCacheStore.on('change', this.onAssetCacheChanged)
+    AppVersionStore.on('change', this.onAssetCacheChanged)
   }
 
   async componentDidMount () {
-    const version = await AssetCacheStore.currentVersion()
+    const version = await AppVersionStore.currentVersion()
     const url = window.location.href
     this.setState({version, url})
 
-    AssetCacheStore.checkForUpdateAutomatically()
+    if (isServiceWorkerEnabled()) {
+      AppVersionStore.checkForUpdateAutomatically()
+    }
   }
 
   onAssetCacheChanged () {
-    this.setState({updateFound: true})
+    this.setState({hasUpdate: true})
   }
 
   async checkUpdateAndPrompt () {
-    await AssetCacheStore.checkForUpdate()
+    await AppVersionStore.checkForUpdate()
   }
 
   onClickUpdate () {
-    AssetCacheStore.updateNow()
+    window.location.reload()
+  }
+
+  async enableServiceWorker () {
+    await enableServiceWorker()
+    AppVersionStore.checkForUpdateAutomatically()
+  }
+
+  async disableServiceWorker () {
+    await disableServiceWorker()
+    AppVersionStore.stop()
+    const result = confirm ('successfully disabled. Will yor reload?')
+    if (result) location.reload()
   }
 
   render () {
     return (
-      <div className={this.state.updateFound ? 'update-found' : ''}>
+      <div className={this.state.hasUpdate ? 'update-found' : ''}>
         {
-          this.state.updateFound && (
+          this.state.hasUpdate && (
             <div className='update-alert-bar' onClick={this.onClickUpdate}>
               <a>
-                新しいバージョンが見つかりました。ここを押してアップデートしましょう。
+                Scrapboxが更新されました。再読込しますか？
               </a>
             </div>
           )
@@ -62,6 +79,18 @@ export default class App extends Component {
             Check for update
           </button>
           &nbsp;
+        </p>
+
+        <p>
+          {
+            isServiceWorkerEnabled() ?
+              <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
+                Disable service worker
+              </button> :
+              <button className='btn btn-default btn-sm' onClick={this.enableServiceWorker.bind(this)}>
+                Enable service worker
+              </button>
+          }
         </p>
 
         <div className='text'>

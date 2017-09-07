@@ -1,7 +1,11 @@
 const debug = require('./debug')(__filename)
 
-export default async function initialize () {
-  debug('initialize')
+import {setVersion} from '../lib/version'
+
+export async function registerServiceWorker () {
+  if (!isServiceWorkerEnabled()) return
+
+  debug('register')
 
   const serviceWorker = navigator.serviceWorker
 
@@ -11,6 +15,7 @@ export default async function initialize () {
 
   try {
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
+    // XXX: ここから下のコードはすべてdebugのためにある
     const state = (() => {
       if (reg.installing) return 'installing'
       if (reg.waiting) return 'wating'
@@ -33,3 +38,23 @@ export default async function initialize () {
   }
 }
 
+export function isServiceWorkerEnabled () {
+  return localStorage.enableServiceWorker === 'true'
+}
+
+export async function enableServiceWorker () {
+  localStorage.enableServiceWorker = true
+  await registerServiceWorker()
+}
+
+export async function disableServiceWorker () {
+  localStorage.enableServiceWorker = false
+
+  const serviceWorker = navigator.serviceWorker
+  const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
+  await reg.unregister()
+  await setVersion(null)
+}
+
+// 緊急用
+window.disableServiceWorker = disableServiceWorker

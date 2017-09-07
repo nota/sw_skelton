@@ -6,10 +6,30 @@
   <link rel="stylesheet" type="text/css" href="/css/app.css">
   <link rel="stylesheet" type="text/css" href="/css/icons.css">
   <link rel="stylesheet" type="text/css" href="/css/notfound.css">
-  <link rel="stylesheet" type="text/css" href="/app2.css">
 </head>
 <body>
   <div id="app-container"></div>
   <script src="/index.js"></script>
+  <script type="text/javascript">
+    // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
+    setInterval(function() {
+      const serviceWorker = navigator.serviceWorker
+      if (localStorage.enableServiceWorker !== 'true') return
+      if (window.checkVersionDone || !serviceWorker) return
+      alert('service workerによる更新システムまたはコードが動いていません!')
+      serviceWorker.register('/serviceworker.js', {scope: '/'}).then(function (reg) {
+        return reg.unregister()
+      }).then(function (result) {
+        console.log('unregister', result)
+        if (!confirm('リロードしますか?')) return
+        window.location.reload()
+      }).catch(function (err) {
+        alert('開発元にお問い合わせください。')
+        window.location.href='/contact'
+        console.error(err)
+        alert(err.message)
+      })
+    }, 10000)
+  </script>
 </body>
 </html>

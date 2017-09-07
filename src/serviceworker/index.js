@@ -1,33 +1,29 @@
 /* global caches self URL fetch */
 /* eslint-env browser */
 
+console.log('sw: hello')
+
 const NOCACHE_PATHS = [
-  '/serviceworker.js',
-  '/api/',
-  '/.+?/.+?/slide',
-  '/.+?/.+?.json'
+  '^/serviceworker\\.js',
+  '^/api/'
 ]
 
-const ASSETS = [
+const ASSET_PATHS = [
   '/css/',
   '/img/',
-  '/fonts/'
+  '/fonts/',
+  '/app.html',
+  '/index.js'
 ]
 
-const MY_HOSTS = [
-  'localhost',
-  'scrapbox.io',
-  'staging.scrapbox.io'
-]
-
-const ASSET_HOSTS = MY_HOSTS.concat([
+const THIRDPARTY_ASSET_HOSTS = [
   'maxcdn.bootstrapcdn.com'
-])
+]
 
 const DB_NAME = 'cache'
-const STORE_NAME = 'version'
+const STORE_NAME = 'config'
 
-console.log('sw: hello')
+const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
 
 this.addEventListener('install', function (event) {
   event.waitUntil(
@@ -41,65 +37,98 @@ this.addEventListener('activate', function (event) {
   )
 })
 
-function isNoCachePath (pathname) {
-  for (let path of NOCACHE_PATHS) {
-    const reg = new RegExp(path)
-    if (reg.test(pathname)) return true
-  }
-  return false
+function isMyHost (url) {
+  return location.hostname === url.hostname
 }
 
-function isMyHost (hostname) {
-  for (let host of MY_HOSTS) {
-    if (host === hostname) return true
-  }
-  return false
+function isApiOrLandingPage (url) {
+  return isMyHost(url) && NOCACHE_PATHS.find(function (path) {
+    return new RegExp(path).test(url.pathname)
+  })
 }
 
-function isAssetHost (hostname) {
-  for (let host of ASSET_HOSTS) {
-    if (host === hostname) return true
-  }
-  return false
+function isAsset (url) {
+  if (THIRDPARTY_ASSET_HOSTS.includes(url.hostname)) return true
+
+  return isMyHost(url) && ASSET_PATHS.find(function (path) {
+    return url.pathname.indexOf(path) === 0
+  })
 }
 
-function isAssetPath (pathname) {
-  for (let path of ASSETS) {
-    if (pathname.indexOf(path) === 0) return true
-  }
-  return false
+function acceptHtml (req) {
+  const accept = req.headers.get('Accept')
+  return accept && accept.includes('text/html')
+}
+
+function isGetRequest (req) {
+  return req.method === 'GET'
 }
 
 function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
-  if (!isMyHost(url.hostname)) return false
-  if (isAssetPath(url.pathname)) return false
-  if (isNoCachePath(url.pathname)) return false
-  if (req.method !== 'GET') return false
-
-  const accept = req.headers.get('Accept')
-  if (!accept || accept.indexOf('text/html') < 0) {
-    return false
-  }
-
-  return true
+  return (
+    isMyHost(url) &&
+    !isAsset(url) &&
+    !isApiOrLandingPage(url) &&
+    isGetRequest(req) &&
+    acceptHtml(req)
+  )
 }
 
 function shouldCache (req, res) {
   const url = new URL(req.url)
+  const ok = res.ok || res.status === 0 // XXX: status=0でokのときがある
 
-  if (!isAssetHost(url.hostname)) return false
-  if (isNoCachePath(url.pathname)) return false
-  if (req.method !== 'GET') return false
-  if (!res.ok && res.status !== 0) return false
+  return isAsset(url) && isGetRequest(req) && ok
+}
 
-  return true
+function isCacheAllRequest (req) {
+  const url = new URL(req.url)
+
+  const path = '/api/app/cacheall'
+  return isMyHost(url) && url.pathname === path
+}
+
+function cacheKey (version) {
+  return version + POSTFIX
+}
+
+function deleteOldCache (currentVersion) {
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      if (key !== cacheKey(currentVersion)) {
+        console.log('sw: delete old cache', key)
+        return caches.delete(key)
+      } else {
+        return Promise.resolve()
+      }
+    }))
+  })
+}
+
+function cacheAll (manifest) {
+  return caches.open(cacheKey(manifest.version)).then(function (cache) {
+    return cache.addAll(manifest.cacheall).then(function () {
+      return setVersion(manifest.version)
+    })
+  })
+}
+
+function createAppHtmlRequest (req) {
+  const url = new URL(req.url).origin + '/app.html'
+  return new Request(url, {
+    method: req.method,
+    headers: req.headers,
+    mode: 'same-origin', // need to set this properly
+    credentials: req.credentials,
+    redirect: 'manual'   // let browser handle redirects
+  })
 }
 
 let _db = null
 function openDB () {
-  return new Promise(function (resolve, reject) {
+  const open = new Promise(function (resolve, reject) {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
@@ -125,6 +154,10 @@ function openDB () {
       reject(event)
     }
   })
+  const timeout = new Promise(function (resolve, reject) {
+    setTimeout(reject, 10000)
+  })
+  return Promise.race([open, timeout])
 }
 
 function setItem (key, value) {
@@ -160,48 +193,6 @@ function getVersion () {
   })
 }
 
-// setVersion('hoihoi2')
-
-function createAppHtmlRequest (req) {
-  const url = new URL(req.url).origin + '/app.html'
-  return new Request(url, {
-    method: req.method,
-    headers: req.headers,
-    mode: 'same-origin', // need to set this properly
-    credentials: req.credentials,
-    redirect: 'manual'   // let browser handle redirects
-  })
-}
-
-function deleteOldCache (currentVersion) {
-  return caches.keys().then(function (keys) {
-    return Promise.all(keys.map(function (key) {
-      if (key !== currentVersion) {
-        console.log('sw: delete old cache', key)
-        return caches.delete(key)
-      } else {
-        return Promise.resolve()
-      }
-    }))
-  })
-}
-
-function isCacheAllRequest (req) {
-  const url = new URL(req.url)
-
-  if (!isMyHost(url.hostname)) return false
-
-  return (url.pathname === '/api/assets/cacheall')
-}
-
-function cacheAll (manifest) {
-  return caches.open(manifest.version).then(function (cache) {
-    return cache.addAll(manifest.cacheall).then(function () {
-      return setVersion(manifest.version)
-    })
-  })
-}
-
 this.addEventListener('fetch', function (event) {
   let req = event.request
 
@@ -219,6 +210,16 @@ this.addEventListener('fetch', function (event) {
             return res
           })
         })
+      }).catch(function (err) {
+        // TODO: cacheAllの途中で404が出たりしても止まってしまう
+        // ブラウザの停止ボタンを押したりしても止まるのでは？
+        const init = {
+          status: 500,
+          statusText: 'Internal Server Error',
+          headers: {'Content-Type': 'text/plain'}
+        }
+        console.log(err)
+        return new Response('cache all failed: ' + err.message, init)
       })
     )
     return
@@ -228,7 +229,7 @@ this.addEventListener('fetch', function (event) {
 
   event.respondWith(
     getVersion().then(function (version) {
-      return caches.open(version).then(function (cache) {
+      return caches.open(cacheKey(version)).then(function (cache) {
         return cache.match(req).then(function (res) {
           if (res) {
             console.log('sw: respond from cache', req.url)
@@ -248,6 +249,7 @@ this.addEventListener('fetch', function (event) {
       })
     }).catch(function (err) {
       if (!tryFetched) return fetch(req)
+      if (err instanceof TypeError && err.message === 'Failed to fetch') return
       throw (err)
     })
   )

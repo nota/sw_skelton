@@ -23,20 +23,19 @@ async function getVersion () {
   return md5(hashes.join('')).substring(0, 8)
 }
 
-app.get('/api/assets/version', async (req, res) => {
+app.get('/api/app/version', async (req, res) => {
   const version = await getVersion()
   res.json({ version })
 })
 
-app.get('/api/assets/cacheall', async (req, res) => {
+app.get('/api/app/cacheall', async (req, res) => {
   const version = await getVersion()
   let cacheall = [
     '/app.html',
-    '/app2.css',
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
-  for (dir of ['css', 'fonts', 'img']) {
+  for (let dir of ['css', 'fonts', 'img']) {
     const files = await fs.readdir(`./public/${dir}`)
     cacheall = cacheall.concat(files.map(file => `/${dir}/${file}`))
   }
