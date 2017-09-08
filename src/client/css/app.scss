@@ -1,23 +1,18 @@
 body {
   font-family: sans-serif;
-  text-align: center;
 }
 
 h1 {
-  color: pink;
-}
-
-.update-found {
-  padding-top: 40px;
+  color: blue;
 }
 
 .update-alert-bar {
   position: fixed;
   height: 36px;
   text-align: center;
-  top: 0;
-  left: 0;
-  width: 100%;
+  bottom: 0;
+  right: 0;
+  width: 100px;
 
   a {
     display: block;
@@ -41,8 +36,6 @@ h1 {
 .text {
   color: #666;
   font-size: 18px;
-  max-width: 400px;
   margin: 50px auto;
-  text-align: left;
   line-height: 150%;
 }
