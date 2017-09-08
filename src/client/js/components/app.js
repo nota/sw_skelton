@@ -12,7 +12,7 @@ export default class App extends Component {
         <UpdateNotifier />
         <div className='container'>
           <h1>
-            <img src='/img/logo.png' width='50' />
+            <img src='/img/logo.png' className='logoimg' width='50' />
             Hello, service worker
           </h1>
           <Setting />
