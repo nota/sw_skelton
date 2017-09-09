@@ -42,6 +42,12 @@ export function isServiceWorkerEnabled () {
   return localStorage.enableServiceWorker === 'true'
 }
 
+export async function geServiceWorkerRegistration () {
+  const serviceWorker = navigator.serviceWorker
+  if (!serviceWorker) return null
+  return serviceWorker.getRegistration('/')
+}
+
 export async function enableServiceWorker () {
   if (!navigator.serviceWorker) {
     alert('Your browser does not support service worker')
@@ -55,9 +61,8 @@ export async function enableServiceWorker () {
 export async function disableServiceWorker () {
   localStorage.enableServiceWorker = false
 
-  const serviceWorker = navigator.serviceWorker
-  const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
-  await reg.unregister()
+  const reg = await geServiceWorkerRegistration()
+  if (reg) await reg.unregister()
   await setVersion(null)
 }
 

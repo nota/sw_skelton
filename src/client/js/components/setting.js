@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
-import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled} from '../lib/register-serviceworker'
+import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled, geServiceWorkerRegistration} from '../lib/register-serviceworker'
 
 export default class Setting extends Component {
   constructor (props) {
@@ -10,7 +10,8 @@ export default class Setting extends Component {
 
     this.state = {
       version: null,
-      url: null
+      url: null,
+      enabled: false
     }
 
     AppVersionStore.on('change', this.onAppVersionChanged.bind(this))
@@ -20,6 +21,13 @@ export default class Setting extends Component {
     const version = await AppVersionStore.currentVersion()
     const url = window.location.href
     this.setState({version, url})
+    this.checkEnabled()
+  }
+
+  async checkEnabled () {
+    const registered = await geServiceWorkerRegistration()
+    const enabled = isServiceWorkerEnabled() || registered
+    this.setState({enabled})
   }
 
   async onAppVersionChanged () {
@@ -32,16 +40,29 @@ export default class Setting extends Component {
   }
 
   async enableServiceWorker () {
-    await enableServiceWorker()
+    try {
+      await enableServiceWorker()
+    } catch (err) {
+      alert('Cannot enable service worker\n' + err.message)
+      throw (err)
+      return
+    }
     alert('successfully enabled')
     AppVersionStore.checkForUpdateAutomatically()
+    this.checkEnabled()
   }
 
   async disableServiceWorker () {
-    await disableServiceWorker()
+    try {
+      await disableServiceWorker()
+    } catch (err) {
+      alert('Cannot disable service worker\n' + err.message)
+      throw (err)
+      return
+    }
+    alert('successfully disabled.')
     AppVersionStore.stop()
-    const result = confirm ('successfully disabled. Will yor reload?')
-    if (result) location.reload()
+    this.checkEnabled()
   }
 
   render () {
@@ -63,7 +84,7 @@ export default class Setting extends Component {
         </p>
         <p>
           {
-            isServiceWorkerEnabled() ?
+            this.state.enabled ?
               <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
               </button> :
