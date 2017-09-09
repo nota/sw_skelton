@@ -163,7 +163,7 @@ function openDB () {
 function setItem (key, value) {
   return openDB().then(function (db) {
     const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
-    objectStore.put({key: key, value: value})
+    objectStore.put({key: key, value: value, updated: Date.now()})
   })
 }
 

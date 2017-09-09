@@ -10,7 +10,7 @@ export default class App extends Component {
           <a className='navbar-brand' href='#'>Scrapbox</a>
         </div>
         <UpdateNotifier />
-        <div className='container'>
+        <div className='container' id='cont'>
           <h1>
             <img src='/img/logo.png' className='logoimg' width='50' />
             Hello, service worker

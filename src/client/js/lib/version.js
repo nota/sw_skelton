@@ -10,3 +10,10 @@ export function getVersion () {
     return result.value
   })
 }
+
+export function getLastUpdatedAt () {
+  return getItem('version').then(function (result) {
+    if (!result) return undefined
+    return result.updated
+  })
+}

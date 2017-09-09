@@ -43,6 +43,11 @@ export function isServiceWorkerEnabled () {
 }
 
 export async function enableServiceWorker () {
+  if (!navigator.serviceWorker) {
+    alert('Your browser does not support service worker')
+    return
+  }
+
   localStorage.enableServiceWorker = true
   await registerServiceWorker()
 }

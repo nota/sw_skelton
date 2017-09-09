@@ -2,8 +2,24 @@ body {
   font-family: sans-serif;
 }
 
+.reload {
+  animation-duration: 1s;
+  animation-name: body-fadeout;
+  animation-timing-function: ease-in-out;
+  opacity: 0;
+}
+
+@keyframes body-fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 h1 {
-  color: blue;
+  color: brown;
 }
 
 .logoimg {
