@@ -47,7 +47,6 @@ export default class Setting extends Component {
       throw (err)
       return
     }
-    alert('successfully enabled')
     AppVersionStore.checkForUpdateAutomatically()
     this.checkEnabled()
   }
@@ -60,7 +59,6 @@ export default class Setting extends Component {
       throw (err)
       return
     }
-    alert('successfully disabled.')
     AppVersionStore.stop()
     this.checkEnabled()
   }
@@ -68,6 +66,7 @@ export default class Setting extends Component {
   render () {
     return (
       <div>
+        <p>serviceWorker: {this.state.enabled ? 'on': 'off'}</p>
         {
           this.state.version && (
             <p>
