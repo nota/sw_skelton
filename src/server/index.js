@@ -4,6 +4,9 @@ const path = require('path')
 const md5File = require('md5-file/promise')
 const md5 = require('md5')
 const fs = require('mz/fs')
+const morgan = require('morgan')
+
+app.use(morgan('dev'))
 
 app.get('/', (req, res) => {
   res.render('app')
