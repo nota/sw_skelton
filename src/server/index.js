@@ -43,7 +43,6 @@ app.get('/api/app/cacheall', async (req, res) => {
     cacheall = cacheall.concat(files.map(file => `/${dir}/${file}`))
   }
   res.json({
-    name: 'sw_app',
     version,
     cacheall
   })

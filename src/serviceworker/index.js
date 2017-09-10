@@ -189,8 +189,27 @@ function setVersion (value) {
 function getVersion () {
   return getItem('version').then(function (result) {
     if (!result) throw new Error('cache version is not set')
-    return result.value
+    const version = result.value
+    const updated = result.updated
+    return {version, updated}
   })
+}
+
+function createJsonResponse(status, body) {
+  const statusText = function (status) {
+    switch (status) {
+      case 200:
+        return 'OK'
+      case 500:
+        return 'Internal Server Error'
+    }
+  }
+  const init = {
+    status: status,
+    statusText: statusText(status),
+    headers: {'Content-Type': 'application/json'}
+  }
+  return new Response(JSON.stringify(body), init)
 }
 
 this.addEventListener('fetch', function (event) {
@@ -205,21 +224,42 @@ this.addEventListener('fetch', function (event) {
     event.respondWith(
       fetch(req).then(function (res) {
         return res.clone().json().then(function (manifest) {
-          return cacheAll(manifest).then(function () {
-            console.log('sw: cache all done')
-            return res
+          return getVersion().then(function ({version, updated}) {
+            if (version === manifest.version) {
+              const body = {
+                version,
+                message: 'already up to date'
+              }
+              return createJsonResponse(200, body)
+            }
+            return cacheAll(manifest).then(function () {
+              console.log('sw: cache all done')
+              const body = manifest
+              body.message = 'updated'
+              body.previousVersion = {version, updated}
+              return createJsonResponse(200, body)
+            })
           })
         })
       }).catch(function (err) {
         // TODO: cacheAllの途中で404が出たりしても止まってしまう
         // ブラウザの停止ボタンを押したりしても止まるのでは？
-        const init = {
-          status: 500,
-          statusText: 'Internal Server Error',
-          headers: {'Content-Type': 'text/plain'}
+        // エラーのより細かい判定が必要
+        // ネットにつながらないときとTimeoutはちゃんと分けるべき
+        /* cacheallの途中でnot found
+               TypeError, Request failed
+           cacheallの途中で、サーバーが落ちる
+              Failed to fetch
+          他のエラー、JSのシンタックスエラー
+          indexeddb周りのエラー
+          cache.open周りのエラー
+        */
+        const body = {
+          name: err.name,
+          message: err.message
         }
-        console.log(err)
-        return new Response('cache all failed: ' + err.message, init)
+        console.error(err)
+        return createJsonResponse(500, body)
       })
     )
     return
@@ -228,7 +268,7 @@ this.addEventListener('fetch', function (event) {
   let tryFetched = false
 
   event.respondWith(
-    getVersion().then(function (version) {
+    getVersion().then(function ({version}) {
       return caches.open(cacheKey(version)).then(function (cache) {
         return cache.match(req).then(function (res) {
           if (res) {
