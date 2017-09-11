@@ -107,6 +107,51 @@ function deleteOldCache (currentVersion) {
   })
 }
 
+function respondCacheAll (req) {
+  return fetch(req).then(function (res) {
+    return res.clone().json().then(function (manifest) {
+      return getVersion().then(function ({version, updated}) {
+        if (version === manifest.version) {
+          const body = {
+            version,
+            message: 'already up to date'
+          }
+          return createJsonResponse(200, body)
+        }
+        return cacheAll(manifest).then(function () {
+          console.log('sw: cache all done')
+          const body = manifest
+          body.message = 'updated'
+          body.previousVersion = {version, updated}
+          return createJsonResponse(200, body)
+        })
+      })
+    })
+  }).catch(function (err) {
+    /*
+    TODO: cacheAllの途中で404が出たりしても止まってしまう
+    ブラウザの停止ボタンを押したりしても止まるのでは？
+    エラーのより細かい判定が必要
+    ネットにつながらないときとTimeoutはちゃんと分けるべき
+
+    エラー一覧
+      cacheAllの途中でnot found
+        TypeError, Request failed
+      cacheAllの途中で、サーバーが落ちる
+        TypeError, Failed to fetch
+      他のエラー、JSのシンタックスエラー
+      indexeddb周りのエラー
+      cache.open周りのエラー
+    */
+    const body = {
+      name: err.name,
+      message: err.message
+    }
+    console.error(err)
+    return createJsonResponse(500, body)
+  })
+}
+
 function cacheAll (manifest) {
   return caches.open(cacheKey(manifest.version)).then(function (cache) {
     return cache.addAll(manifest.cacheall).then(function () {
@@ -221,47 +266,7 @@ this.addEventListener('fetch', function (event) {
 
   if (isCacheAllRequest(req)) {
     console.log('sw: cache all')
-    event.respondWith(
-      fetch(req).then(function (res) {
-        return res.clone().json().then(function (manifest) {
-          return getVersion().then(function ({version, updated}) {
-            if (version === manifest.version) {
-              const body = {
-                version,
-                message: 'already up to date'
-              }
-              return createJsonResponse(200, body)
-            }
-            return cacheAll(manifest).then(function () {
-              console.log('sw: cache all done')
-              const body = manifest
-              body.message = 'updated'
-              body.previousVersion = {version, updated}
-              return createJsonResponse(200, body)
-            })
-          })
-        })
-      }).catch(function (err) {
-        // TODO: cacheAllの途中で404が出たりしても止まってしまう
-        // ブラウザの停止ボタンを押したりしても止まるのでは？
-        // エラーのより細かい判定が必要
-        // ネットにつながらないときとTimeoutはちゃんと分けるべき
-        /* cacheallの途中でnot found
-               TypeError, Request failed
-           cacheallの途中で、サーバーが落ちる
-              Failed to fetch
-          他のエラー、JSのシンタックスエラー
-          indexeddb周りのエラー
-          cache.open周りのエラー
-        */
-        const body = {
-          name: err.name,
-          message: err.message
-        }
-        console.error(err)
-        return createJsonResponse(500, body)
-      })
-    )
+    event.respondWith(respondCacheAll(req))
     return
   }
 
