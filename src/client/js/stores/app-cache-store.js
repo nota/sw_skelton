@@ -59,7 +59,7 @@ export default new class AppCacheStore extends EventEmitter {
     this.version = version
 
     debug('cacheStatus', cacheStatus, ', version', version)
-    if (cacheStatus === 'updated'){
+    if (cacheStatus === 'updated') {
       if (previousVersion.version) {
         debug('updated', 'previousVersion', previousVersion)
         this.previousVersion = previousVersion
@@ -69,7 +69,7 @@ export default new class AppCacheStore extends EventEmitter {
     this.emit('change')
   }
 
-  async deleteAllCache() {
+  async deleteAllCache () {
     debug('delete all cache')
     const keys = await caches.keys()
     await Promise.all(keys.map(key => caches.delete(key)))

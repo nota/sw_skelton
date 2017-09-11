@@ -66,7 +66,7 @@ export default class Setting extends Component {
   render () {
     return (
       <div>
-        <p>serviceWorker: {this.state.enabled ? 'on': 'off'}</p>
+        <p>serviceWorker: {this.state.enabled ? 'on' : 'off'}</p>
         {
           this.state.version && (
             <p>
@@ -83,13 +83,13 @@ export default class Setting extends Component {
         </p>
         <p>
           {
-            this.state.enabled ?
-              <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
+            this.state.enabled
+            ? <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
-              </button> :
-              <button className='btn btn-default btn-sm' onClick={this.enableServiceWorker.bind(this)}>
+            </button>
+            : <button className='btn btn-default btn-sm' onClick={this.enableServiceWorker.bind(this)}>
                 Enable service worker
-              </button>
+            </button>
           }
         </p>
       </div>

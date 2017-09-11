@@ -1,7 +1,5 @@
 /* eslint-env browser */
-
 const debug = require('./debug')(__filename)
-import request from 'superagent'
 
 const NOT_AVAILABLE = 'Your browser does not support service worker'
 

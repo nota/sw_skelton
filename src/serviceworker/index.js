@@ -158,10 +158,9 @@ function respondCacheUpdate (req) {
         DBを手動で削除した直後など
         InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
         NotFoundError, Operation failed because the requested database object could not be found
-          Firefoxで起きる意味不明のエラー。原因完全不明
-        DBが完全にぶっ壊れて
-          読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
-      　  書き込みできない -> まずいので、cacheを全部消すのがよさそう
+        Firefoxで起きる意味不明のエラー。原因完全不明
+        読み込みできない:そもそもonFetchでネットワーク経由だけになってるはず
+        書き込みできない:まずいので、cacheを全部消すのがよさそう
       cache.open周りのエラー
         読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
         書き込みできない -> ネットワークエラーかどうか、現cacheを全部削除して様子見？
@@ -250,7 +249,7 @@ function setVersion (value) {
   return setItem('version', value)
 }
 
-function getVersion ({allowNull}={}) {
+function getVersion ({allowNull} = {}) {
   return getItem('version').then(function (result) {
     if (!result) {
       if (allowNull) {
@@ -264,7 +263,7 @@ function getVersion ({allowNull}={}) {
   })
 }
 
-function createJsonResponse(status, body) {
+function createJsonResponse (status, body) {
   const statusText = function (status) {
     switch (status) {
       case 200:

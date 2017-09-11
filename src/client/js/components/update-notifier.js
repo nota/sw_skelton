@@ -5,7 +5,6 @@ const debug = require('../lib/debug')(__filename)
 import React, {Component} from 'react'
 import AppCacheStore from '../stores/app-cache-store'
 import ServiceWorker from '../lib/serviceworker-utils'
-import Setting from './setting'
 
 const SECOND = 1000
 const MINUTE = 60 * SECOND
@@ -29,18 +28,19 @@ export default class UpdateNotifier extends Component {
     this.mountedAt = Date.now()
   }
 
-  shouldReload() {
+  shouldReload () {
     const previousVersion = AppCacheStore.previousVersion
     const lastUpdated = previousVersion ? previousVersion.updated : Date.now()
 
-    // この前に更新したのが、1週間以上前で
-    // かつ更新にかかった時間が3秒以内の速いネットワークに限定
+    // この前に更新したのが、1週間以上前または
+    // 更新にかかった時間が3秒以内の速いネットワークに限定
     debug('time from mount (sec)', (Date.now() - this.mountedAt) / SECOND)
     debug('time from last update (sec)', (Date.now() - lastUpdated) / SECOND)
 
-    if (Date.now() - this.mountedAt < 3 * SECOND ||
-        Date.now() - lastUpdated > 7 * DAY)
-    {
+    if (Date.now() - this.mountedAt < 3 * SECOND) {
+      return true
+    }
+    if (Date.now() - lastUpdated > 7 * DAY) {
       return true
     }
     // または24時間以上開きっぱなしのWindowである
@@ -48,9 +48,9 @@ export default class UpdateNotifier extends Component {
       return true
     }
     // TODO: またはprotocol-versionがあがってる
-    //if (AppCacheStore.protocolVersionMismatch()) {
-    //  return true
-    //}
+    // if (AppCacheStore.protocolVersionMismatch()) {
+    //   return true
+    // }
   }
 
   onAppVersionChanged () {
