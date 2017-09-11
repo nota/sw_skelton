@@ -190,7 +190,7 @@ function cacheAddAll (manifest) {
 function respondCacheClear (req) {
   console.log('sw: cache clear')
 
-  deleteAllCache().then(function () {
+  return deleteAllCache().then(function () {
     return createJsonResponse(200, {cacheStatus: 'clear'})
   }).catch(function (err) {
     const body = {

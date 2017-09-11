@@ -20,19 +20,13 @@
       const serviceWorker = navigator.serviceWorker
       if (localStorage.enableServiceWorker !== 'true') return
       if (window.checkVersionDone || !serviceWorker) return
-      alert('service workerによる更新システムまたはコードが動いていません!')
+      alert('Auto updating system seems not working.')
       localStorage.enableServiceWorker = false
       serviceWorker.getRegistration('/').then(function (reg) {
         return reg.unregister()
       }).then(function (result) {
-        console.log('unregister', result)
-        if (!confirm('リロードしますか?')) return
+        if (!confirm('Please reload the browser')) return
         window.location.reload()
-      }).catch(function (err) {
-        alert('開発元にお問い合わせください。')
-        window.location.href='/contact'
-        console.error(err)
-        alert(err.message)
       })
     }, 10000)
   </script>

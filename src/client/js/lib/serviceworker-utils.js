@@ -53,7 +53,11 @@ export default new class ServiceWorker {
   async disable () {
     localStorage.enableServiceWorker = false
 
-    await request.get('/api/caches/clear')
+    try {
+      await request.get('/api/caches/clear')
+    } catch (err) {
+      if (err.status !== 404) throw err
+    }
     const reg = await this.getRegistration()
     if (reg) await reg.unregister()
   }
