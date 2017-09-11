@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 const debug = require('../lib/debug')(__filename)
 
 import request from 'superagent'
@@ -49,6 +51,11 @@ export default new class AppCacheStore extends EventEmitter {
 
     const {version, cacheStatus, previousVersion} = response.body
 
+    if (!cacheStatus) {
+      // service workerが動いていない（強制リロードか？）
+      await this.deleteAllCache()
+    }
+
     this.version = version
 
     debug('cacheStatus', cacheStatus, ', version', version)
@@ -60,6 +67,12 @@ export default new class AppCacheStore extends EventEmitter {
       }
     }
     this.emit('change')
+  }
+
+  async deleteAllCache() {
+    debug('delete all cache')
+    const keys = await caches.keys()
+    await Promise.all(keys.map(key => caches.delete(key)))
   }
 }()
 
