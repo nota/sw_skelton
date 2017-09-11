@@ -1,7 +1,7 @@
 const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AppVersionStore from '../stores/app-version-store'
+import AppCacheStore from '../stores/app-cache-store'
 import ServiceWorker from '../lib/serviceworker-utils'
 import Setting from './setting'
 
@@ -14,21 +14,21 @@ export default class UpdateNotifier extends Component {
   constructor (props) {
     super(props)
 
-    const {hasUpdate} = AppVersionStore
+    const {hasUpdate} = AppCacheStore
     this.state = {hasUpdate}
 
-    AppVersionStore.on('change', this.onAppVersionChanged.bind(this))
+    AppCacheStore.on('change', this.onAppVersionChanged.bind(this))
   }
 
   async componentDidMount () {
     if (ServiceWorker.isEnabled()) {
-      AppVersionStore.checkForUpdateAutomatically()
+      AppCacheStore.checkForUpdateAutomatically()
     }
     this.mountedAt = Date.now()
   }
 
   shouldReload() {
-    const previousVersion = AppVersionStore.previousVersion
+    const previousVersion = AppCacheStore.previousVersion
     const lastUpdated = previousVersion ? previousVersion.updated : Date.now()
 
     // この前に更新したのが、1週間以上前で
@@ -45,15 +45,14 @@ export default class UpdateNotifier extends Component {
     if (Date.now() - this.mountedAt > DAY) {
       return true
     }
-    // またはprotocol-versionがあがってる
-    //if (AppVersionStore.protocolVersionMismatch()) {
+    // TODO: またはprotocol-versionがあがってる
+    //if (AppCacheStore.protocolVersionMismatch()) {
     //  return true
     //}
-
   }
 
   onAppVersionChanged () {
-    const {hasUpdate} = AppVersionStore
+    const {hasUpdate} = AppCacheStore
     this.setState({hasUpdate})
 
     if (!hasUpdate) return
@@ -66,9 +65,7 @@ export default class UpdateNotifier extends Component {
   reload () {
     const elm = document.getElementById('cont')
     elm.className = elm.className + ' reload'
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
+    setTimeout(() => { window.location.reload() }, 1000)
   }
 
   onClickUpdate () {

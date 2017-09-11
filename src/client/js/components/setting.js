@@ -1,7 +1,7 @@
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AppVersionStore from '../stores/app-version-store'
+import AppCacheStore from '../stores/app-cache-store'
 import ServiceWorker from '../lib/serviceworker-utils'
 
 export default class Setting extends Component {
@@ -14,11 +14,11 @@ export default class Setting extends Component {
       enabled: false
     }
 
-    AppVersionStore.on('change', this.onAppVersionChanged.bind(this))
+    AppCacheStore.on('change', this.onAppVersionChanged.bind(this))
   }
 
   async componentDidMount () {
-    const version = await AppVersionStore.version
+    const version = await AppCacheStore.version
     const url = window.location.href
     this.setState({version, url})
     this.checkEnabled()
@@ -31,12 +31,12 @@ export default class Setting extends Component {
   }
 
   async onAppVersionChanged () {
-    const version = await AppVersionStore.version
+    const version = await AppCacheStore.version
     this.setState({version})
   }
 
   async checkUpdateAndPrompt () {
-    await AppVersionStore.checkForUpdate()
+    await AppCacheStore.checkForUpdate()
   }
 
   async enableServiceWorker () {
@@ -47,7 +47,7 @@ export default class Setting extends Component {
       throw (err)
       return
     }
-    AppVersionStore.checkForUpdateAutomatically()
+    AppCacheStore.checkForUpdateAutomatically()
     this.checkEnabled()
   }
 
@@ -59,7 +59,7 @@ export default class Setting extends Component {
       throw (err)
       return
     }
-    AppVersionStore.stop()
+    AppCacheStore.stop()
     this.checkEnabled()
   }
 
