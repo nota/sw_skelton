@@ -33,19 +33,16 @@ app.get('/api/app/version', async (req, res) => {
 
 app.get('/api/caches/update', async (req, res) => {
   const version = await getVersion()
-  let cacheall = [
+  let assets = [
     '/app.html',
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
   for (let dir of ['css', 'fonts', 'img']) {
     const files = await fs.readdir(`./public/${dir}`)
-    cacheall = cacheall.concat(files.map(file => `/${dir}/${file}`))
+    assets = assets.concat(files.map(file => `/${dir}/${file}`))
   }
-  res.json({
-    version,
-    cacheall
-  })
+  res.json({version, assets})
 })
 
 app.get('/note/*', (req, res) => {

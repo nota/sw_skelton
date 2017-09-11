@@ -172,7 +172,7 @@ function respondCacheUpdate (req) {
 
 function cacheAddAll (manifest) {
   return caches.open(cacheKey(manifest.version)).then(function (cache) {
-    return cache.addAll(manifest.cacheall).then(function () {
+    return cache.addAll(manifest.assets).then(function () {
       return setVersion(manifest.version)
     })
   })
