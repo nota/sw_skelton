@@ -114,16 +114,14 @@ function respondCacheAll (req) {
         if (version === manifest.version) {
           const body = {
             version,
-            cacheStatus: 'UpToDate',
-            message: 'already up to date'
+            cacheStatus: 'latest'
           }
           return createJsonResponse(200, body)
         }
         return cacheAll(manifest).then(function () {
           console.log('sw: cache all done')
           const body = manifest
-          body.message = 'updated'
-          body.cacheStatus = 'Updated'
+          body.cacheStatus = 'updated'
           body.previousVersion = {version, updated}
           return createJsonResponse(200, body)
         })
@@ -146,9 +144,10 @@ function respondCacheAll (req) {
       indexeddb周りのエラー
         DBを手動で削除した直後など
         InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
-      cache version is not set
-        これはallowNullで抑制できた
+        DBが完全にぶっ壊れたら？ わからない...
       cache.open周りのエラー
+        書き込みできない -> まずいので、現cacheを全部削除して様子見？
+        読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
     その他の知見
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
