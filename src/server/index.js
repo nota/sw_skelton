@@ -33,8 +33,10 @@ app.get('/api/caches/update', async (req, res) => {
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
+  const pattern = /\.(woff2|css|png|js)$/
   for (let dir of ['css', 'fonts', 'img']) {
-    const files = await fs.readdir(`./public/${dir}`)
+    let files = await fs.readdir(`./public/${dir}`)
+    files = files.filter(file => file.match(pattern))
     assets = assets.concat(files.map(file => `/${dir}/${file}`))
   }
   res.json({version, assets})
