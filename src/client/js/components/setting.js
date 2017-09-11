@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
@@ -45,7 +47,6 @@ export default class Setting extends Component {
     } catch (err) {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
-      return
     }
     AppCacheStore.checkForUpdateAutomatically()
     this.checkEnabled()
@@ -57,7 +58,6 @@ export default class Setting extends Component {
     } catch (err) {
       alert('Cannot disable service worker\n' + err.message)
       throw (err)
-      return
     }
     AppCacheStore.stop()
     this.checkEnabled()

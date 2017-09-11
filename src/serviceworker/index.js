@@ -90,13 +90,6 @@ function isCacheUpdateRequest (req) {
   return isMyHost(url) && url.pathname === path
 }
 
-function isCacheClearRequest (req) {
-  const url = new URL(req.url)
-
-  const path = '/api/caches/clear'
-  return isMyHost(url) && url.pathname === path
-}
-
 function cacheKey (version) {
   return version + POSTFIX
 }
@@ -164,6 +157,8 @@ function respondCacheUpdate (req) {
       indexeddb周りのエラー
         DBを手動で削除した直後など
         InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
+        NotFoundError, Operation failed because the requested database object could not be found
+          Firefoxで起きる意味不明のエラー。原因完全不明
         DBが完全にぶっ壊れて
           読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
       　  書き込みできない -> まずいので、cacheを全部消すのがよさそう
@@ -178,21 +173,6 @@ function respondCacheUpdate (req) {
       console.error(err)
       deleteAllCache()
     }
-    const body = {
-      name: err.name,
-      message: err.message
-    }
-    console.error(err)
-    return createJsonResponse(500, body)
-  })
-}
-
-function respondCacheClear (req) {
-  console.log('sw: cache clear')
-
-  return deleteAllCache().then(function () {
-    return createJsonResponse(200, {cacheStatus: 'clear'})
-  }).catch(function (err) {
     const body = {
       name: err.name,
       message: err.message
@@ -308,10 +288,7 @@ this.addEventListener('fetch', function (event) {
     event.respondWith(respondCacheUpdate(req))
     return
   }
-  if (isCacheClearRequest(req)) {
-    event.respondWith(respondCacheClear(req))
-    return
-  }
+
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
