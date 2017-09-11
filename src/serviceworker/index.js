@@ -110,10 +110,11 @@ function deleteOldCache (currentVersion) {
 function respondCacheAll (req) {
   return fetch(req).then(function (res) {
     return res.clone().json().then(function (manifest) {
-      return getVersion().then(function ({version, updated}) {
+      return getVersion({allowNull: true}).then(function ({version, updated}) {
         if (version === manifest.version) {
           const body = {
             version,
+            cacheStatus: 'UpToDate',
             message: 'already up to date'
           }
           return createJsonResponse(200, body)
@@ -122,6 +123,7 @@ function respondCacheAll (req) {
           console.log('sw: cache all done')
           const body = manifest
           body.message = 'updated'
+          body.cacheStatus = 'Updated'
           body.previousVersion = {version, updated}
           return createJsonResponse(200, body)
         })
@@ -129,10 +131,11 @@ function respondCacheAll (req) {
     })
   }).catch(function (err) {
     /*
-    TODO: cacheAllの途中で404が出たりしても止まってしまう
-    ブラウザの停止ボタンを押したりしても止まるのでは？
-    エラーのより細かい判定が必要
-    ネットにつながらないときとTimeoutはちゃんと分けるべき
+    TODO: エラーのより細かい判定が必要
+
+    最悪の状態: 一生アップデートできない
+    indexdb周りのエラー、cache storageまわりのエラーが考えられる(setVersion, getVersion等)。
+    これらが発生したら、とりあえず全部クリアする?
 
     エラー一覧
       cacheAllの途中でnot found
@@ -141,7 +144,14 @@ function respondCacheAll (req) {
         TypeError, Failed to fetch
       他のエラー、JSのシンタックスエラー
       indexeddb周りのエラー
+        DBを手動で削除した直後など
+        InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
+      cache version is not set
+        これはallowNullで抑制できた
       cache.open周りのエラー
+    その他の知見
+      たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
+      なにがボトルネックなのかまだわかっていない
     */
     const body = {
       name: err.name,
@@ -231,9 +241,14 @@ function setVersion (value) {
   return setItem('version', value)
 }
 
-function getVersion () {
+function getVersion ({allowNull}={}) {
   return getItem('version').then(function (result) {
-    if (!result) throw new Error('cache version is not set')
+    if (!result) {
+      if (allowNull) {
+        return {version: null, updated: null}
+      }
+      throw new Error('cache version is not set')
+    }
     const version = result.value
     const updated = result.updated
     return {version, updated}
