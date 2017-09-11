@@ -29,7 +29,19 @@ export default new class AppCacheStore extends EventEmitter {
     reportDone() // ここまで到達したことをマークする
 
     debug('checking...')
-    const response = await request.get('/api/caches/update')
+    let response
+    try {
+      response = await request.get('/api/caches/update')
+    } catch (err) {
+      if (err.status === 500) {
+        // service workerから渡されたエラー
+        const err = new Error(err.response.body.name)
+        err.message = err.response.body.message
+        throw err
+      } else {
+        throw err
+      }
+    }
 
     const {version, cacheStatus, previousVersion} = response.body
 

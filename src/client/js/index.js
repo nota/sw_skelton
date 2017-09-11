@@ -3,7 +3,7 @@ import 'babel-polyfill'
 import React from 'react'
 import {render} from 'react-dom'
 
-import ServiceWorker from './lib/register-serviceworker'
+import ServiceWorker from './lib/serviceworker-utils'
 
 ServiceWorker.register()
 
