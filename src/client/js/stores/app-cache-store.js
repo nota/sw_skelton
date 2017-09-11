@@ -45,6 +45,7 @@ export default new class AppCacheStore extends EventEmitter {
       }
     } finally {
       if (this.timerId) {
+        clearInterval(this.timerId)
         this.timerId = setTimeout(this.checkForUpdate.bind(this), 10000)
       }
     }
