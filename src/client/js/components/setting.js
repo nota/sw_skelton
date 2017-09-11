@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
-import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled, geServiceWorkerRegistration} from '../lib/register-serviceworker'
+import ServiceWorker from '../lib/register-serviceworker'
 
 export default class Setting extends Component {
   constructor (props) {
@@ -25,8 +25,8 @@ export default class Setting extends Component {
   }
 
   async checkEnabled () {
-    const registered = await geServiceWorkerRegistration()
-    const enabled = isServiceWorkerEnabled() || registered
+    const registered = await ServiceWorker.getRegistration()
+    const enabled = ServiceWorker.isEnabled() || registered
     this.setState({enabled})
   }
 
@@ -41,7 +41,7 @@ export default class Setting extends Component {
 
   async enableServiceWorker () {
     try {
-      await enableServiceWorker()
+      await ServiceWorker.enable()
     } catch (err) {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
@@ -53,7 +53,7 @@ export default class Setting extends Component {
 
   async disableServiceWorker () {
     try {
-      await disableServiceWorker()
+      await ServiceWorker.disable()
     } catch (err) {
       alert('Cannot disable service worker\n' + err.message)
       throw (err)

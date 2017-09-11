@@ -2,7 +2,7 @@ const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
-import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled} from '../lib/register-serviceworker'
+import ServiceWorker from '../lib/register-serviceworker'
 import Setting from './setting'
 
 const SECOND = 1000
@@ -21,7 +21,7 @@ export default class UpdateNotifier extends Component {
   }
 
   async componentDidMount () {
-    if (isServiceWorkerEnabled()) {
+    if (ServiceWorker.isEnabled()) {
       AppVersionStore.checkForUpdateAutomatically()
     }
     this.mountedAt = Date.now()

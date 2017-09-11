@@ -5,7 +5,6 @@ import {EventEmitter} from 'events'
 
 // XXX: もしこのコードが正常に動いていない場合にservice worker自体を殺すためのフラグ
 const reportDone = () => { window.checkVersionDone = true }
-const reportError = () => { window.checkVersionDone = false }
 
 export default new class AppVersionStore extends EventEmitter {
   constructor () {
