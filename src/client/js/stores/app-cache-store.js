@@ -35,9 +35,8 @@ export default new class AppCacheStore extends EventEmitter {
     } catch (err) {
       if (err.status === 500) {
         // service workerから渡されたエラー
-        const err = new Error(err.response.body.name)
-        err.message = err.response.body.message
-        throw err
+        const {name, message} = err.response.body
+        throw new Error(`${name}: ${message}`)
       } else {
         throw err
       }
@@ -46,12 +45,12 @@ export default new class AppCacheStore extends EventEmitter {
     const {version, cacheStatus, previousVersion} = response.body
 
     this.version = version
-    this.previousVersion = previousVersion
 
     debug('cacheStatus', cacheStatus, ', version', version)
     if (cacheStatus === 'updated'){
       if (previousVersion.version) {
         debug('updated', 'previousVersion', previousVersion)
+        this.previousVersion = previousVersion
         this.hasUpdate = true
       }
     }
