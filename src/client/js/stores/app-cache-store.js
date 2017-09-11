@@ -47,7 +47,6 @@ export default new class AppCacheStore extends EventEmitter {
       }
     }
 
-
     const {version, cacheStatus, previousVersion} = response.body
 
     this.version = version
