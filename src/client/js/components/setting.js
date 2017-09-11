@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
-import ServiceWorker from '../lib/register-serviceworker'
+import ServiceWorker from '../lib/serviceworker-utils'
 
 export default class Setting extends Component {
   constructor (props) {

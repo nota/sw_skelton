@@ -2,7 +2,7 @@ const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
-import ServiceWorker from '../lib/register-serviceworker'
+import ServiceWorker from '../lib/serviceworker-utils'
 import Setting from './setting'
 
 const SECOND = 1000
