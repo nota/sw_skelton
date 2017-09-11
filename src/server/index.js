@@ -26,11 +26,6 @@ async function getVersion () {
   return md5(hashes.join('')).substring(0, 8)
 }
 
-app.get('/api/app/version', async (req, res) => {
-  const version = await getVersion()
-  res.json({ version })
-})
-
 app.get('/api/caches/update', async (req, res) => {
   const version = await getVersion()
   let assets = [
