@@ -31,7 +31,7 @@ app.get('/api/app/version', async (req, res) => {
   res.json({ version })
 })
 
-app.get('/api/app/cacheall', async (req, res) => {
+app.get('/api/caches/update', async (req, res) => {
   const version = await getVersion()
   let cacheall = [
     '/app.html',

@@ -83,10 +83,18 @@ function shouldCache (req, res) {
   return isAsset(url) && isGetRequest(req) && ok
 }
 
-function isCacheAllRequest (req) {
+function isCacheUpdateRequest (req) {
   const url = new URL(req.url)
 
-  const path = '/api/app/cacheall'
+  const path = '/api/caches/update'
+  return isMyHost(url) && url.pathname === path
+}
+
+
+function isCacheClearRequest (req) {
+  const url = new URL(req.url)
+
+  const path = '/api/caches/clear'
   return isMyHost(url) && url.pathname === path
 }
 
@@ -107,7 +115,9 @@ function deleteOldCache (currentVersion) {
   })
 }
 
-function respondCacheAll (req) {
+function respondCacheUpdate (req) {
+  console.log('sw: cache update')
+
   return fetch(req).then(function (res) {
     return res.clone().json().then(function (manifest) {
       return getVersion({allowNull: true}).then(function ({version, updated}) {
@@ -115,7 +125,7 @@ function respondCacheAll (req) {
           const cacheStatus = 'latest'
           return createJsonResponse(200, {version, cacheStatus})
         }
-        return cacheAll(manifest).then(function () {
+        return cacheAddAll(manifest).then(function () {
           console.log('sw: cache all done')
           const body = manifest
           body.cacheStatus = 'updated'
@@ -141,10 +151,12 @@ function respondCacheAll (req) {
       indexeddb周りのエラー
         DBを手動で削除した直後など
         InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
-        DBが完全にぶっ壊れたら？ わからない...
+        DBが完全にぶっ壊れて
+          読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
+      　  書き込みできない -> まずいので、cacheを全部消すのがよさそう
       cache.open周りのエラー
-        書き込みできない -> まずいので、現cacheを全部削除して様子見？
         読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
+        書き込みできない -> まずいので、現cacheを全部削除して様子見？
     その他の知見
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
@@ -158,11 +170,30 @@ function respondCacheAll (req) {
   })
 }
 
-function cacheAll (manifest) {
+function cacheAddAll (manifest) {
   return caches.open(cacheKey(manifest.version)).then(function (cache) {
     return cache.addAll(manifest.cacheall).then(function () {
       return setVersion(manifest.version)
     })
+  })
+}
+
+function respondCacheClear (req) {
+  console.log('sw: cache clear')
+
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      return caches.delete(key)
+    }))
+  }).then(function () {
+    return createJsonResponse(200, {cacheStatus: 'clear'})
+  }).catch(function (err) {
+    const body = {
+      name: err.name,
+      message: err.message
+    }
+    console.error(err)
+    return createJsonResponse(500, body)
   })
 }
 
@@ -271,14 +302,16 @@ function createJsonResponse(status, body) {
 this.addEventListener('fetch', function (event) {
   let req = event.request
 
+  if (isCacheUpdateRequest(req)) {
+    event.respondWith(respondCacheUpdate(req))
+    return
+  }
+  if (isCacheClearRequest(req)) {
+    event.respondWith(respondCacheClear(req))
+    return
+  }
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
-  }
-
-  if (isCacheAllRequest(req)) {
-    console.log('sw: cache all')
-    event.respondWith(respondCacheAll(req))
-    return
   }
 
   let tryFetched = false
