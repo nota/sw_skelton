@@ -112,11 +112,8 @@ function respondCacheAll (req) {
     return res.clone().json().then(function (manifest) {
       return getVersion({allowNull: true}).then(function ({version, updated}) {
         if (version === manifest.version) {
-          const body = {
-            version,
-            cacheStatus: 'latest'
-          }
-          return createJsonResponse(200, body)
+          const cacheStatus = 'latest'
+          return createJsonResponse(200, {version, cacheStatus})
         }
         return cacheAll(manifest).then(function () {
           console.log('sw: cache all done')
