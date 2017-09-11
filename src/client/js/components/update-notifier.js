@@ -36,8 +36,8 @@ export default class UpdateNotifier extends Component {
     debug('time from mount (sec)', (Date.now() - this.mountedAt) / SECOND)
     debug('time from last update (sec)', (Date.now() - lastUpdated) / SECOND)
 
-    if (Date.now() - this.mountedAt < 3 * SECOND /* &&
-        Date.now() - lastUpdated > 7 * DAY */)
+    if (Date.now() - this.mountedAt < 3 * SECOND ||
+        Date.now() - lastUpdated > 7 * DAY)
     {
       return true
     }
