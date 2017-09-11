@@ -4,7 +4,7 @@
   "private": true,
   "engines": {
     "node": "8.x",
-    "npm": "4.x"
+    "npm": "5.x"
   },
   "scripts": {
     "postinstall": "npm run build",
