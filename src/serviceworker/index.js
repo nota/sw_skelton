@@ -122,6 +122,14 @@ function deleteAllCache () {
   })
 }
 
+function cacheAddAll (manifest) {
+  return caches.open(cacheKey(manifest.version)).then(function (cache) {
+    return cache.addAll(manifest.assets).then(function () {
+      return setVersion(manifest.version)
+    })
+  })
+}
+
 function respondCacheUpdate (req) {
   console.log('sw: cache update')
   return fetch(req).then(function (res) {
@@ -176,14 +184,6 @@ function respondCacheUpdate (req) {
     }
     console.error(err)
     return createJsonResponse(500, body)
-  })
-}
-
-function cacheAddAll (manifest) {
-  return caches.open(cacheKey(manifest.version)).then(function (cache) {
-    return cache.addAll(manifest.assets).then(function () {
-      return setVersion(manifest.version)
-    })
   })
 }
 
