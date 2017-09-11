@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 const debug = require('./debug')(__filename)
 import request from 'superagent'
 
@@ -52,11 +54,8 @@ export default new class ServiceWorker {
   async disable () {
     localStorage.enableServiceWorker = false
 
-    try {
-      await request.get('/api/caches/clear')
-    } catch (err) {
-      if (err.status !== 404) console.error(err)
-    }
+    const keys = await caches.keys()
+    await Promise.all(keys.map(key => caches.delete(key)))
     const reg = await this.getRegistration()
     if (reg) await reg.unregister()
   }
