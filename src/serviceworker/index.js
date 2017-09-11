@@ -166,7 +166,7 @@ function respondCacheUpdate (req) {
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
     */
-    if (err.name instanceof QuotaExceededError) {
+    if (err.name === 'QuotaExceededError') {
       console.error(err)
       deleteAllCache()
     }
@@ -233,13 +233,8 @@ function openDB () {
       resolve(db)
     }
 
-    open.onblocked = function (event) {
-      reject(event)
-    }
-
-    open.onerror = function (event) {
-      reject(event)
-    }
+    open.onblocked = reject
+    open.onerror = reject
   })
   const timeout = new Promise(function (resolve, reject) {
     setTimeout(reject, 10000)
@@ -249,8 +244,12 @@ function openDB () {
 
 function setItem (key, value) {
   return openDB().then(function (db) {
-    const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
-    objectStore.put({key: key, value: value, updated: Date.now()})
+    return new Promise(function (resolve, reject) {
+      const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
+      const req = objectStore.put({key: key, value: value, updated: Date.now()})
+      req.onsuccess = resolve
+      req.onerror = reject
+    })
   })
 }
 
@@ -262,9 +261,7 @@ function getItem (key) {
       req.onsuccess = function (event) {
         resolve(event.target.result)
       }
-      req.onerror = function (event) {
-        reject(event)
-      }
+      req.onerror = reject
     })
   })
 }
