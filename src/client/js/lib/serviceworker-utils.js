@@ -11,7 +11,6 @@ export default new class ServiceWorker {
 
     const {serviceWorker} = navigator
     if (!serviceWorker) return alert(NOT_AVAILABLE)
-
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
     // XXX: ここから下のコードはすべてdebugのためにある
     const state = (() => {
@@ -56,7 +55,7 @@ export default new class ServiceWorker {
     try {
       await request.get('/api/caches/clear')
     } catch (err) {
-      if (err.status !== 404) throw err
+      if (err.status !== 404) console.error(err)
     }
     const reg = await this.getRegistration()
     if (reg) await reg.unregister()
