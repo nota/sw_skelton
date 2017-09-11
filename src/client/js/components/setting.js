@@ -18,7 +18,7 @@ export default class Setting extends Component {
   }
 
   async componentDidMount () {
-    const version = await AppVersionStore.currentVersion()
+    const version = await AppVersionStore.version
     const url = window.location.href
     this.setState({version, url})
     this.checkEnabled()
@@ -31,7 +31,7 @@ export default class Setting extends Component {
   }
 
   async onAppVersionChanged () {
-    const version = await AppVersionStore.currentVersion()
+    const version = await AppVersionStore.version
     this.setState({version})
   }
 

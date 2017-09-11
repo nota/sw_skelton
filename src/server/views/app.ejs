@@ -21,7 +21,7 @@
       if (localStorage.enableServiceWorker !== 'true') return
       if (window.checkVersionDone || !serviceWorker) return
       alert('service workerによる更新システムまたはコードが動いていません!')
-      serviceWorker.register('/serviceworker.js', {scope: '/'}).then(function (reg) {
+      serviceWorker.getRegistration('/').then(function (reg) {
         return reg.unregister()
       }).then(function (result) {
         console.log('unregister', result)

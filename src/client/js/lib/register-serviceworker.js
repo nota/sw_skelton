@@ -1,6 +1,5 @@
 const debug = require('./debug')(__filename)
-
-import {setVersion} from '../lib/version'
+import request from 'superagent'
 
 export async function registerServiceWorker () {
   if (!isServiceWorkerEnabled()) return
@@ -61,9 +60,9 @@ export async function enableServiceWorker () {
 export async function disableServiceWorker () {
   localStorage.enableServiceWorker = false
 
+  await request.get('/api/caches/clear')
   const reg = await geServiceWorkerRegistration()
   if (reg) await reg.unregister()
-  await setVersion(null)
 }
 
 // 緊急用

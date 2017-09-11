@@ -4,7 +4,11 @@ import React, {Component} from 'react'
 import AppVersionStore from '../stores/app-version-store'
 import {enableServiceWorker, disableServiceWorker, isServiceWorkerEnabled} from '../lib/register-serviceworker'
 import Setting from './setting'
-import {getLastUpdatedAt} from '../lib/version'
+
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = 24 * HOUR
 
 export default class UpdateNotifier extends Component {
   constructor (props) {
@@ -20,25 +24,25 @@ export default class UpdateNotifier extends Component {
     if (isServiceWorkerEnabled()) {
       AppVersionStore.checkForUpdateAutomatically()
     }
-    this.lastUpdated = await getLastUpdatedAt()
-    debug('lastUpdated', this.lastUpdated)
-
     this.mountedAt = Date.now()
   }
 
   shouldReload() {
+    const previousVersion = AppVersionStore.previousVersion
+    const lastUpdated = previousVersion ? previousVersion.updated : Date.now()
+
     // この前に更新したのが、1週間以上前で
     // かつ更新にかかった時間が3秒以内の速いネットワークに限定
-    debug('time from mount (sec)', (Date.now() - this.mountedAt) / 1000)
-    debug('time from last update (sec)', (Date.now() - this.lastUpdated) / 1000)
+    debug('time from mount (sec)', (Date.now() - this.mountedAt) / SECOND)
+    debug('time from last update (sec)', (Date.now() - lastUpdated) / SECOND)
 
-    if (Date.now() - this.mountedAt < 3000 /* &&
-        Date.now() - this.lastUpdated > 7*24*60*60*1000*/)
+    if (Date.now() - this.mountedAt < 3 * SECOND /* &&
+        Date.now() - lastUpdated > 7 * DAY */)
     {
       return true
     }
     // または24時間以上開きっぱなしのWindowである
-    if (Date.now() - this.mountedAt > 24*60*60*1000) {
+    if (Date.now() - this.mountedAt > DAY) {
       return true
     }
     // またはprotocol-versionがあがってる
@@ -75,7 +79,7 @@ export default class UpdateNotifier extends Component {
     if (!this.state.hasUpdate) return null
 
     return (
-      <div className='update-alert-bar' onClick={this.onClickUpdate}>
+      <div className='update-alert-bar' onClick={this.onClickUpdate.bind(this)}>
         <a>Update found!</a>
       </div>
     )
