@@ -90,7 +90,6 @@ function isCacheUpdateRequest (req) {
   return isMyHost(url) && url.pathname === path
 }
 
-
 function isCacheClearRequest (req) {
   const url = new URL(req.url)
 
@@ -111,6 +110,14 @@ function deleteOldCache (currentVersion) {
       } else {
         return Promise.resolve()
       }
+    }))
+  })
+}
+
+function deleteAllCache () {
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      return caches.delete(key)
     }))
   })
 }
@@ -146,7 +153,6 @@ function respondCacheUpdate (req) {
         TypeError, Request failed
       cacheAllの途中で、サーバーが落ちる
         TypeError, Failed to fetch
-      他のエラー、JSのシンタックスエラー
       indexeddb周りのエラー
         DBを手動で削除した直後など
         InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
@@ -155,11 +161,15 @@ function respondCacheUpdate (req) {
       　  書き込みできない -> まずいので、cacheを全部消すのがよさそう
       cache.open周りのエラー
         読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
-        書き込みできない -> まずいので、現cacheを全部削除して様子見？
+        書き込みできない -> ネットワークエラーかどうか、現cacheを全部削除して様子見？
     その他の知見
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
     */
+    if (err.name instanceof QuotaExceededError) {
+      console.error(err)
+      deleteAllCache()
+    }
     const body = {
       name: err.name,
       message: err.message
@@ -180,11 +190,7 @@ function cacheAddAll (manifest) {
 function respondCacheClear (req) {
   console.log('sw: cache clear')
 
-  return caches.keys().then(function (keys) {
-    return Promise.all(keys.map(function (key) {
-      return caches.delete(key)
-    }))
-  }).then(function () {
+  deleteAllCache().then(function () {
     return createJsonResponse(200, {cacheStatus: 'clear'})
   }).catch(function (err) {
     const body = {
