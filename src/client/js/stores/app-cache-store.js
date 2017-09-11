@@ -12,11 +12,12 @@ export default new class AppCacheStore extends EventEmitter {
     this.version = null
     this.previousVersion = null
     this.hasUpdate = false
+    this.timerId = null
   }
 
   checkForUpdateAutomatically () {
     if (this.timerId) return
-    this.timerId = setInterval(this.checkForUpdate.bind(this), 10 * 1000)
+    this.timerId = setTimeout(this.checkForUpdate.bind(this), 10 * 1000)
     this.checkForUpdate()
   }
 
@@ -40,7 +41,12 @@ export default new class AppCacheStore extends EventEmitter {
       } else {
         throw err
       }
+    } finally {
+      if (this.timerId) {
+        this.timerId = setTimeout(this.checkForUpdate.bind(this), 10000)
+      }
     }
+
 
     const {version, cacheStatus, previousVersion} = response.body
 
