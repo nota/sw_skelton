@@ -115,10 +115,12 @@ function deleteAllCache () {
   })
 }
 
-function cacheAddAll (manifest) {
-  return caches.open(cacheKey(manifest.version)).then(function (cache) {
-    return cache.addAll(manifest.assets).then(function () {
-      return setVersion(manifest.version)
+function cacheAddAll ({version, assets}) {
+  return caches.open(cacheKey(version)).then(function (cache) {
+    return cache.addAll(assets).then(function () {
+      return setVersion(version).then(function () {
+        return deleteOldCache(version)
+      })
     })
   })
 }
@@ -300,7 +302,6 @@ this.addEventListener('fetch', function (event) {
         return cache.match(req).then(function (res) {
           if (res) {
             console.log('sw: respond from cache', req.url)
-            deleteOldCache(version)
             return res
           }
           console.log('sw: fetch', req.url)
