@@ -55,6 +55,7 @@ export default new class AppCacheStore extends EventEmitter {
     if (!cacheStatus) {
       // service workerが動いていない（強制リロードか？）
       await this.deleteAllCache()
+      this.stop() // 次のcheckでdelete cacheし続けないように停止
     }
 
     this.version = version
