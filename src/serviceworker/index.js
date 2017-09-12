@@ -160,7 +160,9 @@ function respondCacheUpdate (req) {
         DBを手動で削除した直後など
         InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
         NotFoundError, Operation failed because the requested database object could not be found
-        Firefoxで起きる意味不明のエラー。原因完全不明
+          Firefoxで起きる意味不明のエラー。原因完全不明
+          indexdbを消すと、object storeだけが消えてしまう。
+          また削除が予約されるわけでもない。どっちかというと削除に失敗してる
         読み込みできない:そもそもonFetchでネットワーク経由だけになってるはず
         書き込みできない:まずいので、cacheを全部消すのがよさそう
       cache.open周りのエラー
@@ -200,22 +202,30 @@ function openDB () {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open(DB_NAME, 1)
+    const req = indexedDB.open(DB_NAME, 1)
 
     // Create the schema
-    open.onupgradeneeded = function (event) {
+    req.onupgradeneeded = function (event) {
       const db = event.target.result
       db.createObjectStore(STORE_NAME, {keyPath: 'key'})
     }
 
-    open.onsuccess = function (event) {
+    req.onsuccess = function (event) {
       const db = event.target.result
+      oncloseDB(db)
       _db = db // save in global
       resolve(db)
     }
 
-    open.onblocked = reject
-    open.onerror = reject
+    const oncloseDB = function (db) {
+      db.onclose = function (event) {
+        console.log('sw: db closed')
+        _db = null
+      }
+    }
+
+    req.onblocked = reject
+    req.onerror = reject
   })
   const timeout = new Promise(function (resolve, reject) {
     setTimeout(reject, 10000)
@@ -227,7 +237,8 @@ function setItem (key, value) {
   return openDB().then(function (db) {
     return new Promise(function (resolve, reject) {
       const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
-      const req = objectStore.put({key: key, value: value, updated: Date.now()})
+      const updated = Date.now()
+      const req = objectStore.put({key, value, updated})
       req.onsuccess = resolve
       req.onerror = reject
     })
