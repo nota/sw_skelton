@@ -63,6 +63,9 @@ export default new class ServiceWorker {
     const keys = await caches.keys()
     await Promise.all(keys.map(key => caches.delete(key)))
     const reg = await this.getRegistration()
-    if (reg) await reg.unregister()
+    if (reg) {
+      const result = await reg.unregister()
+      if (!result) throw new Error('Can not unregister')
+    }
   }
 }()

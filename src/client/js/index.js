@@ -17,9 +17,11 @@ if (appContainer) {
 }
 
 // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
+const wasServiceWorkerEnalbed = localStorage.enableServiceWorker === 'true'
+
 setTimeout(function () {
+  if (!wasServiceWorkerEnalbed) return
   const serviceWorker = navigator.serviceWorker
-  if (localStorage.enableServiceWorker !== 'true') return
   if (window.checkVersionDone || !serviceWorker) return
   alert('Auto updating system seems not working.')
   ServiceWorker.disable().then(() => {
