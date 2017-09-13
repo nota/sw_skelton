@@ -155,15 +155,10 @@ function respondCacheUpdate (req) {
     エラー一覧
       cacheAllの途中でnot found
         TypeError, Request failed
-      cacheAllの途中で、サーバーが落ちる
+      cacheAllの途中で、接続が切れる
         TypeError, Failed to fetch
       indexeddb周りのエラー
         DBを手動で削除した直後など
-        InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
-        NotFoundError, Operation failed because the requested database object could not be found
-          Firefoxで起きる意味不明のエラー。原因完全不明
-          indexdbを消すと、object storeだけが消えてしまう。
-          また削除が予約されるわけでもない。どっちかというと削除に失敗してる
         読み込みできない:そもそもonFetchでネットワーク経由だけになってるはず
         書き込みできない:まずいので、cacheを全部消すのがよさそう
       cache.open周りのエラー
@@ -173,8 +168,20 @@ function respondCacheUpdate (req) {
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
     */
+    if (err.name === 'InvalidStateError') {
+      // Chromeで開発ツールからDBを削除したときに発生する
+      // ただし、db.oncloseを適切に扱っていれば普通は問題はない
+      // InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
+      deleteAllCache()
+    }
+    if (err.name === 'NotFoundError') {
+      // Firefoxで開発ツールからDBを削除したときによく発生する
+      // なぜか、object storeだけが消えてDBは残っている状態
+      // 解決策は、もういちどDBを消すしかなさそう
+      // NotFoundError, Operation failed because the requested database object could not be found
+      deleteAllCache()
+    }
     if (err.name === 'QuotaExceededError') {
-      console.error(err)
       deleteAllCache()
     }
     const body = {
