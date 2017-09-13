@@ -128,6 +128,7 @@ function cacheAddAll ({version, assets}) {
 function respondCacheUpdate (req) {
   console.log('sw: cache update')
   return fetch(req).then(function (res) {
+    if (!res.ok) throw new Error(`Server responded ${res.status}`)
     return res.clone().json().then(function (manifest) {
       return getVersion({allowNull: true}).then(function ({version, updated}) {
         if (version === manifest.version) {
