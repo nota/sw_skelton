@@ -37,7 +37,7 @@ export default class Setting extends Component {
     this.setState({version})
   }
 
-  async checkUpdateAndPrompt () {
+  async checkForUpdate () {
     await AppCacheStore.checkForUpdate()
   }
 
@@ -76,7 +76,7 @@ export default class Setting extends Component {
           )
         }
         <p>
-          <button className='btn btn-default' onClick={this.checkUpdateAndPrompt.bind(this)}>
+          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)}>
             Check for update
           </button>
           &nbsp;
