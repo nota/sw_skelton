@@ -217,27 +217,27 @@ function openDB () {
     const req = indexedDB.open(DB_NAME, 1)
 
     // Create the schema
-    req.onupgradeneeded = function (event) {
-      const db = event.target.result
+    req.onupgradeneeded = function () {
+      const db = req.result
       db.createObjectStore(STORE_NAME, {keyPath: 'key'})
     }
 
-    req.onsuccess = function (event) {
-      const db = event.target.result
+    req.onsuccess = function () {
+      const db = req.result
       oncloseDB(db)
       _db = db // save in global
       resolve(db)
     }
 
     const oncloseDB = function (db) {
-      db.onclose = function (event) {
+      db.onclose = function () {
         console.log('sw: db closed')
         _db = null
       }
     }
 
-    req.onblocked = reject
-    req.onerror = reject
+    req.onblocked = function () { reject(req.error) }
+    req.onerror = function () { reject(req.error) }
   })
   const timeout = new Promise(function (resolve, reject) {
     setTimeout(reject, 10000)
@@ -248,11 +248,12 @@ function openDB () {
 function setItem (key, value) {
   return openDB().then(function (db) {
     return new Promise(function (resolve, reject) {
-      const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
+      const objectStore = db.transaction(STORE_NAME, 'readwrite')
+                            .objectStore(STORE_NAME)
       const updated = Date.now()
       const req = objectStore.put({key, value, updated})
-      req.onsuccess = resolve
-      req.onerror = reject
+      req.onsuccess = function () { resolve(req.result) }
+      req.onerror = function () { reject(req.error) }
     })
   })
 }
@@ -260,12 +261,11 @@ function setItem (key, value) {
 function getItem (key) {
   return openDB().then(function (db) {
     return new Promise(function (resolve, reject) {
-      const objectStore = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME)
+      const objectStore = db.transaction(STORE_NAME, 'readonly')
+                            .objectStore(STORE_NAME)
       const req = objectStore.get(key)
-      req.onsuccess = function (event) {
-        resolve(event.target.result)
-      }
-      req.onerror = reject
+      req.onsuccess = function () { resolve(req.result) }
+      req.onerror = function () { reject(req.error) }
     })
   })
 }
