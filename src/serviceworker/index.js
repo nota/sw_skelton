@@ -148,9 +148,7 @@ function respondCacheUpdate (req) {
     /*
     TODO: エラーのより細かい判定が必要
 
-    最悪の状態: 一生アップデートできない
-    indexdb周りのエラー、cache storageまわりのエラーが考えられる(setVersion, getVersion等)。
-    これらが発生したら、とりあえず全部クリアする?
+    最悪の状態: 一生アップデートできない、を回避する
 
     エラー一覧
       cacheAllの途中でnot found
@@ -168,20 +166,21 @@ function respondCacheUpdate (req) {
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
     */
-    if (err.name === 'InvalidStateError') {
-      // Chromeで開発ツールからDBを削除したときに発生する
-      // ただし、db.oncloseを適切に扱っていれば普通は問題はない
-      // InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
-      deleteAllCache()
-    }
-    if (err.name === 'NotFoundError') {
-      // Firefoxで開発ツールからDBを削除したときによく発生する
-      // なぜか、object storeだけが消えてDBは残っている状態
-      // 解決策は、もういちどDBを消すしかなさそう
-      // NotFoundError, Operation failed because the requested database object could not be found
-      deleteAllCache()
-    }
-    if (err.name === 'QuotaExceededError') {
+
+    // see https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/put
+    // https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction/objectStore
+    // InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
+    // Chromeで開発ツールからDBを削除したときに発生する
+    // ただし、db.oncloseを適切に扱っていれば普通は問題はない
+
+    // NotFoundError, Operation failed because the requested database object could not be found
+    // Firefoxで開発ツールからDBを削除したときによく発生する
+    // なぜか、object storeだけが消えてDBは残っている状態になる
+    // 解決策は、もういちどDBを消すしかなさそう
+    const indexdbErrors = ['InvalidStateError', 'NotFoundError', 'QuotaExceededError',
+      'ReadOnlyError', 'DataError', 'TransactionInactiveError', 'DataCloneError']
+
+    if (indexdbErrors.includes(err.name)) {
       deleteAllCache()
     }
     const body = {
@@ -208,6 +207,8 @@ let _db = null
 function openDB () {
   const open = new Promise(function (resolve, reject) {
     if (_db) return resolve(_db)
+
+    if (!indexedDB) throw new Error('IndexedDB is not available')
 
     // Open (or create) the database
     const req = indexedDB.open(DB_NAME, 1)
