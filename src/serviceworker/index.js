@@ -83,10 +83,10 @@ function shouldCache (req, res) {
   return isAsset(url) && isGetRequest(req) && ok
 }
 
-function isCacheAllRequest (req) {
+function isCacheUpdateRequest (req) {
   const url = new URL(req.url)
 
-  const path = '/api/app/cacheall'
+  const path = '/api/caches/update'
   return isMyHost(url) && url.pathname === path
 }
 
@@ -107,11 +107,81 @@ function deleteOldCache (currentVersion) {
   })
 }
 
-function cacheAll (manifest) {
-  return caches.open(cacheKey(manifest.version)).then(function (cache) {
-    return cache.addAll(manifest.cacheall).then(function () {
-      return setVersion(manifest.version)
+function deleteAllCache () {
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      return caches.delete(key)
+    }))
+  })
+}
+
+function cacheAddAll ({version, assets}) {
+  return caches.open(cacheKey(version)).then(function (cache) {
+    return cache.addAll(assets).then(function () {
+      return setVersion(version).then(function () {
+        return deleteOldCache(version)
+      })
     })
+  })
+}
+
+function respondCacheUpdate (req) {
+  console.log('sw: cache update')
+  return fetch(req).then(function (res) {
+    return res.clone().json().then(function (manifest) {
+      return getVersion({allowNull: true}).then(function ({version, updated}) {
+        if (version === manifest.version) {
+          const cacheStatus = 'latest'
+          return createJsonResponse(200, {version, cacheStatus})
+        }
+        return cacheAddAll(manifest).then(function () {
+          console.log('sw: cache all done')
+          const body = manifest
+          body.cacheStatus = 'updated'
+          body.previousVersion = {version, updated}
+          return createJsonResponse(200, body)
+        })
+      })
+    })
+  }).catch(function (err) {
+    /*
+    TODO: エラーのより細かい判定が必要
+
+    最悪の状態: 一生アップデートできない
+    indexdb周りのエラー、cache storageまわりのエラーが考えられる(setVersion, getVersion等)。
+    これらが発生したら、とりあえず全部クリアする?
+
+    エラー一覧
+      cacheAllの途中でnot found
+        TypeError, Request failed
+      cacheAllの途中で、サーバーが落ちる
+        TypeError, Failed to fetch
+      indexeddb周りのエラー
+        DBを手動で削除した直後など
+        InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
+        NotFoundError, Operation failed because the requested database object could not be found
+          Firefoxで起きる意味不明のエラー。原因完全不明
+          indexdbを消すと、object storeだけが消えてしまう。
+          また削除が予約されるわけでもない。どっちかというと削除に失敗してる
+        読み込みできない:そもそもonFetchでネットワーク経由だけになってるはず
+        書き込みできない:まずいので、cacheを全部消すのがよさそう
+      cache.open周りのエラー
+        読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
+        書き込みできない -> ネットワークエラーかどうか、現cacheを全部削除して様子見？
+    その他の知見
+      たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
+      なにがボトルネックなのかまだわかっていない
+    */
+    if (err.name === 'QuotaExceededError') {
+      console.error(err)
+      deleteAllCache()
+    }
+    const body = {
+      name: err.name,
+      message: err.message
+    }
+    console.error(err)
+    return createJsonResponse(500, body)
   })
 }
 
@@ -132,27 +202,30 @@ function openDB () {
     if (_db) return resolve(_db)
 
     // Open (or create) the database
-    const open = indexedDB.open(DB_NAME, 1)
+    const req = indexedDB.open(DB_NAME, 1)
 
     // Create the schema
-    open.onupgradeneeded = function (event) {
+    req.onupgradeneeded = function (event) {
       const db = event.target.result
       db.createObjectStore(STORE_NAME, {keyPath: 'key'})
     }
 
-    open.onsuccess = function (event) {
+    req.onsuccess = function (event) {
       const db = event.target.result
+      oncloseDB(db)
       _db = db // save in global
       resolve(db)
     }
 
-    open.onblocked = function (event) {
-      reject(event)
+    const oncloseDB = function (db) {
+      db.onclose = function (event) {
+        console.log('sw: db closed')
+        _db = null
+      }
     }
 
-    open.onerror = function (event) {
-      reject(event)
-    }
+    req.onblocked = reject
+    req.onerror = reject
   })
   const timeout = new Promise(function (resolve, reject) {
     setTimeout(reject, 10000)
@@ -162,8 +235,13 @@ function openDB () {
 
 function setItem (key, value) {
   return openDB().then(function (db) {
-    const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
-    objectStore.put({key: key, value: value})
+    return new Promise(function (resolve, reject) {
+      const objectStore = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME)
+      const updated = Date.now()
+      const req = objectStore.put({key, value, updated})
+      req.onsuccess = resolve
+      req.onerror = reject
+    })
   })
 }
 
@@ -175,9 +253,7 @@ function getItem (key) {
       req.onsuccess = function (event) {
         resolve(event.target.result)
       }
-      req.onerror = function (event) {
-        reject(event)
-      }
+      req.onerror = reject
     })
   })
 }
@@ -186,54 +262,57 @@ function setVersion (value) {
   return setItem('version', value)
 }
 
-function getVersion () {
+function getVersion ({allowNull} = {}) {
   return getItem('version').then(function (result) {
-    if (!result) throw new Error('cache version is not set')
-    return result.value
+    if (!result) {
+      if (allowNull) {
+        return {version: null, updated: null}
+      }
+      throw new Error('cache version is not set')
+    }
+    const version = result.value
+    const updated = result.updated
+    return {version, updated}
   })
+}
+
+function createJsonResponse (status, body) {
+  const statusText = function (status) {
+    switch (status) {
+      case 200:
+        return 'OK'
+      case 500:
+        return 'Internal Server Error'
+    }
+  }
+  const init = {
+    status: status,
+    statusText: statusText(status),
+    headers: {'Content-Type': 'application/json'}
+  }
+  return new Response(JSON.stringify(body), init)
 }
 
 this.addEventListener('fetch', function (event) {
   let req = event.request
 
-  if (isAppHtmlRequest(req)) {
-    req = createAppHtmlRequest(req)
+  if (isCacheUpdateRequest(req)) {
+    event.respondWith(respondCacheUpdate(req))
+    return
   }
 
-  if (isCacheAllRequest(req)) {
-    console.log('sw: cache all')
-    event.respondWith(
-      fetch(req).then(function (res) {
-        return res.clone().json().then(function (manifest) {
-          return cacheAll(manifest).then(function () {
-            console.log('sw: cache all done')
-            return res
-          })
-        })
-      }).catch(function (err) {
-        // TODO: cacheAllの途中で404が出たりしても止まってしまう
-        // ブラウザの停止ボタンを押したりしても止まるのでは？
-        const init = {
-          status: 500,
-          statusText: 'Internal Server Error',
-          headers: {'Content-Type': 'text/plain'}
-        }
-        console.log(err)
-        return new Response('cache all failed: ' + err.message, init)
-      })
-    )
-    return
+  if (isAppHtmlRequest(req)) {
+    req = createAppHtmlRequest(req)
   }
 
   let tryFetched = false
 
   event.respondWith(
-    getVersion().then(function (version) {
+    getVersion().then(function ({version}) {
       return caches.open(cacheKey(version)).then(function (cache) {
         return cache.match(req).then(function (res) {
           if (res) {
             console.log('sw: respond from cache', req.url)
-            deleteOldCache(version)
             return res
           }
           console.log('sw: fetch', req.url)

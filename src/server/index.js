@@ -4,6 +4,9 @@ const path = require('path')
 const md5File = require('md5-file/promise')
 const md5 = require('md5')
 const fs = require('mz/fs')
+const morgan = require('morgan')
+
+app.use(morgan('dev'))
 
 app.get('/', (req, res) => {
   res.render('app')
@@ -23,27 +26,20 @@ async function getVersion () {
   return md5(hashes.join('')).substring(0, 8)
 }
 
-app.get('/api/app/version', async (req, res) => {
+app.get('/api/caches/update', async (req, res) => {
   const version = await getVersion()
-  res.json({ version })
-})
-
-app.get('/api/app/cacheall', async (req, res) => {
-  const version = await getVersion()
-  let cacheall = [
+  let assets = [
     '/app.html',
     '/index.js',
     'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
   ]
+  const pattern = /\.(woff2|css|png|js)$/
   for (let dir of ['css', 'fonts', 'img']) {
-    const files = await fs.readdir(`./public/${dir}`)
-    cacheall = cacheall.concat(files.map(file => `/${dir}/${file}`))
+    let files = await fs.readdir(`./public/${dir}`)
+    files = files.filter(file => file.match(pattern))
+    assets = assets.concat(files.map(file => `/${dir}/${file}`))
   }
-  res.json({
-    name: 'sw_app',
-    version,
-    cacheall
-  })
+  res.json({version, assets})
 })
 
 app.get('/note/*', (req, res) => {
