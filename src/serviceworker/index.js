@@ -178,7 +178,7 @@ function respondCacheUpdate (req) {
     // なぜか、object storeだけが消えてDBは残っている状態になる
     // 解決策は、もういちどDBを消すしかなさそう
     const indexdbErrors = ['InvalidStateError', 'NotFoundError', 'QuotaExceededError',
-      'ReadOnlyError', 'DataError', 'TransactionInactiveError', 'DataCloneError']
+      'DataError', 'TransactionInactiveError', 'DataCloneError']
 
     if (indexdbErrors.includes(err.name)) {
       deleteAllCache()
