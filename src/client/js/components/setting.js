@@ -48,7 +48,7 @@ export default class Setting extends Component {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
     }
-    AppCacheStore.checkForUpdateAutomatically()
+    AppCacheStore.checkForUpdateAutomatically({addall: true})
     this.checkEnabled()
   }
 

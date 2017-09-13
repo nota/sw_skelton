@@ -85,7 +85,6 @@ function shouldCache (req, res) {
 
 function isCacheUpdateRequest (req) {
   const url = new URL(req.url)
-
   const path = '/api/caches/update'
   return isMyHost(url) && url.pathname === path
 }
@@ -127,12 +126,16 @@ function cacheAddAll ({version, assets}) {
 
 function respondCacheUpdate (req) {
   console.log('sw: cache update')
+  const url = new URL(req.url)
+  const forceAddAll = !!url.searchParams.get('addall')
+
   return fetch(req).then(function (res) {
     if (!res.ok) throw new Error(`Server responded ${res.status}`)
     return res.clone().json().then(function (manifest) {
       return getVersion({allowNull: true}).then(function ({version, updated}) {
         if (version === manifest.version) {
           const cacheStatus = 'latest'
+          if (forceAddAll) cacheAddAll(manifest)
           return createJsonResponse(200, {version, cacheStatus})
         }
         return cacheAddAll(manifest).then(function () {
