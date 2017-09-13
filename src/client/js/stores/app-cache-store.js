@@ -52,6 +52,8 @@ export default new class AppCacheStore extends EventEmitter {
 
     const {version, cacheStatus, previousVersion} = response.body
 
+    debug('cacheStatus', cacheStatus, ', version', version)
+
     if (!cacheStatus) {
       // service workerが動いていない（強制リロードか？）
       await this.deleteAllCache()
@@ -59,8 +61,6 @@ export default new class AppCacheStore extends EventEmitter {
     }
 
     this.version = version
-
-    debug('cacheStatus', cacheStatus, ', version', version)
     if (cacheStatus === 'updated') {
       if (previousVersion.version) {
         debug('updated', 'previousVersion', previousVersion)

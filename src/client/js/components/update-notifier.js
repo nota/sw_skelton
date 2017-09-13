@@ -22,7 +22,7 @@ export default class UpdateNotifier extends Component {
   }
 
   async componentDidMount () {
-    if (ServiceWorker.isEnabled()) {
+    if (ServiceWorker.isEnabled) {
       AppCacheStore.checkForUpdateAutomatically()
     }
     this.mountedAt = Date.now()

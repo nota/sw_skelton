@@ -28,7 +28,7 @@ export default class Setting extends Component {
 
   async checkEnabled () {
     const registered = await ServiceWorker.getRegistration()
-    const enabled = ServiceWorker.isEnabled() || registered
+    const enabled = ServiceWorker.isEnabled || registered
     this.setState({enabled})
   }
 

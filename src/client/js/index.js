@@ -7,7 +7,7 @@ import {render} from 'react-dom'
 
 import ServiceWorker from './lib/serviceworker-utils'
 
-ServiceWorker.register()
+ServiceWorker.start()
 
 import App from './components/app'
 
