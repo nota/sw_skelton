@@ -41,7 +41,7 @@ export default new class ServiceWorker {
   }
 
   get isEnabled () {
-    return localStorage.enableServiceWorker === 'true'
+    return localStorage.serviceWorker === 'true'
   }
 
   getRegistration () {
@@ -54,11 +54,11 @@ export default new class ServiceWorker {
     if (!navigator.serviceWorker) return alert(NOT_AVAILABLE)
 
     await this.register()
-    localStorage.enableServiceWorker = true
+    localStorage.serviceWorker = true
   }
 
   async disable () {
-    localStorage.enableServiceWorker = false
+    localStorage.serviceWorker = false
 
     const keys = await caches.keys()
     await Promise.all(keys.map(key => caches.delete(key)))

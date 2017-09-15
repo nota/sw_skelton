@@ -17,7 +17,7 @@ if (appContainer) {
 }
 
 // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
-const wasServiceWorkerEnalbed = localStorage.enableServiceWorker === 'true'
+const wasServiceWorkerEnalbed = localStorage.serviceWorker === 'true'
 
 setTimeout(function () {
   if (!wasServiceWorkerEnalbed) return
