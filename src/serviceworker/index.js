@@ -142,7 +142,7 @@ function respondCacheUpdateApi (req) {
         return cacheAddAll(manifest).then(function () {
           console.log('sw: cache all done', version)
           const body = manifest
-          body.cacheStatus = 'updated'
+          body.cacheStatus = (keys && keys.length > 0) ? 'updated' : 'installed'
           return createJsonResponse(200, body)
         })
       })
