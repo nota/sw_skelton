@@ -4,7 +4,7 @@ const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
 import AppCacheStore from '../stores/app-cache-store'
-import ServiceWorker from '../lib/serviceworker-utils'
+import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
 const SECOND = 1000
 const MINUTE = 60 * SECOND
@@ -22,7 +22,10 @@ export default class UpdateNotifier extends Component {
   }
 
   async componentDidMount () {
-    if (ServiceWorker.isEnabled) {
+    debug('componentDidMount')
+    const serviceWorkerEnabled = await ServiceWorkerLauncher.getRegistration()
+    if (serviceWorkerEnabled) {
+      debug('check!')
       AppCacheStore.checkForUpdateAutomatically()
     }
     this.mountedAt = Date.now()

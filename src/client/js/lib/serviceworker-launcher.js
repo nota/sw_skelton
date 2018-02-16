@@ -3,9 +3,15 @@ const debug = require('./debug')(__filename)
 
 const NOT_AVAILABLE = 'Your browser does not support service worker'
 
-export default new class ServiceWorker {
-  start () {
-    if (this.isEnabled) this.register()
+export default new class ServiceWorkerLauncher {
+  getRegistration () {
+    const {serviceWorker} = navigator
+    return serviceWorker && serviceWorker.getRegistration('/')
+  }
+
+  async start () {
+    const enabled = await this.getRegistration()
+    if (enabled) this.register()
   }
 
   async register () {
@@ -40,32 +46,23 @@ export default new class ServiceWorker {
     })
   }
 
-  get isEnabled () {
-    return localStorage.serviceWorker === 'true'
-  }
-
-  getRegistration () {
-    const {serviceWorker} = navigator
-    if (!serviceWorker) return null
-    return serviceWorker.getRegistration('/')
-  }
-
-  async enable () {
-    if (!navigator.serviceWorker) return alert(NOT_AVAILABLE)
-
-    await this.register()
-    localStorage.serviceWorker = true
-  }
-
-  async disable () {
-    localStorage.serviceWorker = false
-
+  async unregister () {
     const keys = await caches.keys()
     await Promise.all(keys.map(key => caches.delete(key)))
     const reg = await this.getRegistration()
     if (reg) {
       const result = await reg.unregister()
-      if (!result) throw new Error('Can not unregister')
+      if (!result) throw new Error('Can not unregister the service worker')
     }
+  }
+
+  evacuate() {
+    // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
+    setTimeout(function () {
+      if (window.checkVersionDone) return
+      alert('Auto updating system seems not working.')
+      if (!confirm('Please reload the browser')) return
+      window.location.reload()
+    }, 10000)
   }
 }()

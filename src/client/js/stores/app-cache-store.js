@@ -17,6 +17,7 @@ export default new class AppCacheStore extends EventEmitter {
   }
 
   checkForUpdateAutomatically (options) {
+    debug('checkForUpdateAutomatically')
     if (this.timerId) return
     this.timerId = setTimeout(
       this.checkForUpdate.bind(this),

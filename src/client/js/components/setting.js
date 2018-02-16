@@ -4,7 +4,7 @@
 
 import React, {Component} from 'react'
 import AppCacheStore from '../stores/app-cache-store'
-import ServiceWorker from '../lib/serviceworker-utils'
+import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
 export default class Setting extends Component {
   constructor (props) {
@@ -12,7 +12,6 @@ export default class Setting extends Component {
 
     this.state = {
       version: null,
-      url: null,
       enabled: false
     }
 
@@ -21,14 +20,12 @@ export default class Setting extends Component {
 
   async componentDidMount () {
     const version = await AppCacheStore.version
-    const url = window.location.href
-    this.setState({version, url})
+    this.setState({version})
     this.checkEnabled()
   }
 
   async checkEnabled () {
-    const registered = await ServiceWorker.getRegistration()
-    const enabled = ServiceWorker.isEnabled || registered
+    const enabled = await ServiceWorkerLauncher.getRegistration()
     this.setState({enabled})
   }
 
@@ -43,7 +40,7 @@ export default class Setting extends Component {
 
   async enableServiceWorker () {
     try {
-      await ServiceWorker.enable()
+      await ServiceWorkerLauncher.register()
     } catch (err) {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
@@ -54,7 +51,7 @@ export default class Setting extends Component {
 
   async disableServiceWorker () {
     try {
-      await ServiceWorker.disable()
+      await ServiceWorkerLauncher.unregister()
     } catch (err) {
       alert('Cannot disable service worker\n' + err.message)
       throw (err)
@@ -70,8 +67,7 @@ export default class Setting extends Component {
         {
           this.state.version && (
             <p>
-              url: {this.state.url}<br />
-              local version: {this.state.version}
+              current version: {this.state.version}
             </p>
           )
         }
