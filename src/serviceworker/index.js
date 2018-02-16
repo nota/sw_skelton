@@ -164,7 +164,6 @@ function respondCacheUpdateApi (req) {
       たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
       なにがボトルネックなのかまだわかっていない
     */
-
     const body = {
       name: err.name,
       message: err.message
@@ -213,9 +212,7 @@ function respondFromCache ({req, fetchIfNotCached}) {
       console.log('sw: respond from cache', req.url)
       return res
     }
-    if (!fetchIfNotCached) {
-      return res
-    }
+    if (!fetchIfNotCached) return res
     console.log('sw: fetch', req.url)
     tryFetched = true
     return fetch(req).then(function (res) {
@@ -237,25 +234,25 @@ function respondFromCache ({req, fetchIfNotCached}) {
 this.addEventListener('fetch', function (event) {
   const req = event.request
 
+  if (isCacheUpdateApiRequest(req)) {
+    event.respondWith(respondCacheUpdateApi(req))
+    return
+  }
+
   if (req.cache === 'no-cache') { // reloaded on browser
-    console.log('sw: request with no-cache flag', req.url, req.cache)
+    console.log('sw: reload request', req.url, req.cache)
     event.respondWith(
       fetch(req).then(function (res) {
         // 全キャッシュをクリアする
         // TODO: 最新のものも消してしまうのはちょっともったいない
         // TODO: クライアントからのアップデート時にlocation.reloadで一緒に消えてしまう問題
-        console.log('sw: 6 successed to fetch so clear all cache')
+        console.log('sw: fetched, so clear all cache')
         deleteAllCache()
         return res
       }).catch(function (err) {
         return respondFromCache({req, fetchIfNotCached: false})
       })
     )
-    return
-  }
-
-  if (isCacheUpdateApiRequest(req)) {
-    event.respondWith(respondCacheUpdateApi(req))
     return
   }
 

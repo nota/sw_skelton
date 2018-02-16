@@ -60,8 +60,11 @@ export default new class AppCacheStore extends EventEmitter {
     debug('cacheStatus', cacheStatus, ', version', version)
 
     if (!cacheStatus) {
-      // service workerが動いていない（強制リロードか？）
-      await this.deleteAllCache()
+      // service workerが正しく動いていないので、このプロパティが欠けている
+      if (confirm('Can not check lastest version. Do you want to reload?')) {
+        location.reload()
+        return
+      }
       this.stop() // 次のcheckでdelete cacheし続けないように停止
     }
 
@@ -70,12 +73,6 @@ export default new class AppCacheStore extends EventEmitter {
       this.hasUpdate = true
     }
     this.emit('change')
-  }
-
-  async deleteAllCache () {
-    debug('delete all cache')
-    const keys = await caches.keys()
-    await Promise.all(keys.map(key => caches.delete(key)))
   }
 }()
 
