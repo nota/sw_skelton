@@ -60,6 +60,8 @@ export default new class ServiceWorkerLauncher {
     }
   }
 
+  // 注意: この関数はservice worker自体の更新を行うもので、
+  // assetの更新を行うものではない
   async update () {
     debug('update')
     const reg = await this.getRegistration()
