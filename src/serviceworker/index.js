@@ -4,8 +4,8 @@
 console.log('sw: hello')
 
 const NOCACHE_PATHS = [
-  '^/serviceworker\\.js',
-  '^/api/'
+  '/serviceworker.js',
+  '/api/'
 ]
 
 const ASSET_PATHS = [
@@ -43,7 +43,7 @@ function isMyHost (url) {
 
 function isApiOrLandingPage (url) {
   return isMyHost(url) && NOCACHE_PATHS.find(function (path) {
-    return new RegExp(path).test(url.pathname)
+    return url.pathname.indexOf(path) === 0
   })
 }
 
@@ -117,32 +117,32 @@ function deleteAllCache () {
 function cacheAddAll ({version, assets}) {
   return caches.open(cacheKey(version)).then(function (cache) {
     return cache.addAll(assets).then(function () {
-      return setVersion(version).then(function () {
-        return deleteOldCache(version)
-      })
+      return deleteOldCache(version)
     })
   })
 }
 
 function respondCacheUpdateApi (req) {
-  console.log('sw: cache update')
   const url = new URL(req.url)
   const forceAddAll = !!url.searchParams.get('addall')
 
+  console.log('sw: fetching cache manifest from server...')
   return fetch(req).then(function (res) {
     if (!res.ok) throw new Error(`Server responded ${res.status}`)
     return res.clone().json().then(function (manifest) {
-      return getVersion({allowNull: true}).then(function ({version, updated}) {
-        if (version === manifest.version) {
+      const {version} = manifest
+      return caches.keys().then(function (keys) {
+        if (keys && keys.includes(cacheKey(version))) {
+          console.log('sw: has already latest cache', version)
           const cacheStatus = 'latest'
           if (forceAddAll) cacheAddAll(manifest)
           return createJsonResponse(200, {version, cacheStatus})
         }
+        console.log('sw: caching all assets...', version)
         return cacheAddAll(manifest).then(function () {
-          console.log('sw: cache all done')
+          console.log('sw: cache all done', version)
           const body = manifest
           body.cacheStatus = 'updated'
-          body.previousVersion = {version, updated}
           return createJsonResponse(200, body)
         })
       })
@@ -150,7 +150,6 @@ function respondCacheUpdateApi (req) {
   }).catch(function (err) {
     /*
     TODO: エラーのより細かい判定が必要
-
     最悪の状態: 一生アップデートできない、を回避する
 
     エラー一覧
@@ -158,10 +157,6 @@ function respondCacheUpdateApi (req) {
         TypeError, Request failed
       cacheAllの途中で、接続が切れる
         TypeError, Failed to fetch
-      indexeddb周りのエラー
-        DBを手動で削除した直後など
-        読み込みできない:そもそもonFetchでネットワーク経由だけになってるはず
-        書き込みできない:まずいので、cacheを全部消すのがよさそう
       cache.open周りのエラー
         読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
         書き込みできない -> ネットワークエラーかどうか、現cacheを全部削除して様子見？
@@ -170,22 +165,6 @@ function respondCacheUpdateApi (req) {
       なにがボトルネックなのかまだわかっていない
     */
 
-    // see https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/put
-    // https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction/objectStore
-    // InvalidStateError, Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.
-    // Chromeで開発ツールからDBを削除したときに発生する
-    // ただし、db.oncloseを適切に扱っていれば普通は問題はない
-
-    // NotFoundError, Operation failed because the requested database object could not be found
-    // Firefoxで開発ツールからDBを削除したときによく発生する
-    // なぜか、object storeだけが消えてDBは残っている状態になる
-    // 解決策は、もういちどDBを消すしかなさそう
-    const indexdbErrors = ['InvalidStateError', 'NotFoundError', 'QuotaExceededError',
-      'DataError', 'TransactionInactiveError', 'DataCloneError']
-
-    if (indexdbErrors.includes(err.name)) {
-      deleteAllCache()
-    }
     const body = {
       name: err.name,
       message: err.message
@@ -203,88 +182,6 @@ function createAppHtmlRequest (req) {
     mode: 'same-origin', // need to set this properly
     credentials: req.credentials,
     redirect: 'manual'   // let browser handle redirects
-  })
-}
-
-let _db = null
-function openDB () {
-  const open = new Promise(function (resolve, reject) {
-    if (_db) return resolve(_db)
-
-    if (!indexedDB) throw new Error('IndexedDB is not available')
-
-    // Open (or create) the database
-    const req = indexedDB.open(DB_NAME, 1)
-
-    // Create the schema
-    req.onupgradeneeded = function () {
-      const db = req.result
-      db.createObjectStore(STORE_NAME, {keyPath: 'key'})
-    }
-
-    req.onsuccess = function () {
-      const db = req.result
-      oncloseDB(db)
-      _db = db // save in global
-      resolve(db)
-    }
-
-    const oncloseDB = function (db) {
-      db.onclose = function () {
-        console.log('sw: db closed')
-        _db = null
-      }
-    }
-
-    req.onblocked = function () { reject(req.error) }
-    req.onerror = function () { reject(req.error) }
-  })
-  const timeout = new Promise(function (resolve, reject) {
-    setTimeout(reject, 10000)
-  })
-  return Promise.race([open, timeout])
-}
-
-function setItem (key, value) {
-  return openDB().then(function (db) {
-    return new Promise(function (resolve, reject) {
-      const objectStore = db.transaction(STORE_NAME, 'readwrite')
-                            .objectStore(STORE_NAME)
-      const updated = Date.now()
-      const req = objectStore.put({key, value, updated})
-      req.onsuccess = function () { resolve(req.result) }
-      req.onerror = function () { reject(req.error) }
-    })
-  })
-}
-
-function getItem (key) {
-  return openDB().then(function (db) {
-    return new Promise(function (resolve, reject) {
-      const objectStore = db.transaction(STORE_NAME, 'readonly')
-                            .objectStore(STORE_NAME)
-      const req = objectStore.get(key)
-      req.onsuccess = function () { resolve(req.result) }
-      req.onerror = function () { reject(req.error) }
-    })
-  })
-}
-
-function setVersion (value) {
-  return setItem('version', value)
-}
-
-function getVersion ({allowNull} = {}) {
-  return getItem('version').then(function (result) {
-    if (!result) {
-      if (allowNull) {
-        return {version: null, updated: null}
-      }
-      throw new Error('cache version is not set')
-    }
-    const version = result.value
-    const updated = result.updated
-    return {version, updated}
   })
 }
 
@@ -311,26 +208,24 @@ function respondFromCache ({req, fetchIfNotCached}) {
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
-  return getVersion().then(function ({version}) {
-    return caches.open(cacheKey(version)).then(function (cache) {
-      return cache.match(req).then(function (res) {
-        if (res) {
-          console.log('sw: respond from cache', req.url)
-          return res
-        }
-        if (!fetchIfNotCached) {
-          return res
-        }
-        console.log('sw: fetch', req.url)
-        tryFetched = true
-        return fetch(req).then(function (res) {
-          if (shouldCache(req, res)) {
-            console.log('sw: save cache', req.url)
-            cache.put(req, res.clone())
-          }
-          return res
-        })
-      })
+  return caches.match(req).then(function (res) {
+    if (res) {
+      console.log('sw: respond from cache', req.url)
+      return res
+    }
+    if (!fetchIfNotCached) {
+      return res
+    }
+    console.log('sw: fetch', req.url)
+    tryFetched = true
+    return fetch(req).then(function (res) {
+//    if (shouldCache(req, res)) {
+//      return caches.open(cacheKey(version)).then(function (cache) {
+//        console.log('sw: save cache', req.url)
+//        cache.put(req, res.clone())
+//       }
+//    }
+      return res
     })
   }).catch(function (err) {
     if (!tryFetched && fetchIfNotCached) return fetch(req)

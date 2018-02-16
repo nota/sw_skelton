@@ -12,7 +12,6 @@ export default new class AppCacheStore extends EventEmitter {
   constructor () {
     super()
     this.version = null
-    this.previousVersion = null
     this.hasUpdate = false
     this.timerId = null
   }
@@ -56,7 +55,7 @@ export default new class AppCacheStore extends EventEmitter {
       }
     }
 
-    const {version, cacheStatus, previousVersion} = response.body
+    const {version, cacheStatus} = response.body
 
     debug('cacheStatus', cacheStatus, ', version', version)
 
@@ -68,11 +67,7 @@ export default new class AppCacheStore extends EventEmitter {
 
     this.version = version
     if (cacheStatus === 'updated') {
-      if (previousVersion.version) {
-        debug('updated', 'previousVersion', previousVersion)
-        this.previousVersion = previousVersion
-        this.hasUpdate = true
-      }
+      this.hasUpdate = true
     }
     this.emit('change')
   }

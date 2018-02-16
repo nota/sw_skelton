@@ -29,8 +29,8 @@ export default class UpdateNotifier extends Component {
   }
 
   shouldReload () {
-    const previousVersion = AppCacheStore.previousVersion
-    const lastUpdated = previousVersion ? previousVersion.updated : Date.now()
+    // const previousVersion = AppCacheStore.previousVersion
+    /*const lastUpdated = previousVersion ? previousVersion.updated : Date.now()
 
     // この前に更新したのが、1週間以上前または
     // 更新にかかった時間が3秒以内の速いネットワークに限定
@@ -43,10 +43,12 @@ export default class UpdateNotifier extends Component {
     if (Date.now() - lastUpdated > 7 * DAY) {
       return true
     }
+    */
     // または24時間以上開きっぱなしのWindowである
     if (Date.now() - this.mountedAt > DAY) {
       return true
     }
+
     // TODO: またはprotocol-versionがあがってる
     // if (AppCacheStore.protocolVersionMismatch()) {
     //   return true
@@ -79,7 +81,7 @@ export default class UpdateNotifier extends Component {
 
     return (
       <div className='update-alert-bar' onClick={this.onClickUpdate.bind(this)}>
-        <a>Update found!</a>
+        <a href={location.href}>Update found!</a>
       </div>
     )
   }
