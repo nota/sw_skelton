@@ -7,7 +7,7 @@ const fs = require('mz/fs')
 const morgan = require('morgan')
 
 app.use(morgan('dev'))
-
+;
 app.get('/', (req, res) => {
   res.render('app')
 })

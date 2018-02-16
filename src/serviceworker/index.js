@@ -83,7 +83,7 @@ function shouldCache (req, res) {
   return isAsset(url) && isGetRequest(req) && ok
 }
 
-function isCacheUpdateRequest (req) {
+function isCacheUpdateApiRequest (req) {
   const url = new URL(req.url)
   const path = '/api/caches/update'
   return isMyHost(url) && url.pathname === path
@@ -124,7 +124,7 @@ function cacheAddAll ({version, assets}) {
   })
 }
 
-function respondCacheUpdate (req) {
+function respondCacheUpdateApi (req) {
   console.log('sw: cache update')
   const url = new URL(req.url)
   const forceAddAll = !!url.searchParams.get('addall')
@@ -305,44 +305,65 @@ function createJsonResponse (status, body) {
   return new Response(JSON.stringify(body), init)
 }
 
-this.addEventListener('fetch', function (event) {
-  let req = event.request
-
-  if (isCacheUpdateRequest(req)) {
-    event.respondWith(respondCacheUpdate(req))
-    return
-  }
+function respondFromCache ({req, fetchIfNotCached}) {
+  let tryFetched = false
 
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
-
-  let tryFetched = false
-
-  event.respondWith(
-    getVersion().then(function ({version}) {
-      return caches.open(cacheKey(version)).then(function (cache) {
-        return cache.match(req).then(function (res) {
-          if (res) {
-            console.log('sw: respond from cache', req.url)
-            return res
+  return getVersion().then(function ({version}) {
+    return caches.open(cacheKey(version)).then(function (cache) {
+      return cache.match(req).then(function (res) {
+        if (res) {
+          console.log('sw: respond from cache', req.url)
+          return res
+        }
+        if (!fetchIfNotCached) {
+          return res
+        }
+        console.log('sw: fetch', req.url)
+        tryFetched = true
+        return fetch(req).then(function (res) {
+          if (shouldCache(req, res)) {
+            console.log('sw: save cache', req.url)
+            cache.put(req, res.clone())
           }
-          console.log('sw: fetch', req.url)
-          tryFetched = true
-          return fetch(req).then(function (res) {
-            if (shouldCache(req, res)) {
-              console.log('sw: save cache', req.url)
-              cache.put(req, res.clone())
-            }
-            return res
-          })
+          return res
         })
       })
-    }).catch(function (err) {
-      if (!tryFetched) return fetch(req)
-      if (err instanceof TypeError && err.message === 'Failed to fetch') return
-      throw (err)
     })
-  )
+  }).catch(function (err) {
+    if (!tryFetched && fetchIfNotCached) return fetch(req)
+    if (err instanceof TypeError && err.message === 'Failed to fetch') return
+    throw (err)
+  })
+}
+
+this.addEventListener('fetch', function (event) {
+  const req = event.request
+
+  if (req.cache === 'no-cache') { // reloaded on browser
+    console.log('sw: request with no-cache flag', req.url, req.cache)
+    event.respondWith(
+      fetch(req).then(function (res) {
+        // 全キャッシュをクリアする
+        // TODO: 最新のものも消してしまうのはちょっともったいない
+        // TODO: クライアントからのアップデート時にlocation.reloadで一緒に消えてしまう問題
+        console.log('sw: 6 successed to fetch so clear all cache')
+        deleteAllCache()
+        return res
+      }).catch(function (err) {
+        return respondFromCache({req, fetchIfNotCached: false})
+      })
+    )
+    return
+  }
+
+  if (isCacheUpdateApiRequest(req)) {
+    event.respondWith(respondCacheUpdateApi(req))
+    return
+  }
+
+  event.respondWith(respondFromCache({req, fetchIfNotCached: true}))
 })
 
