@@ -26,12 +26,14 @@ const STORE_NAME = 'config'
 const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
 
 this.addEventListener('install', function (event) {
+  console.log('sw: install')
   event.waitUntil(
     self.skipWaiting()
   )
 })
 
 this.addEventListener('activate', function (event) {
+  console.log('sw: activate')
   event.waitUntil(
     self.clients.claim()
   )
@@ -210,12 +212,15 @@ function respondFromCache ({req, fetchIfNotCached}) {
   return caches.match(req).then(function (res) {
     if (res) {
       console.log('sw: respond from cache', req.url)
+      console.log('sw: headers', res.headers)
+      console.log('sw: date', res.headers.date)
       return res
     }
     if (!fetchIfNotCached) return res
     console.log('sw: fetch', req.url)
     tryFetched = true
     return fetch(req).then(function (res) {
+
 //    if (shouldCache(req, res)) {
 //      return caches.open(cacheKey(version)).then(function (cache) {
 //        console.log('sw: save cache', req.url)

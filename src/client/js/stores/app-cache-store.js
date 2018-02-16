@@ -4,6 +4,7 @@ const debug = require('../lib/debug')(__filename)
 
 import request from 'superagent'
 import {EventEmitter} from 'events'
+import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
 // XXX: もしこのコードが正常に動いていない場合にservice worker自体を殺すためのフラグ
 const reportDone = () => { window.checkVersionDone = true }
@@ -36,6 +37,9 @@ export default new class AppCacheStore extends EventEmitter {
     reportDone() // ここまで到達したことをマークする
 
     debug('checking...')
+
+    ServiceWorkerLauncher.update()
+
     let response
     try {
       response = await request

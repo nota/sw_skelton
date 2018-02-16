@@ -40,7 +40,7 @@ export default new class ServiceWorkerLauncher {
         debug('installing')
         // install中の新しいservice workerの状態を監視する
         reg.installing.addEventListener('statechange', (event) => {
-          const state = event.target.state
+          const {state} = event.target
           debug('statechange', state)
           // serviceWorker.readyは、activating後にresolveしてしまうので、問題がある
           if (state === 'activated') resolve()
@@ -58,6 +58,13 @@ export default new class ServiceWorkerLauncher {
       const result = await reg.unregister()
       if (!result) throw new Error('Can not disable the service worker')
     }
+  }
+
+  async update () {
+    debug('update')
+    const reg = await this.getRegistration()
+    if (!reg) return
+    reg.update()
   }
 
   evacuate () {
