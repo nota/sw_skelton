@@ -7,21 +7,23 @@ import {EventEmitter} from 'events'
 
 // XXX: もしこのコードが正常に動いていない場合にservice worker自体を殺すためのフラグ
 const reportDone = () => { window.checkVersionDone = true }
+const CHECK_INTERVAL = 10 * 1000
 
 export default new class AppCacheStore extends EventEmitter {
   constructor () {
     super()
     this.version = null
     this.hasUpdate = false
+    this.cacheStatus = null
     this.timerId = null
+
+    this.checkForUpdate = this.checkForUpdate.bind(this)
   }
 
   checkForUpdateAutomatically (options) {
     debug('checkForUpdateAutomatically')
     if (this.timerId) return
-    this.timerId = setTimeout(
-      this.checkForUpdate.bind(this),
-      10 * 1000)
+    this.timerId = setTimeout(this.checkForUpdate, CHECK_INTERVAL)
     this.checkForUpdate(options)
   }
 
@@ -50,9 +52,7 @@ export default new class AppCacheStore extends EventEmitter {
     } finally {
       if (this.timerId) {
         clearInterval(this.timerId)
-        this.timerId = setTimeout(
-          this.checkForUpdate.bind(this),
-          10 * 1000)
+        this.timerId = setTimeout(this.checkForUpdate, CHECK_INTERVAL)
       }
     }
 
@@ -70,6 +70,7 @@ export default new class AppCacheStore extends EventEmitter {
     }
 
     this.version = version
+    this.cacheStatus = cacheStatus
     if (cacheStatus === 'updated') {
       this.hasUpdate = true
     }

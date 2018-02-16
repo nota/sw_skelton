@@ -10,12 +10,15 @@ export default new class ServiceWorkerLauncher {
   }
 
   async start () {
-    const enabled = await this.getRegistration()
-    if (enabled) this.register()
+    debug('start')
+    const reg = await this.getRegistration()
+    if (!reg) return
+    this.enable()
+    this.evacuate()
   }
 
-  async register () {
-    debug('register')
+  async enable () {
+    debug('enable')
 
     const {serviceWorker} = navigator
     if (!serviceWorker) return alert(NOT_AVAILABLE)
@@ -46,22 +49,22 @@ export default new class ServiceWorkerLauncher {
     })
   }
 
-  async unregister () {
+  async disable () {
+    debug('disable')
     const keys = await caches.keys()
     await Promise.all(keys.map(key => caches.delete(key)))
     const reg = await this.getRegistration()
     if (reg) {
       const result = await reg.unregister()
-      if (!result) throw new Error('Can not unregister the service worker')
+      if (!result) throw new Error('Can not disable the service worker')
     }
   }
 
-  evacuate() {
-    // XXX: このコードは、もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コードである
+  evacuate () {
+    // XXX: もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コード
     setTimeout(function () {
       if (window.checkVersionDone) return
-      alert('Auto updating system seems not working.')
-      if (!confirm('Please reload the browser')) return
+      if (!confirm('Auto updating system seems not working. Reload the browser?')) return
       window.location.reload()
     }, 10000)
   }
