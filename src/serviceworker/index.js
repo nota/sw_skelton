@@ -78,13 +78,6 @@ function isAppHtmlRequest (req) {
   )
 }
 
-function shouldCache (req, res) {
-  const url = new URL(req.url)
-  const ok = res.ok || res.status === 0 // XXX: status=0でokのときがある
-
-  return isAsset(url) && isGetRequest(req) && ok
-}
-
 function isCacheUpdateApiRequest (req) {
   const url = new URL(req.url)
   const path = '/api/caches/update'
@@ -239,16 +232,7 @@ function respondFromCache ({req, fetchIfNotCached}) {
     if (!fetchIfNotCached) return res
     console.log('sw: fetch', req.url)
     tryFetched = true
-    return fetch(req).then(function (res) {
-
-//    if (shouldCache(req, res)) {
-//      return caches.open(cacheKey(version)).then(function (cache) {
-//        console.log('sw: save cache', req.url)
-//        cache.put(req, res.clone())
-//       }
-//    }
-      return res
-    })
+    return fetch(req)
   }).catch(function (err) {
     if (!tryFetched && fetchIfNotCached) return fetch(req)
     if (err instanceof TypeError && err.message === 'Failed to fetch') return
