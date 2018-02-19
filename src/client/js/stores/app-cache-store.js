@@ -24,12 +24,12 @@ export default new class AppCacheStore extends EventEmitter {
   checkForUpdateAutomatically ({silent} = {silent: false}) {
     debug('checkForUpdateAutomatically')
     if (this.timerId) return
-    this.timerId = setTimeout(this.checkForUpdate, CHECK_INTERVAL)
+    this.timerId = setInterval(this.checkForUpdate, CHECK_INTERVAL)
     this.checkForUpdate({silent})
   }
 
   stop () {
-    clearInterval(this.timerId)
+    if (this.timerId) clearInterval(this.timerId)
     this.timerId = null
   }
 
@@ -43,35 +43,18 @@ export default new class AppCacheStore extends EventEmitter {
     let response
     try {
       response = await request
-                        .get('/api/caches/update')
+                        .get('/_serviceworker/cache_update')
     } catch (err) {
-      if (err.status === 500) {
-        // service workerから渡されたエラー
-        const {name, message} = err.response.body
-        throw new Error(`${name}: ${message}`)
-      } else {
-        throw err
+      console.error(err)
+      if (!silent && confirm('Can not check lastest version. Do you want to reload?')) {
+        location.reload()
       }
-    } finally {
-      if (this.timerId) {
-        clearInterval(this.timerId)
-        this.timerId = setTimeout(this.checkForUpdate, CHECK_INTERVAL)
-      }
+      return
     }
 
     const {version, cacheStatus} = response.body
 
     debug('cacheStatus', cacheStatus, ', version', version)
-
-    if (!cacheStatus) {
-      // service workerが正しく動いていないので、このプロパティが欠けている
-      if (!silent && confirm('Can not check lastest version. Do you want to reload?')) {
-        location.reload()
-        return
-      }
-      this.stop() // 次のcheckでdelete cacheし続けないように停止
-    }
-
     this.version = version
     this.cacheStatus = cacheStatus
     if (cacheStatus === 'updated') {

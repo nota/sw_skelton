@@ -80,7 +80,7 @@ function isAppHtmlRequest (req) {
 
 function isCacheUpdateApiRequest (req) {
   const url = new URL(req.url)
-  const path = '/api/caches/update'
+  const path = '/_serviceworker/cache_update'
   return isMyHost(url) && url.pathname === path
 }
 
@@ -117,41 +117,32 @@ function cacheAddAll ({version, assets}) {
   })
 }
 
-function respondCacheUpdateApi (req) {
+function updateCache(manifest) {
+  const {version} = manifest
+  return caches.keys().then(function (keys) {
+    if (keys && keys.includes(cacheKey(version))) {
+      console.log('sw: has already latest cache', version)
+      return 'latest'
+    }
+    console.log('sw: caching all assets...', version)
+    return cacheAddAll(manifest).then(function () {
+      console.log('sw: cache all done', version)
+      return (keys && keys.length > 0) ? 'updated' : 'installed'
+    })
+  })
+}
+
+function respondCacheUpdateApi () {
   console.log('sw: fetching cache manifest from server...')
+  const req = new Request(location.origin + '/api/caches/manifest', { method: 'get' })
   return fetch(req).then(function (res) {
     if (!res.ok) throw new Error(`Server responded ${res.status}`)
     return res.clone().json().then(function (manifest) {
-      const {version} = manifest
-      return caches.keys().then(function (keys) {
-        if (keys && keys.includes(cacheKey(version))) {
-          console.log('sw: has already latest cache', version)
-          const cacheStatus = 'latest'
-          return createJsonResponse(200, {version, cacheStatus})
-        }
-        console.log('sw: caching all assets...', version)
-        return cacheAddAll(manifest).then(function () {
-          console.log('sw: cache all done', version)
-          const body = manifest
-          body.cacheStatus = (keys && keys.length > 0) ? 'updated' : 'installed'
-          return createJsonResponse(200, body)
-        })
+      return updateCache(manifest).then(function(cacheStatus) {
+        return createJsonResponse(200, {version: manifest.version, cacheStatus})
       })
     })
   }).catch(function (err) {
-    /*
-    エラー一覧
-      cacheAllの途中でnot found
-        TypeError, Request failed
-      cacheAllの途中で、接続が切れる
-        TypeError, Failed to fetch
-      cache.open周りのエラー
-        読み込みできない -> そもそもonFetchでネットワーク経由だけになってるはず
-        書き込みできない -> ネットワークエラーかどうか、現cacheを全部削除して様子見？
-    その他の知見
-      たまにservice worker経由のresponseが500ms程度にあがったりする。ブラウザを再起動するとなおる
-      なにがボトルネックなのかまだわかっていない
-    */
     const body = {
       name: err.name,
       message: err.message
