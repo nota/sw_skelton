@@ -118,9 +118,6 @@ function cacheAddAll ({version, assets}) {
 }
 
 function respondCacheUpdateApi (req) {
-  const url = new URL(req.url)
-  const forceAddAll = !!url.searchParams.get('addall')
-
   console.log('sw: fetching cache manifest from server...')
   return fetch(req).then(function (res) {
     if (!res.ok) throw new Error(`Server responded ${res.status}`)
@@ -130,7 +127,6 @@ function respondCacheUpdateApi (req) {
         if (keys && keys.includes(cacheKey(version))) {
           console.log('sw: has already latest cache', version)
           const cacheStatus = 'latest'
-          if (forceAddAll) cacheAddAll(manifest)
           return createJsonResponse(200, {version, cacheStatus})
         }
         console.log('sw: caching all assets...', version)

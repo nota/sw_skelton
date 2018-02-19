@@ -21,11 +21,11 @@ export default new class AppCacheStore extends EventEmitter {
     this.checkForUpdate = this.checkForUpdate.bind(this)
   }
 
-  checkForUpdateAutomatically (options) {
+  checkForUpdateAutomatically () {
     debug('checkForUpdateAutomatically')
     if (this.timerId) return
     this.timerId = setTimeout(this.checkForUpdate, CHECK_INTERVAL)
-    this.checkForUpdate(options)
+    this.checkForUpdate()
   }
 
   stop () {
@@ -33,7 +33,7 @@ export default new class AppCacheStore extends EventEmitter {
     this.timerId = null
   }
 
-  async checkForUpdate (options) {
+  async checkForUpdate () {
     reportDone() // ここまで到達したことをマークする
 
     debug('checking...')
@@ -44,7 +44,6 @@ export default new class AppCacheStore extends EventEmitter {
     try {
       response = await request
                         .get('/api/caches/update')
-                        .query(options)
     } catch (err) {
       if (err.status === 500) {
         // service workerから渡されたエラー
