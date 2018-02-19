@@ -76,9 +76,9 @@ function isAppHtmlRequest (req) {
   )
 }
 
-function isCacheUpdateApiRequest (req) {
+function isCheckForUpdateRequest (req) {
   const url = new URL(req.url)
-  const path = '/_serviceworker/cache_update'
+  const path = '/_serviceworker/check_for_update'
   return isMyHost(url) && url.pathname === path
 }
 
@@ -121,8 +121,8 @@ async function updateCache(manifest) {
   return (keys && keys.length > 0) ? 'updated' : 'installed'
 }
 
-async function respondCacheUpdateApi () {
-  console.log('sw: fetching cache manifest from server...')
+async function respondCheckForUpdate () {
+  console.log('sw: fetching manifest from server...')
   const url = location.origin + '/api/caches/manifest'
   const req = new Request(url, { method: 'get' })
   try {
@@ -177,9 +177,24 @@ function cacheIsValid(res) {
   if (!dateStr) return false
   const cachedDate = new Date(dateStr)
   const now = new Date()
-  const cacheTime = 5 * 1000 // 60 sec
+  const cacheTime = 60 * 1000 // 60 sec
   console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   return (now - cachedDate < cacheTime)
+}
+
+async function respondFetchFirst (req) {
+  if (isAppHtmlRequest(req)) {
+    req = createAppHtmlRequest(req)
+  }
+
+  try {
+    console.log('sw: fetch', req.url, req.cache)
+    const res = await fetch(req)
+    await deleteAllCache()
+    return res
+  } catch (err) {
+    return caches.match(req)
+  }
 }
 
 async function respondCacheFirst (req) {
@@ -199,7 +214,7 @@ async function respondCacheFirst (req) {
   }
 
   try {
-    console.log('sw: fetch', req.url)
+    console.log('sw: fetch', req.url, req.cache)
     const res = await fetch(req)
     if (expiredCache) await deleteAllCache()
     return res
@@ -209,31 +224,17 @@ async function respondCacheFirst (req) {
   }
 }
 
-async function respondFetchFirst (req) {
-  if (isAppHtmlRequest(req)) {
-    req = createAppHtmlRequest(req)
-  }
-
-  try {
-    console.log('sw: fetch on reload', req.url, req.cache)
-    const res = await fetch(req)
-    await deleteAllCache()
-    return res
-  } catch (err) {
-    return caches.match(req)
-  }
-}
-
 self.addEventListener('fetch', async function (event) {
   event.respondWith(async function () {
     const req = event.request
 
-    if (isCacheUpdateApiRequest(req)) {
-      return respondCacheUpdateApi(req)
+    if (isCheckForUpdateRequest(req)) {
+      return respondCheckForUpdate(req)
     }
 
     const browserReloadFlags = ['reload', 'no-cache', 'no-store']
     if (browserReloadFlags.includes(req.cache)) {
+      console.log('sw: reload fetch:', req.url, req.cache)
       return respondFetchFirst(req)
     }
 

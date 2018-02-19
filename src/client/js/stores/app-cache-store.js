@@ -43,7 +43,7 @@ export default new class AppCacheStore extends EventEmitter {
     let response
     try {
       response = await request
-                        .get('/_serviceworker/cache_update')
+                        .get('/_serviceworker/check_for_update')
     } catch (err) {
       console.error(err)
       if (showAlert && confirm('Can not check lastest version. Do you want to reload?')) {
