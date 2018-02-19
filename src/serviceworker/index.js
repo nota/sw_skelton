@@ -2,8 +2,9 @@
 /* eslint-env browser */
 
 require('babel-polyfill')
+const debug = (...msg) => location && location.hostname === 'localhost' && console.log('%cserviceworker', 'color: gray', ...msg)
 
-console.log('sw: hello')
+debug('hello')
 
 const NOCACHE_PATHS = [
   '/serviceworker.js',
@@ -28,12 +29,12 @@ const STORE_NAME = 'config'
 const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
 
 self.addEventListener('install', function (event) {
-  console.log('sw: install')
+  debug('install')
   event.waitUntil(self.skipWaiting())
 })
 
 self.addEventListener('activate', function (event) {
-  console.log('sw: activate')
+  debug('activate')
   event.waitUntil(self.clients.claim())
 })
 
@@ -91,7 +92,7 @@ async function deleteOldCache (currentVersion) {
   return Promise.all(keys
     .filter(key => key !== cacheKey(currentVersion))
     .map(key => {
-      console.log('sw: delete old cache', key)
+      debug('delete old cache', key)
       caches.delete(key)}
     )
   )
@@ -112,17 +113,17 @@ async function updateCache (manifest) {
   const {version} = manifest
   const keys = await caches.keys()
   if (keys && keys.includes(cacheKey(version))) {
-    console.log('sw: has already latest cache', version)
+    debug('has already latest cache', version)
     return 'latest'
   }
-  console.log('sw: caching all assets...', version)
+  debug('caching all assets...', version)
   await cacheAddAll(manifest)
-  console.log('sw: cache all done', version)
+  debug('cache all done', version)
   return (keys && keys.length > 0) ? 'updated' : 'installed'
 }
 
 async function fetchManifest () {
-  console.log('sw: fetching manifest from server...')
+  debug('fetching manifest from server...')
   const url = location.origin + '/api/caches/manifest'
   const req = new Request(url, { method: 'get' })
   const res = await fetch(req)
@@ -145,7 +146,7 @@ async function respondCheckForUpdate () {
   }
 }
 
-function createAppHtmlRequest (req) {
+function appHtmlRequest (req) {
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
     method: req.method,
@@ -182,19 +183,19 @@ function cacheIsValid(res) {
   const cachedDate = new Date(dateStr)
   const now = new Date()
   const cacheTime = 60 * 1000 // 60 sec
-  // console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
+  // debug('cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   return (now - cachedDate < cacheTime)
 }
 
 async function respondFetchFirst (req) {
-  console.log('sw: fetch on reload', req.url, req.cache)
+  debug('fetch on reload', req.url, req.cache)
 
   if (isAppHtmlRequest(req)) {
-    req = createAppHtmlRequest(req)
+    req = appHtmlRequest(req)
   }
 
   try {
-    console.log('sw: fetch', req.url, req.cache)
+    debug('fetch', req.url, req.cache)
     const res = await fetch(req)
     await deleteAllCache()
     return res
@@ -205,14 +206,14 @@ async function respondFetchFirst (req) {
 
 async function respondCacheFirst (req) {
   if (isAppHtmlRequest(req)) {
-    req = createAppHtmlRequest(req)
+    req = appHtmlRequest(req)
   }
 
   let expiredCache
   const res = await caches.match(req)
   if (res) {
     if (cacheIsValid(res)) {
-      console.log('sw: use cache (valid)', req.url)
+      debug('use cache (valid)', req.url)
       return res
     } else {
       expiredCache = res
@@ -220,13 +221,13 @@ async function respondCacheFirst (req) {
   }
 
   try {
-    console.log('sw: fetch', req.url, req.cache)
+    debug('fetch', req.url, req.cache)
     const res = await fetch(req)
     if (expiredCache) await deleteAllCache()
     return res
   } catch (err) {
     if (expiredCache) {
-      console.log('sw: use cache (expired)', req.url)
+      debug('use cache (expired)', req.url)
       return expiredCache
     }
     throw err
