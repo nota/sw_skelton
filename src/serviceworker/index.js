@@ -182,7 +182,7 @@ function cacheIsValid(res) {
   return (now - cachedDate < cacheTime)
 }
 
-async function respondFromCache (req) {
+async function respondCacheFirst (req) {
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
@@ -209,7 +209,7 @@ async function respondFromCache (req) {
   }
 }
 
-async function respondOnReloadFetch (req) {
+async function respondFetchFirst (req) {
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
@@ -234,10 +234,10 @@ self.addEventListener('fetch', async function (event) {
 
     const browserReloadFlags = ['reload', 'no-cache', 'no-store']
     if (browserReloadFlags.includes(req.cache)) {
-      return respondOnReloadFetch(req)
+      return respondFetchFirst(req)
     }
 
-    return respondFromCache(req)
+    return respondCacheFirst(req)
   }())
 })
 
