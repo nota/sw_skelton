@@ -224,8 +224,7 @@ function respondFromCache ({req, fetchIfNotCached}) {
       if (cacheIsFresh(res)) {
         return res
       } else {
-        // キャッシュを全部クリア
-        deleteAllCache()
+        deleteAllCache() // 古いキャッシュを全部クリア
         res = null
       }
     }
@@ -248,7 +247,7 @@ this.addEventListener('fetch', function (event) {
     return
   }
 
-  if (req.cache === 'no-cache') { // reloaded on browser
+  if (['reload', 'no-cache', 'no-store'].includes(req.cache)) { // reloaded on browser
     console.log('sw: reload request', req.url, req.cache)
     event.respondWith(
       fetch(req).then(function (res) {
