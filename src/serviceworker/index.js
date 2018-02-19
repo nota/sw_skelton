@@ -203,6 +203,23 @@ function createJsonResponse (status, body) {
   return new Response(JSON.stringify(body), init)
 }
 
+function cacheIsFresh(res) {
+  const url = new URL(res.url)
+  if (!isMyHost(url)) return true
+
+  const dateStr = res.headers.get('date')
+  if (!dateStr) return false
+  const cachedDate = new Date(dateStr)
+  const now = new Date()
+  const cacheTime = 60 * 1000 // 60 sec
+  const isFresh = (now - cachedDate < cacheTime)
+  console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
+  if (!isFresh) {
+    console.log('sw: cache is not fresh', res.url, cachedDate, (now - cachedDate) / 1000)
+  }
+  return isFresh
+}
+
 function respondFromCache ({req, fetchIfNotCached}) {
   let tryFetched = false
 
@@ -211,10 +228,13 @@ function respondFromCache ({req, fetchIfNotCached}) {
   }
   return caches.match(req).then(function (res) {
     if (res) {
-      console.log('sw: respond from cache', req.url)
-      console.log('sw: headers', res.headers)
-      console.log('sw: date', res.headers.date)
-      return res
+      if (cacheIsFresh(res)) {
+        return res
+      } else {
+        // キャッシュを全部クリア
+        deleteAllCache()
+        res = null
+      }
     }
     if (!fetchIfNotCached) return res
     console.log('sw: fetch', req.url)
