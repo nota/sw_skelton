@@ -140,9 +140,6 @@ function respondCacheUpdateApi (req) {
     })
   }).catch(function (err) {
     /*
-    TODO: エラーのより細かい判定が必要
-    最悪の状態: 一生アップデートできない、を回避する
-
     エラー一覧
       cacheAllの途中でnot found
         TypeError, Request failed
