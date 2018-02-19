@@ -13,10 +13,11 @@ export default class Setting extends Component {
     this.state = {
       version: null,
       enabled: false,
+      timeOfUpdateFound: null,
       message: ''
     }
 
-    AppCacheStore.on('change', this.onAppVersionChanged.bind(this))
+    AppCacheStore.on('change', this.onAppCacheChanged.bind(this))
   }
 
   async componentDidMount () {
@@ -30,25 +31,25 @@ export default class Setting extends Component {
     this.setState({enabled})
   }
 
-  async onAppVersionChanged () {
-    const version = await AppCacheStore.version
+  async onAppCacheChanged () {
+    const {version, timeOfUpdateFound} = await AppCacheStore
 
     if (AppCacheStore.hasUpdate) {
-      this.setState({message: 'new version is available (and it’s already downloaded)'})
+      this.setState({message: 'newer version is available (and it’s already downloaded)'})
     } else {
       switch (AppCacheStore.cacheStatus) {
         case 'installed':
-          this.setState({message: 'new version is installed'})
+          this.setState({message: 'lastest version is installed'})
           break
         case 'updated':
-          this.setState({message: 'new version is available (and it’s already downloaded)'})
+          this.setState({message: 'newer version is available (and it’s already downloaded)'})
           break
         case 'latest':
           this.setState({message: 'you are using latest version :-)'})
           break
       }
     }
-    this.setState({version})
+    this.setState({version, timeOfUpdateFound})
   }
 
   async checkForUpdate () {
@@ -63,7 +64,7 @@ export default class Setting extends Component {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
     }
-    AppCacheStore.checkForUpdateAutomatically()
+    AppCacheStore.startAutoUpdate()
     this.checkEnabled()
   }
 
@@ -75,7 +76,7 @@ export default class Setting extends Component {
       throw (err)
     }
     this.setState({message: ''})
-    AppCacheStore.stop()
+    AppCacheStore.stopAutoUpdate()
     this.checkEnabled()
   }
 
@@ -89,7 +90,15 @@ export default class Setting extends Component {
               {this.state.message}
             </p>
           )
-        }        {
+        }
+        {
+          this.state.timeOfUpdateFound && (
+            <p>
+              Update is downloaded: {this.state.timeOfUpdateFound.toString()}
+            </p>
+          )
+        }
+        {
           this.state.version && (
             <p>
               current version: {this.state.version}
