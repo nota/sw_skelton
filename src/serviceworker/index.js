@@ -252,9 +252,6 @@ this.addEventListener('fetch', function (event) {
     console.log('sw: reload request', req.url, req.cache)
     event.respondWith(
       fetch(req).then(function (res) {
-        // 全キャッシュをクリアする
-        // TODO: 最新のものも消してしまうのはちょっともったいない
-        // TODO: クライアントからのアップデート時にlocation.reloadで一緒に消えてしまう問題
         console.log('sw: fetched, so clear all cache')
         deleteAllCache()
         return res
