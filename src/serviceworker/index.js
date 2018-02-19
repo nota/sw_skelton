@@ -206,7 +206,7 @@ function cacheIsFresh(res) {
   const now = new Date()
   const cacheTime = 60 * 1000 // 60 sec
   const isFresh = (now - cachedDate < cacheTime)
-  console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
+  // console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   if (!isFresh) {
     console.log('sw: cache is not fresh', res.url, cachedDate, (now - cachedDate) / 1000)
   }
