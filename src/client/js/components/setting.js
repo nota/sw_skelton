@@ -53,7 +53,7 @@ export default class Setting extends Component {
 
   async checkForUpdate () {
     this.setState({message: 'checking latest version...'})
-    await AppCacheStore.checkForUpdate()
+    await AppCacheStore.checkForUpdate({showAlert: true})
   }
 
   async enableServiceWorker () {
