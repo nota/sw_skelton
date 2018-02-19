@@ -4,83 +4,63 @@ const debug = require('../lib/debug')(__filename)
 
 import request from 'superagent'
 import {EventEmitter} from 'events'
+import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
 // XXX: もしこのコードが正常に動いていない場合にservice worker自体を殺すためのフラグ
 const reportDone = () => { window.checkVersionDone = true }
+const CHECK_INTERVAL = 10 * 1000
 
 export default new class AppCacheStore extends EventEmitter {
   constructor () {
     super()
     this.version = null
-    this.previousVersion = null
     this.hasUpdate = false
+    this.cacheStatus = null
     this.timerId = null
+
+    this.checkForUpdate = this.checkForUpdate.bind(this)
   }
 
-  checkForUpdateAutomatically (options) {
+  checkForUpdateAutomatically ({silent} = {silent: false}) {
+    debug('checkForUpdateAutomatically')
     if (this.timerId) return
-    this.timerId = setTimeout(
-      this.checkForUpdate.bind(this),
-      10 * 1000)
-    this.checkForUpdate(options)
+    this.timerId = setInterval(this.checkForUpdate, CHECK_INTERVAL)
+    this.checkForUpdate({silent})
   }
 
   stop () {
-    clearInterval(this.timerId)
+    if (this.timerId) clearInterval(this.timerId)
     this.timerId = null
   }
 
-  async checkForUpdate (options) {
+  async checkForUpdate ({silent} = {silent: false}) {
     reportDone() // ここまで到達したことをマークする
 
     debug('checking...')
+
+    ServiceWorkerLauncher.update()
+
     let response
     try {
       response = await request
-                        .get('/api/caches/update')
-                        .query(options)
+                        .get('/_serviceworker/cache_update')
     } catch (err) {
-      if (err.status === 500) {
-        // service workerから渡されたエラー
-        const {name, message} = err.response.body
-        throw new Error(`${name}: ${message}`)
-      } else {
-        throw err
+      console.error(err)
+      if (!silent && confirm('Can not check lastest version. Do you want to reload?')) {
+        location.reload()
       }
-    } finally {
-      if (this.timerId) {
-        clearInterval(this.timerId)
-        this.timerId = setTimeout(
-          this.checkForUpdate.bind(this),
-          10 * 1000)
-      }
+      return
     }
 
-    const {version, cacheStatus, previousVersion} = response.body
+    const {version, cacheStatus} = response.body
 
     debug('cacheStatus', cacheStatus, ', version', version)
-
-    if (!cacheStatus) {
-      // service workerが動いていない（強制リロードか？）
-      await this.deleteAllCache()
-      this.stop() // 次のcheckでdelete cacheし続けないように停止
-    }
-
     this.version = version
+    this.cacheStatus = cacheStatus
     if (cacheStatus === 'updated') {
-      if (previousVersion.version) {
-        debug('updated', 'previousVersion', previousVersion)
-        this.previousVersion = previousVersion
-        this.hasUpdate = true
-      }
+      this.hasUpdate = true
     }
     this.emit('change')
-  }
-
-  async deleteAllCache () {
-    debug('delete all cache')
-    const keys = await caches.keys()
-    await Promise.all(keys.map(key => caches.delete(key)))
   }
 }()
 

@@ -7,7 +7,7 @@ const fs = require('mz/fs')
 const morgan = require('morgan')
 
 app.use(morgan('dev'))
-
+;
 app.get('/', (req, res) => {
   res.render('app')
 })
@@ -26,7 +26,7 @@ async function getVersion () {
   return md5(hashes.join('')).substring(0, 8)
 }
 
-app.get('/api/caches/update', async (req, res) => {
+app.get('/api/caches/manifest', async (req, res) => {
   const version = await getVersion()
   let assets = [
     '/app.html',

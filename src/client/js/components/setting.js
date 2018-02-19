@@ -4,7 +4,7 @@
 
 import React, {Component} from 'react'
 import AppCacheStore from '../stores/app-cache-store'
-import ServiceWorker from '../lib/serviceworker-utils'
+import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
 export default class Setting extends Component {
   constructor (props) {
@@ -12,8 +12,8 @@ export default class Setting extends Component {
 
     this.state = {
       version: null,
-      url: null,
-      enabled: false
+      enabled: false,
+      message: ''
     }
 
     AppCacheStore.on('change', this.onAppVersionChanged.bind(this))
@@ -21,44 +21,60 @@ export default class Setting extends Component {
 
   async componentDidMount () {
     const version = await AppCacheStore.version
-    const url = window.location.href
-    this.setState({version, url})
+    this.setState({version})
     this.checkEnabled()
   }
 
   async checkEnabled () {
-    const registered = await ServiceWorker.getRegistration()
-    const enabled = ServiceWorker.isEnabled || registered
+    const enabled = await ServiceWorkerLauncher.getRegistration()
     this.setState({enabled})
   }
 
   async onAppVersionChanged () {
     const version = await AppCacheStore.version
+
+    if (AppCacheStore.hasUpdate) {
+      this.setState({message: 'new version is available (and it’s already downloaded)'})
+    } else {
+      switch (AppCacheStore.cacheStatus) {
+        case 'installed':
+          this.setState({message: 'new version is installed'})
+          break
+        case 'updated':
+          this.setState({message: 'new version is available (and it’s already downloaded)'})
+          break
+        case 'latest':
+          this.setState({message: 'you are using latest version :-)'})
+          break
+      }
+    }
     this.setState({version})
   }
 
   async checkForUpdate () {
+    this.setState({message: 'checking latest version...'})
     await AppCacheStore.checkForUpdate()
   }
 
   async enableServiceWorker () {
     try {
-      await ServiceWorker.enable()
+      await ServiceWorkerLauncher.enable()
     } catch (err) {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
     }
-    AppCacheStore.checkForUpdateAutomatically({addall: true})
+    AppCacheStore.checkForUpdateAutomatically()
     this.checkEnabled()
   }
 
   async disableServiceWorker () {
     try {
-      await ServiceWorker.disable()
+      await ServiceWorkerLauncher.disable()
     } catch (err) {
       alert('Cannot disable service worker\n' + err.message)
       throw (err)
     }
+    this.setState({message: ''})
     AppCacheStore.stop()
     this.checkEnabled()
   }
@@ -68,10 +84,15 @@ export default class Setting extends Component {
       <div>
         <p>serviceWorker: {this.state.enabled ? 'on' : 'off'}</p>
         {
+          this.state.message && (
+            <p>
+              {this.state.message}
+            </p>
+          )
+        }        {
           this.state.version && (
             <p>
-              url: {this.state.url}<br />
-              local version: {this.state.version}
+              current version: {this.state.version}
             </p>
           )
         }

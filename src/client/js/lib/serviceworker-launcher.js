@@ -3,13 +3,22 @@ const debug = require('./debug')(__filename)
 
 const NOT_AVAILABLE = 'Your browser does not support service worker'
 
-export default new class ServiceWorker {
-  start () {
-    if (this.isEnabled) this.register()
+export default new class ServiceWorkerLauncher {
+  getRegistration () {
+    const {serviceWorker} = navigator
+    return serviceWorker && serviceWorker.getRegistration('/')
   }
 
-  async register () {
-    debug('register')
+  async start () {
+    debug('start')
+    const reg = await this.getRegistration()
+    if (!reg) return
+    this.enable()
+    this.evacuate()
+  }
+
+  async enable () {
+    debug('enable')
 
     const {serviceWorker} = navigator
     if (!serviceWorker) return alert(NOT_AVAILABLE)
@@ -31,7 +40,7 @@ export default new class ServiceWorker {
         debug('installing')
         // install中の新しいservice workerの状態を監視する
         reg.installing.addEventListener('statechange', (event) => {
-          const state = event.target.state
+          const {state} = event.target
           debug('statechange', state)
           // serviceWorker.readyは、activating後にresolveしてしまうので、問題がある
           if (state === 'activated') resolve()
@@ -40,32 +49,32 @@ export default new class ServiceWorker {
     })
   }
 
-  get isEnabled () {
-    return localStorage.serviceWorker === 'true'
-  }
-
-  getRegistration () {
-    const {serviceWorker} = navigator
-    if (!serviceWorker) return null
-    return serviceWorker.getRegistration('/')
-  }
-
-  async enable () {
-    if (!navigator.serviceWorker) return alert(NOT_AVAILABLE)
-
-    await this.register()
-    localStorage.serviceWorker = true
-  }
-
   async disable () {
-    localStorage.serviceWorker = false
-
+    debug('disable')
     const keys = await caches.keys()
     await Promise.all(keys.map(key => caches.delete(key)))
     const reg = await this.getRegistration()
     if (reg) {
       const result = await reg.unregister()
-      if (!result) throw new Error('Can not unregister')
+      if (!result) throw new Error('Can not disable the service worker')
     }
+  }
+
+  // 注意: この関数はservice worker自体の更新を行うもので、
+  // assetの更新を行うものではない
+  async update () {
+    debug('update')
+    const reg = await this.getRegistration()
+    if (!reg) return
+    reg.update()
+  }
+
+  evacuate () {
+    // XXX: もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コード
+    setTimeout(function () {
+      if (window.checkVersionDone) return
+      if (!confirm('Auto updating system seems not working. Reload the browser?')) return
+      window.location.reload()
+    }, 10000)
   }
 }()
