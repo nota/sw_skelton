@@ -16,19 +16,20 @@ export default new class AppCacheStore extends EventEmitter {
     this.version = null
     this.hasUpdate = false
     this.cacheStatus = null
+    this.timeOfUpdateFound = null
     this.timerId = null
 
     this.checkForUpdate = this.checkForUpdate.bind(this)
   }
 
-  checkForUpdateAutomatically ({showAlert} = {showAlert: false}) {
-    debug('checkForUpdateAutomatically')
+  startAutoUpdate ({showAlert} = {showAlert: false}) {
+    debug('startAutoUpdate')
     if (this.timerId) return
     this.timerId = setInterval(this.checkForUpdate, CHECK_INTERVAL)
     this.checkForUpdate({showAlert})
   }
 
-  stop () {
+  stopAutoUpdate () {
     if (this.timerId) clearInterval(this.timerId)
     this.timerId = null
   }
@@ -42,8 +43,7 @@ export default new class AppCacheStore extends EventEmitter {
 
     let response
     try {
-      response = await request
-                        .get('/_serviceworker/check_for_update')
+      response = await request.get('/_serviceworker/check_for_update')
     } catch (err) {
       console.error(err)
       if (showAlert && confirm('Can not check lastest version. Do you want to reload?')) {
@@ -59,6 +59,7 @@ export default new class AppCacheStore extends EventEmitter {
     this.cacheStatus = cacheStatus
     if (cacheStatus === 'updated') {
       this.hasUpdate = true
+      this.timeOfUpdateFound = new Date()
     }
     this.emit('change')
   }
