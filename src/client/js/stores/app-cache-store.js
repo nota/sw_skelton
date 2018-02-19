@@ -21,11 +21,11 @@ export default new class AppCacheStore extends EventEmitter {
     this.checkForUpdate = this.checkForUpdate.bind(this)
   }
 
-  checkForUpdateAutomatically () {
+  checkForUpdateAutomatically ({silent} = {silent: false}) {
     debug('checkForUpdateAutomatically')
     if (this.timerId) return
     this.timerId = setTimeout(this.checkForUpdate, CHECK_INTERVAL)
-    this.checkForUpdate()
+    this.checkForUpdate({silent})
   }
 
   stop () {
@@ -33,7 +33,7 @@ export default new class AppCacheStore extends EventEmitter {
     this.timerId = null
   }
 
-  async checkForUpdate () {
+  async checkForUpdate ({silent} = {silent: false}) {
     reportDone() // ここまで到達したことをマークする
 
     debug('checking...')
@@ -65,7 +65,7 @@ export default new class AppCacheStore extends EventEmitter {
 
     if (!cacheStatus) {
       // service workerが正しく動いていないので、このプロパティが欠けている
-      if (confirm('Can not check lastest version. Do you want to reload?')) {
+      if (!silent && confirm('Can not check lastest version. Do you want to reload?')) {
         location.reload()
         return
       }
