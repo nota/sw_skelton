@@ -183,6 +183,8 @@ function cacheIsValid(res) {
 }
 
 async function respondFetchFirst (req) {
+  console.log('sw: fetch on reload', req.url, req.cache)
+
   if (isAppHtmlRequest(req)) {
     req = createAppHtmlRequest(req)
   }
@@ -234,7 +236,6 @@ self.addEventListener('fetch', async function (event) {
 
     const browserReloadFlags = ['reload', 'no-cache', 'no-store']
     if (browserReloadFlags.includes(req.cache)) {
-      console.log('sw: reload fetch:', req.url, req.cache)
       return respondFetchFirst(req)
     }
 
