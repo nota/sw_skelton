@@ -108,7 +108,7 @@ async function cacheAddAll ({version, assets}) {
   return deleteOldCache(version)
 }
 
-async function updateCache(manifest) {
+async function updateCache (manifest) {
   const {version} = manifest
   const keys = await caches.keys()
   if (keys && keys.includes(cacheKey(version))) {
@@ -121,23 +121,27 @@ async function updateCache(manifest) {
   return (keys && keys.length > 0) ? 'updated' : 'installed'
 }
 
-async function respondCheckForUpdate () {
+async function fetchManifest () {
   console.log('sw: fetching manifest from server...')
   const url = location.origin + '/api/caches/manifest'
   const req = new Request(url, { method: 'get' })
+  const res = await fetch(req)
+  if (!res.ok) throw new Error(`Server responded ${res.status}`)
+  return res.clone().json()
+}
+
+async function respondCheckForUpdate () {
   try {
-    const res = await fetch(req)
-    if (!res.ok) throw new Error(`Server responded ${res.status}`)
-    const manifest = await res.clone().json()
+    const manifest = await fetchManifest()
+    const {version} = manifest
     const cacheStatus = await updateCache(manifest)
-    return createJsonResponse(200, {version: manifest.version, cacheStatus})
+    return jsonResponse(200, {version, cacheStatus})
   } catch (err) {
     const body = {
       name: err.name,
       message: err.message
     }
-    console.error(err)
-    return createJsonResponse(500, body)
+    return jsonResponse(500, body)
   }
 }
 
@@ -152,7 +156,7 @@ function createAppHtmlRequest (req) {
   })
 }
 
-function createJsonResponse (status, body) {
+function jsonResponse (status, body) {
   const statusText = function (status) {
     switch (status) {
       case 200:
@@ -178,7 +182,7 @@ function cacheIsValid(res) {
   const cachedDate = new Date(dateStr)
   const now = new Date()
   const cacheTime = 60 * 1000 // 60 sec
-  console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
+  // console.log('sw: cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   return (now - cachedDate < cacheTime)
 }
 
@@ -208,9 +212,9 @@ async function respondCacheFirst (req) {
   const res = await caches.match(req)
   if (res) {
     if (cacheIsValid(res)) {
+      console.log('sw: use cache (valid)', req.url)
       return res
     } else {
-      console.log('sw: cache expired', req.url)
       expiredCache = res
     }
   }
@@ -221,7 +225,10 @@ async function respondCacheFirst (req) {
     if (expiredCache) await deleteAllCache()
     return res
   } catch (err) {
-    if (expiredCache) return expiredCache
+    if (expiredCache) {
+      console.log('sw: use cache (expired)', req.url)
+      return expiredCache
+    }
     throw err
   }
 }
