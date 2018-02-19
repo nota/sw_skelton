@@ -26,7 +26,7 @@ export default class UpdateNotifier extends Component {
     const serviceWorkerEnabled = await ServiceWorkerLauncher.getRegistration()
     if (serviceWorkerEnabled) {
       debug('check!')
-      AppCacheStore.checkForUpdateAutomatically({silent: true})
+      AppCacheStore.checkForUpdateAutomatically()
     }
     this.mountedAt = Date.now()
   }

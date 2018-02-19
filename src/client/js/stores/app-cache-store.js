@@ -21,11 +21,11 @@ export default new class AppCacheStore extends EventEmitter {
     this.checkForUpdate = this.checkForUpdate.bind(this)
   }
 
-  checkForUpdateAutomatically ({silent} = {silent: false}) {
+  checkForUpdateAutomatically ({showAlert} = {showAlert: false}) {
     debug('checkForUpdateAutomatically')
     if (this.timerId) return
     this.timerId = setInterval(this.checkForUpdate, CHECK_INTERVAL)
-    this.checkForUpdate({silent})
+    this.checkForUpdate({showAlert})
   }
 
   stop () {
@@ -33,7 +33,7 @@ export default new class AppCacheStore extends EventEmitter {
     this.timerId = null
   }
 
-  async checkForUpdate ({silent} = {silent: false}) {
+  async checkForUpdate ({showAlert} = {showAlert: false}) {
     reportDone() // ここまで到達したことをマークする
 
     debug('checking...')
@@ -43,10 +43,10 @@ export default new class AppCacheStore extends EventEmitter {
     let response
     try {
       response = await request
-                        .get('/_serviceworker/cache_update')
+                        .get('/_serviceworker/check_for_update')
     } catch (err) {
       console.error(err)
-      if (!silent && confirm('Can not check lastest version. Do you want to reload?')) {
+      if (showAlert && confirm('Can not check lastest version. Do you want to reload?')) {
         location.reload()
       }
       return
