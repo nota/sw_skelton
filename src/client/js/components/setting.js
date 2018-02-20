@@ -4,7 +4,7 @@
 
 import React, {Component} from 'react'
 import AppCacheStore from '../stores/app-cache-store'
-import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
+import ServiceWorkerClient from '../lib/serviceworker-client'
 
 export default class Setting extends Component {
   constructor (props) {
@@ -41,7 +41,7 @@ export default class Setting extends Component {
   }
 
   async checkEnabled () {
-    const enabled = await ServiceWorkerLauncher.getRegistration()
+    const enabled = await ServiceWorkerClient.getRegistration()
     this.setState({enabled})
   }
 
@@ -52,7 +52,7 @@ export default class Setting extends Component {
   async checkForUpdate () {
     this.setState({message: 'checking latest version...'})
     try {
-      ServiceWorkerLauncher.update()
+      ServiceWorkerClient.update()
     } catch (err) {
       alert(err.toString())
     }
@@ -61,7 +61,7 @@ export default class Setting extends Component {
 
   async enableServiceWorker () {
     try {
-      await ServiceWorkerLauncher.enable()
+      await ServiceWorkerClient.enable()
     } catch (err) {
       alert('Cannot enable service worker\n' + err.toString())
       throw (err)
@@ -73,7 +73,7 @@ export default class Setting extends Component {
 
   async disableServiceWorker () {
     try {
-      await ServiceWorkerLauncher.disable()
+      await ServiceWorkerClient.disable()
     } catch (err) {
       alert('Cannot disable service worker\n' + err.toString())
       throw (err)
@@ -96,7 +96,7 @@ export default class Setting extends Component {
         {
           this.state.closeMessage &&
             <p className='alert alert-danger'>
-              <b>{this.state.closeMessage}</b>
+              {this.state.closeMessage}
             </p>
         }
         {

@@ -5,9 +5,9 @@ import 'babel-polyfill'
 import React from 'react'
 import {render} from 'react-dom'
 
-import ServiceWorkerLauncher from './lib/serviceworker-launcher'
+import ServiceWorkerClient from './lib/serviceworker-client'
 
-ServiceWorkerLauncher.start()
+ServiceWorkerClient.start()
 
 import App from './components/app'
 
