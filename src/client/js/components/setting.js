@@ -115,7 +115,7 @@ export default class Setting extends Component {
           )
         }
         <p>
-          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)}>
+          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!this.state.enabled}>
             Check for update
           </button>
           &nbsp;

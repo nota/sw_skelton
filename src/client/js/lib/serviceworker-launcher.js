@@ -70,7 +70,7 @@ export default new class ServiceWorkerLauncher {
 
   postMessage (message) {
     const {controller} = navigator.serviceWorker
-    if (!controller) return alert('Service worker is not available')
+    if (!controller) return alert('Service worker controller is not available')
     controller.postMessage(message)
   }
 }()

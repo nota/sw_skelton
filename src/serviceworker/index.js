@@ -144,6 +144,7 @@ function appHtmlRequest (req) {
     method: req.method,
     headers: req.headers,
     credentials: req.credentials,
+    cache: req.cache,
     mode: 'same-origin', // need to set this properly
     redirect: 'manual'   // let browser handle redirects
   })
