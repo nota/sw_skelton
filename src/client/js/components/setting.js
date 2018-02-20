@@ -85,11 +85,11 @@ export default class Setting extends Component {
     return (
       <div>
         <p>serviceWorker:
-        {
-          this.state.enabled
-            ? <span className='label label-success'>on</span>
-            : <span className='label label-danger'>off</span>
-        }
+          {
+            this.state.enabled
+              ? <span className='label label-success'>on</span>
+              : <span className='label label-danger'>off</span>
+          }
         </p>
         {
           this.state.message && (

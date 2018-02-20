@@ -89,8 +89,8 @@ async function deleteOldCache (currentVersion) {
     .filter(key => key !== cacheKey(currentVersion))
     .map(key => {
       debug('delete old cache', key)
-      caches.delete(key)}
-    )
+      caches.delete(key)
+    })
   )
 }
 
@@ -125,7 +125,7 @@ async function fetchManifest () {
     if (!res.ok) throw new Error(`Server responded ${res.status}`)
     return res.clone().json()
   } catch (err) {
-    if (err instanceof TypeError && err.message === 'Failed to fetch'){
+    if (err instanceof TypeError && err.message === 'Failed to fetch') {
       debug('failed to fetch manifest, offline?')
       return null
     }
@@ -150,7 +150,7 @@ function appHtmlRequest (req) {
   })
 }
 
-function cacheIsValid(res) {
+function cacheIsValid (res) {
   const url = new URL(res.url)
   if (!isMyHost(url)) return true
 

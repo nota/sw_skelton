@@ -7,7 +7,7 @@ const fs = require('mz/fs')
 const morgan = require('morgan')
 
 app.use(morgan('dev'))
-;
+
 app.get('/', async (req, res) => {
   const version = await getVersion()
   res.setHeader('x-app-version', version)

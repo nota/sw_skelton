@@ -1,10 +1,8 @@
 /* eslint-env browser */
 
-const debug = require('../lib/debug')(__filename)
+// const debug = require('../lib/debug')(__filename)
 
-import request from 'superagent'
 import {EventEmitter} from 'events'
-import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
 export default new class AppCacheStore extends EventEmitter {
   constructor () {
@@ -29,7 +27,7 @@ export default new class AppCacheStore extends EventEmitter {
 
     // debug('checkForUpdate', this.currentVersion, cachedKey, cachedVersion)
 
-    if (this.cachedVersion != cachedVersion) {
+    if (this.cachedVersion !== cachedVersion) {
       this.timeOfUpdateFound = cachedVersion ? new Date() : null
       this.cachedVersion = cachedVersion
       this.emit('change')

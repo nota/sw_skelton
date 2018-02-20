@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-const debug = require('../lib/debug')(__filename)
+// const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
 import AppCacheStore from '../stores/app-cache-store'
