@@ -14,7 +14,6 @@ export default new class ServiceWorkerLauncher {
     const reg = await this.getRegistration()
     if (!reg) return
     this.enable()
-    this.evacuate()
   }
 
   async enable () {
@@ -23,6 +22,7 @@ export default new class ServiceWorkerLauncher {
     const {serviceWorker} = navigator
     if (!serviceWorker) return alert(NOT_AVAILABLE)
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
+    if (reg.active) this.postMessage('reactivate')
 
     return new Promise((resolve, reject) => {
       const state = (() => {
@@ -51,13 +51,12 @@ export default new class ServiceWorkerLauncher {
 
   async disable () {
     debug('disable')
-    const keys = await caches.keys()
-    await Promise.all(keys.map(key => caches.delete(key)))
     const reg = await this.getRegistration()
-    if (reg) {
-      const result = await reg.unregister()
-      if (!result) throw new Error('Can not disable the service worker')
-    }
+    if (!reg) return
+
+    this.postMessage('deactivate')
+    const result = await reg.unregister()
+    if (!result) throw new Error('Can not disable the service worker')
   }
 
   // 注意: この関数はservice worker自体の更新を行うもので、
@@ -69,12 +68,9 @@ export default new class ServiceWorkerLauncher {
     reg.update()
   }
 
-  evacuate () {
-    // XXX: もしもメインのJSでバージョンアップシステムが動作しなかった場合の救済コード
-    setTimeout(function () {
-      if (window.checkVersionDone) return
-      if (!confirm('Auto updating system seems not working. Reload the browser?')) return
-      window.location.reload()
-    }, 10000)
+  postMessage (message) {
+    const {controller} = navigator.serviceWorker
+    if (!controller) return alert('Service worker is not available')
+    controller.postMessage(message)
   }
 }()

@@ -10,20 +10,39 @@ export default class Setting extends Component {
   constructor (props) {
     super(props)
 
-    this.state = {
-      version: null,
-      enabled: false,
-      timeOfUpdateFound: null,
-      message: ''
-    }
+    const state = this.initState()
+    state.enabled = false
+
+    this.state = state
 
     AppCacheStore.on('change', this.onAppCacheChanged.bind(this))
   }
 
+  initState () {
+    const {currentVersion, cachedVersion, timeOfUpdateFound} = AppCacheStore
+
+    let message
+    if (AppCacheStore.cachedVersion) {
+      if (AppCacheStore.hasNewerVersion()) {
+        message = 'Update is available'
+      } else {
+        message = 'It’s up to date :-)'
+      }
+    } else {
+      message = 'no cache'
+    }
+    return {currentVersion, cachedVersion, timeOfUpdateFound, message}
+  }
+
   async componentDidMount () {
-    const version = await AppCacheStore.version
-    this.setState({version})
+    const currentVersion = AppCacheStore.currentVersion
+    this.setState({currentVersion})
     this.checkEnabled()
+
+    const enabled = await ServiceWorkerLauncher.getRegistration()
+    if (enabled) {
+      ServiceWorkerLauncher.postMessage('checkForUpdate')
+    }
   }
 
   async checkEnabled () {
@@ -32,29 +51,14 @@ export default class Setting extends Component {
   }
 
   async onAppCacheChanged () {
-    const {version, timeOfUpdateFound} = await AppCacheStore
-
-    if (AppCacheStore.hasUpdate) {
-      this.setState({message: 'newer version is available (and it’s already downloaded)'})
-    } else {
-      switch (AppCacheStore.cacheStatus) {
-        case 'installed':
-          this.setState({message: 'lastest version is installed'})
-          break
-        case 'updated':
-          this.setState({message: 'newer version is available (and it’s already downloaded)'})
-          break
-        case 'latest':
-          this.setState({message: 'you are using latest version :-)'})
-          break
-      }
-    }
-    this.setState({version, timeOfUpdateFound})
+    this.setState(this.initState())
   }
 
   async checkForUpdate () {
     this.setState({message: 'checking latest version...'})
-    await AppCacheStore.checkForUpdate({showAlert: true})
+    ServiceWorkerLauncher.update()
+    ServiceWorkerLauncher.postMessage('checkForUpdate')
+    this.setState(this.initState())
   }
 
   async enableServiceWorker () {
@@ -64,7 +68,6 @@ export default class Setting extends Component {
       alert('Cannot enable service worker\n' + err.message)
       throw (err)
     }
-    AppCacheStore.startAutoUpdate()
     this.checkEnabled()
   }
 
@@ -76,7 +79,6 @@ export default class Setting extends Component {
       throw (err)
     }
     this.setState({message: ''})
-    AppCacheStore.stopAutoUpdate()
     this.checkEnabled()
   }
 
@@ -87,7 +89,7 @@ export default class Setting extends Component {
         {
           this.state.message && (
             <p>
-              {this.state.message}
+              <b>{this.state.message}</b>
             </p>
           )
         }
@@ -99,9 +101,16 @@ export default class Setting extends Component {
           )
         }
         {
-          this.state.version && (
+          this.state.currentVersion && (
             <p>
-              current version: {this.state.version}
+              current version: {this.state.currentVersion}
+            </p>
+          )
+        }
+        {
+          this.state.cachedVersion && (
+            <p>
+              cached version: {this.state.cachedVersion}
             </p>
           )
         }

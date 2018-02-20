@@ -23,10 +23,8 @@ const THIRDPARTY_ASSET_HOSTS = [
   'maxcdn.bootstrapcdn.com'
 ]
 
-const DB_NAME = 'cache'
-const STORE_NAME = 'config'
-
 const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
+let timerId
 
 self.addEventListener('install', function (event) {
   debug('install')
@@ -37,6 +35,10 @@ self.addEventListener('activate', function (event) {
   debug('activate')
   event.waitUntil(self.clients.claim())
 })
+
+function isDeactivated () {
+  return !timerId
+}
 
 function isMyHost (url) {
   return location.hostname === url.hostname
@@ -77,14 +79,8 @@ function isAppHtmlRequest (req) {
   )
 }
 
-function isCheckForUpdateRequest (req) {
-  const url = new URL(req.url)
-  const path = '/_serviceworker/check_for_update'
-  return isMyHost(url) && url.pathname === path
-}
-
 function cacheKey (version) {
-  return version + POSTFIX
+  return `app-${version}${POSTFIX}`
 }
 
 async function deleteOldCache (currentVersion) {
@@ -113,37 +109,33 @@ async function updateCache (manifest) {
   const {version} = manifest
   const keys = await caches.keys()
   if (keys && keys.includes(cacheKey(version))) {
-    debug('has already latest cache', version)
-    return 'latest'
+    debug('up to date', version)
+    return
   }
-  debug('caching all assets...', version)
   await cacheAddAll(manifest)
-  debug('cache all done', version)
-  return (keys && keys.length > 0) ? 'updated' : 'installed'
+  debug('new cache added', version)
 }
 
 async function fetchManifest () {
-  debug('fetching manifest from server...')
+  debug('fetching manifest...')
   const url = location.origin + '/api/caches/manifest'
   const req = new Request(url, { method: 'get' })
-  const res = await fetch(req)
-  if (!res.ok) throw new Error(`Server responded ${res.status}`)
-  return res.clone().json()
+  try {
+    const res = await fetch(req)
+    if (!res.ok) throw new Error(`Server responded ${res.status}`)
+    return res.clone().json()
+  } catch (err) {
+    if (err instanceof TypeError && err.message === 'Failed to fetch'){
+      debug('failed to fetch manifest, offline?')
+      return null
+    }
+    throw (err)
+  }
 }
 
-async function respondCheckForUpdate () {
-  try {
-    const manifest = await fetchManifest()
-    const {version} = manifest
-    const cacheStatus = await updateCache(manifest)
-    return jsonResponse(200, {version, cacheStatus})
-  } catch (err) {
-    const body = {
-      name: err.name,
-      message: err.message
-    }
-    return jsonResponse(500, body)
-  }
+async function checkForUpdate () {
+  const manifest = await fetchManifest()
+  if (manifest) return updateCache(manifest)
 }
 
 function appHtmlRequest (req) {
@@ -155,23 +147,6 @@ function appHtmlRequest (req) {
     mode: 'same-origin', // need to set this properly
     redirect: 'manual'   // let browser handle redirects
   })
-}
-
-function jsonResponse (status, body) {
-  const statusText = function (status) {
-    switch (status) {
-      case 200:
-        return 'OK'
-      case 500:
-        return 'Internal Server Error'
-    }
-  }
-  const init = {
-    status: status,
-    statusText: statusText(status),
-    headers: {'Content-Type': 'application/json'}
-  }
-  return new Response(JSON.stringify(body), init)
 }
 
 function cacheIsValid(res) {
@@ -238,10 +213,6 @@ self.addEventListener('fetch', async function (event) {
   event.respondWith(async function () {
     const req = event.request
 
-    if (isCheckForUpdateRequest(req)) {
-      return respondCheckForUpdate(req)
-    }
-
     const browserReloadFlags = ['reload', 'no-cache', 'no-store']
     if (browserReloadFlags.includes(req.cache)) {
       return respondFetchFirst(req)
@@ -251,3 +222,31 @@ self.addEventListener('fetch', async function (event) {
   }())
 })
 
+function startAutoUpdate () {
+  if (timerId) return
+  timerId = setInterval(checkForUpdate, 10 * 1000)
+}
+
+async function stopAutoUpdate () {
+  await deleteAllCache()
+  if (timerId) clearInterval(timerId)
+  timerId = null
+}
+
+self.addEventListener('message', function (event) {
+  debug('message', event.data)
+  switch (event.data) {
+    case 'reactivate':
+      startAutoUpdate()
+      break
+    case 'deactivate':
+      stopAutoUpdate()
+      break
+    case 'checkForUpdate':
+      if (isDeactivated()) return
+      checkForUpdate()
+      break
+  }
+})
+
+startAutoUpdate()
