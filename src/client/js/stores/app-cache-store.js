@@ -6,62 +6,34 @@ import request from 'superagent'
 import {EventEmitter} from 'events'
 import ServiceWorkerLauncher from '../lib/serviceworker-launcher'
 
-// XXX: もしこのコードが正常に動いていない場合にservice worker自体を殺すためのフラグ
-const reportDone = () => { window.checkVersionDone = true }
-const CHECK_INTERVAL = 10 * 1000
-
 export default new class AppCacheStore extends EventEmitter {
   constructor () {
     super()
-    this.version = null
-    this.hasUpdate = false
+    this.currentVersion = document.documentElement.dataset.version
+    this.cachedVersion = null
     this.cacheStatus = null
     this.timeOfUpdateFound = null
     this.timerId = null
 
-    this.checkForUpdate = this.checkForUpdate.bind(this)
+    setInterval(this.watchCacheStore.bind(this), 1000)
   }
 
-  startAutoUpdate ({showAlert} = {showAlert: false}) {
-    debug('startAutoUpdate')
-    if (this.timerId) return
-    this.timerId = setInterval(this.checkForUpdate, CHECK_INTERVAL)
-    this.checkForUpdate({showAlert})
+  hasNewerVersion () {
+    return this.cachedVersion && this.cachedVersion !== this.currentVersion
   }
 
-  stopAutoUpdate () {
-    if (this.timerId) clearInterval(this.timerId)
-    this.timerId = null
-  }
+  async watchCacheStore () {
+    const keys = await caches.keys()
+    const cachedKey = keys.find(key => key.indexOf('app-') === 0)
+    const cachedVersion = cachedKey && cachedKey.match(/app\-(.*)\-.*/)[1]
 
-  async checkForUpdate ({showAlert} = {showAlert: false}) {
-    reportDone() // ここまで到達したことをマークする
+    // debug('checkForUpdate', this.currentVersion, cachedKey, cachedVersion)
 
-    debug('checking...')
-
-    ServiceWorkerLauncher.update()
-
-    let response
-    try {
-      response = await request.get('/_serviceworker/check_for_update')
-    } catch (err) {
-      console.error(err)
-      if (showAlert && confirm('Can not check lastest version. Do you want to reload?')) {
-        location.reload()
-      }
-      return
-    }
-
-    const {version, cacheStatus} = response.body
-
-    debug('cacheStatus', cacheStatus, ', version', version)
-    this.version = version
-    this.cacheStatus = cacheStatus
-    if (cacheStatus === 'updated') {
-      this.hasUpdate = true
+    if (this.cachedVersion != cachedVersion) {
       this.timeOfUpdateFound = new Date()
+      this.cachedVersion = cachedVersion
+      this.emit('change')
     }
-    this.emit('change')
   }
 }()
 

@@ -8,12 +8,14 @@ const morgan = require('morgan')
 
 app.use(morgan('dev'))
 ;
-app.get('/', (req, res) => {
-  res.render('app')
+app.get('/', async (req, res) => {
+  const version = await getVersion()
+  res.render('app', {version})
 })
 
-app.get('/app.html', (req, res) => {
-  res.render('app')
+app.get('/app.html', async (req, res) => {
+  const version = await getVersion()
+  res.render('app', {version})
 })
 
 async function getVersion () {
