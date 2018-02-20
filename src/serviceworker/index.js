@@ -2,9 +2,10 @@
 /* eslint-env browser */
 
 require('babel-polyfill')
-const debug = (...msg) => location && location.hostname === 'localhost' && console.log('%cserviceworker', 'color: gray', ...msg)
+const isDebug = () => location && location.hostname === 'localhost'
+const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-debug('hello')
+debug('start')
 
 const NOCACHE_PATHS = [
   '/serviceworker.js',
@@ -158,7 +159,7 @@ function cacheIsValid (res) {
   if (!dateStr) return false
   const cachedDate = new Date(dateStr)
   const now = new Date()
-  const cacheTime = 60 * 1000 // 60 sec
+  const cacheTime = isDebug() ? 60 * 1000 : 7 * 24 * 60 * 60 * 1000
   // debug('cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   return (now - cachedDate < cacheTime)
 }
@@ -226,7 +227,8 @@ self.addEventListener('fetch', async function (event) {
 
 function startAutoUpdate () {
   if (timerId) return
-  timerId = setInterval(checkForUpdate, 10 * 1000)
+  const interval = isDebug() ? 10 * 1000 : 10 * 60 * 1000
+  timerId = setInterval(checkForUpdate, interval)
 }
 
 async function stopAutoUpdate () {
