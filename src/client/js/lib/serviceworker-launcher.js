@@ -17,7 +17,7 @@ export default new class ServiceWorkerLauncher {
 
     window.addEventListener('load', () => {
       debug('onload')
-      this.postMessage('checkForUpdate')
+      return this.postMessage('checkForUpdate')
     })
   }
 
@@ -27,7 +27,7 @@ export default new class ServiceWorkerLauncher {
     const {serviceWorker} = navigator
     if (!serviceWorker) throw new Error(NOT_AVAILABLE)
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
-    if (reg.active) this.postMessage('reactivate')
+    if (reg.active) return this.postMessage('reactivate')
   }
 
   async disable () {
@@ -35,7 +35,7 @@ export default new class ServiceWorkerLauncher {
     const reg = await this.getRegistration()
     if (!reg) return
 
-    this.postMessage('deactivate')
+    await this.postMessage('deactivate')
     const result = await reg.unregister()
     if (!result) throw new Error('Can not disable the service worker')
   }
@@ -48,9 +48,9 @@ export default new class ServiceWorkerLauncher {
     this.postMessage('checkForUpdate') // assets(app.html, JS, CSS, Image等)の更新を確認
   }
 
-  postMessage (message) {
-    const {controller} = navigator.serviceWorker
-    if (!controller) throw new Error('Service worker controller is not available')
-    controller.postMessage(message)
+  async postMessage (message) {
+    const reg = await this.getRegistration()
+    if (!reg.active) throw new Error('Service worker is not active yet')
+    reg.active.postMessage(message)
   }
 }()
