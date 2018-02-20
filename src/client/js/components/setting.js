@@ -23,7 +23,7 @@ export default class Setting extends Component {
 
     let message
     if (AppCacheStore.cachedVersion) {
-      if (AppCacheStore.hasNewerVersion()) {
+      if (AppCacheStore.hasUpdate()) {
         message = 'Update is available'
       } else {
         message = 'It’s up to date :-)'

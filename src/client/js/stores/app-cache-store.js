@@ -18,7 +18,7 @@ export default new class AppCacheStore extends EventEmitter {
     setInterval(this.watchCacheStore.bind(this), 1000)
   }
 
-  hasNewerVersion () {
+  hasUpdate () {
     return this.cachedVersion && this.cachedVersion !== this.currentVersion
   }
 
