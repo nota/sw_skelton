@@ -23,7 +23,7 @@ export default class Setting extends Component {
 
     let message
     if (AppCacheStore.cachedVersion) {
-      if (AppCacheStore.hasNewerVersion()) {
+      if (AppCacheStore.hasUpdate()) {
         message = 'Update is available'
       } else {
         message = 'It’s up to date :-)'
@@ -38,11 +38,6 @@ export default class Setting extends Component {
     const currentVersion = AppCacheStore.currentVersion
     this.setState({currentVersion})
     this.checkEnabled()
-
-    const enabled = await ServiceWorkerLauncher.getRegistration()
-    if (enabled) {
-      ServiceWorkerLauncher.postMessage('checkForUpdate')
-    }
   }
 
   async checkEnabled () {
@@ -56,8 +51,11 @@ export default class Setting extends Component {
 
   async checkForUpdate () {
     this.setState({message: 'checking latest version...'})
-    ServiceWorkerLauncher.update()
-    ServiceWorkerLauncher.postMessage('checkForUpdate')
+    try {
+      ServiceWorkerLauncher.update()
+    } catch (err) {
+      alert(err.toString())
+    }
     this.setState(this.initState())
   }
 
@@ -65,17 +63,18 @@ export default class Setting extends Component {
     try {
       await ServiceWorkerLauncher.enable()
     } catch (err) {
-      alert('Cannot enable service worker\n' + err.message)
+      alert('Cannot enable service worker\n' + err.toString())
       throw (err)
     }
     this.checkEnabled()
+    this.checkForUpdate()
   }
 
   async disableServiceWorker () {
     try {
       await ServiceWorkerLauncher.disable()
     } catch (err) {
-      alert('Cannot disable service worker\n' + err.message)
+      alert('Cannot disable service worker\n' + err.toString())
       throw (err)
     }
     this.setState({message: ''})
@@ -85,7 +84,13 @@ export default class Setting extends Component {
   render () {
     return (
       <div>
-        <p>serviceWorker: {this.state.enabled ? 'on' : 'off'}</p>
+        <p>serviceWorker:
+        {
+          this.state.enabled
+            ? <span className='label label-success'>on</span>
+            : <span className='label label-danger'>off</span>
+        }
+        </p>
         {
           this.state.message && (
             <p>
@@ -100,22 +105,14 @@ export default class Setting extends Component {
             </p>
           )
         }
-        {
-          this.state.currentVersion && (
-            <p>
-              current version: {this.state.currentVersion}
-            </p>
-          )
-        }
-        {
-          this.state.cachedVersion && (
-            <p>
-              cached version: {this.state.cachedVersion}
-            </p>
-          )
-        }
         <p>
-          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)}>
+          current version: {this.state.currentVersion}
+        </p>
+        <p>
+          cached version: {this.state.cachedVersion || 'null'}
+        </p>
+        <p>
+          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!this.state.enabled}>
             Check for update
           </button>
           &nbsp;

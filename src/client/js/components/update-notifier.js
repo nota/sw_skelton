@@ -9,14 +9,14 @@ export default class UpdateNotifier extends Component {
   constructor (props) {
     super(props)
 
-    const hasUpdate = AppCacheStore.hasNewerVersion()
+    const hasUpdate = AppCacheStore.hasUpdate()
     this.state = {hasUpdate}
 
     AppCacheStore.on('change', this.onAppVersionChanged.bind(this))
   }
 
   onAppVersionChanged () {
-    const hasUpdate = AppCacheStore.hasNewerVersion()
+    const hasUpdate = AppCacheStore.hasUpdate()
     this.setState({hasUpdate})
   }
 

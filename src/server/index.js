@@ -10,11 +10,13 @@ app.use(morgan('dev'))
 ;
 app.get('/', async (req, res) => {
   const version = await getVersion()
+  res.setHeader('x-app-version', version)
   res.render('app', {version})
 })
 
 app.get('/app.html', async (req, res) => {
   const version = await getVersion()
+  res.setHeader('x-app-version', version)
   res.render('app', {version})
 })
 

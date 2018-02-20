@@ -144,6 +144,7 @@ function appHtmlRequest (req) {
     method: req.method,
     headers: req.headers,
     credentials: req.credentials,
+    cache: req.cache,
     mode: 'same-origin', // need to set this properly
     redirect: 'manual'   // let browser handle redirects
   })
@@ -172,7 +173,8 @@ async function respondFetchFirst (req) {
   try {
     debug('fetch', req.url, req.cache)
     const res = await fetch(req)
-    await deleteAllCache()
+    const version = res.headers.get('x-app-version')
+    await deleteOldCache(version)
     return res
   } catch (err) {
     return caches.match(req)
