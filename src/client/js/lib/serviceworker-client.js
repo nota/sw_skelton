@@ -3,7 +3,7 @@ const debug = require('./debug')(__filename)
 
 const NOT_AVAILABLE = 'Your browser does not support service worker'
 
-export default new class ServiceWorkerLauncher {
+export default new class ServiceWorkerClient {
   getRegistration () {
     const {serviceWorker} = navigator
     return serviceWorker && serviceWorker.getRegistration('/')
