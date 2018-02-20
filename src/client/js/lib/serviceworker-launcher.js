@@ -28,30 +28,6 @@ export default new class ServiceWorkerLauncher {
     if (!serviceWorker) return alert(NOT_AVAILABLE)
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
     if (reg.active) this.postMessage('reactivate')
-
-    return new Promise((resolve, reject) => {
-      const state = (() => {
-        if (reg.installing) return 'installing'
-        if (reg.waiting) return 'waiting'
-        if (reg.active) return 'active'
-        return 'unknown'
-      })()
-      debug('registered', state)
-      if (state === 'active') return resolve()
-
-      reg.addEventListener('updatefound', (event) => {
-        debug('new service worker is found')
-        if (!reg.installing) return debug('not installing')
-        debug('installing')
-        // install中の新しいservice workerの状態を監視する
-        reg.installing.addEventListener('statechange', (event) => {
-          const {state} = event.target
-          debug('statechange', state)
-          // serviceWorker.readyは、activating後にresolveしてしまうので、問題がある
-          if (state === 'activated') resolve()
-        })
-      })
-    })
   }
 
   async disable () {
