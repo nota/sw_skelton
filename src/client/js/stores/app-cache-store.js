@@ -30,7 +30,7 @@ export default new class AppCacheStore extends EventEmitter {
     // debug('checkForUpdate', this.currentVersion, cachedKey, cachedVersion)
 
     if (this.cachedVersion != cachedVersion) {
-      this.timeOfUpdateFound = new Date()
+      this.timeOfUpdateFound = cachedVersion ? new Date() : null
       this.cachedVersion = cachedVersion
       this.emit('change')
     }

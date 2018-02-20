@@ -25,7 +25,7 @@ export default new class ServiceWorkerLauncher {
     debug('enable')
 
     const {serviceWorker} = navigator
-    if (!serviceWorker) return alert(NOT_AVAILABLE)
+    if (!serviceWorker) throw new Error(NOT_AVAILABLE)
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
     if (reg.active) this.postMessage('reactivate')
   }
@@ -40,13 +40,12 @@ export default new class ServiceWorkerLauncher {
     if (!result) throw new Error('Can not disable the service worker')
   }
 
-  // 注意: この関数はservice worker自体の更新を行うもので、
-  // assetの更新を行うものではない
   async update () {
     debug('update')
     const reg = await this.getRegistration()
     if (!reg) return
-    reg.update()
+    reg.update() // service worker自体の更新を行う
+    this.postMessage('checkForUpdate') // assets(app.html, JS, CSS, Image等)の更新を確認
   }
 
   postMessage (message) {
