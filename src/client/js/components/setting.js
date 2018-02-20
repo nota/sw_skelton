@@ -69,7 +69,7 @@ export default class Setting extends Component {
     try {
       await ServiceWorkerLauncher.enable()
     } catch (err) {
-      alert('Cannot enable service worker\n' + err.message)
+      alert('Cannot enable service worker\n' + err.toString())
       throw (err)
     }
     this.checkEnabled()
@@ -79,7 +79,7 @@ export default class Setting extends Component {
     try {
       await ServiceWorkerLauncher.disable()
     } catch (err) {
-      alert('Cannot disable service worker\n' + err.message)
+      alert('Cannot disable service worker\n' + err.toString())
       throw (err)
     }
     this.setState({message: ''})
