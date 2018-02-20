@@ -14,6 +14,11 @@ export default new class ServiceWorkerLauncher {
     const reg = await this.getRegistration()
     if (!reg) return
     this.enable()
+
+    window.addEventListener('load', () => {
+      debug('onload')
+      this.postMessage('checkForUpdate')
+    })
   }
 
   async enable () {
@@ -70,7 +75,7 @@ export default new class ServiceWorkerLauncher {
 
   postMessage (message) {
     const {controller} = navigator.serviceWorker
-    if (!controller) return alert('Service worker controller is not available')
+    if (!controller) throw 'Service worker controller is not available'
     controller.postMessage(message)
   }
 }()

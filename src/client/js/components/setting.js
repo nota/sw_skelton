@@ -57,7 +57,11 @@ export default class Setting extends Component {
   async checkForUpdate () {
     this.setState({message: 'checking latest version...'})
     ServiceWorkerLauncher.update()
-    ServiceWorkerLauncher.postMessage('checkForUpdate')
+    try {
+      ServiceWorkerLauncher.postMessage('checkForUpdate')
+    } catch (err) {
+      alert(err.toString())
+    }
     this.setState(this.initState())
   }
 
