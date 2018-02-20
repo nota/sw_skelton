@@ -66,6 +66,7 @@ export default class Setting extends Component {
       alert('Cannot enable service worker\n' + err.toString())
       throw (err)
     }
+    this.setState({closeMessage: null})
     this.checkEnabled()
     this.checkForUpdate()
   }
@@ -77,6 +78,7 @@ export default class Setting extends Component {
       alert('Cannot disable service worker\n' + err.toString())
       throw (err)
     }
+    this.setState({closeMessage: 'service worker stops after all the tabs have been closed'})
     this.setState({message: ''})
     this.checkEnabled()
   }
@@ -91,6 +93,12 @@ export default class Setting extends Component {
               : <span className='label label-danger'>off</span>
           }
         </p>
+        {
+          this.state.closeMessage &&
+            <p className='alert alert-danger'>
+              <b>{this.state.closeMessage}</b>
+            </p>
+        }
         {
           this.state.message && (
             <p>

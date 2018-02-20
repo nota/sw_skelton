@@ -25,7 +25,6 @@ const THIRDPARTY_ASSET_HOSTS = [
 ]
 
 const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
-let timerId
 
 self.addEventListener('install', function (event) {
   debug('install')
@@ -36,10 +35,6 @@ self.addEventListener('activate', function (event) {
   debug('activate')
   event.waitUntil(self.clients.claim())
 })
-
-function isDeactivated () {
-  return !timerId
-}
 
 function isMyHost (url) {
   return location.hostname === url.hostname
@@ -225,32 +220,11 @@ self.addEventListener('fetch', async function (event) {
   }())
 })
 
-function startAutoUpdate () {
-  if (timerId) return
-  const interval = isDebug() ? 10 * 1000 : 10 * 60 * 1000
-  timerId = setInterval(checkForUpdate, interval)
-}
-
-async function stopAutoUpdate () {
-  await deleteAllCache()
-  if (timerId) clearInterval(timerId)
-  timerId = null
-}
-
 self.addEventListener('message', function (event) {
-  debug('message', event.data)
-  switch (event.data) {
-    case 'reactivate':
-      startAutoUpdate()
-      break
-    case 'deactivate':
-      stopAutoUpdate()
-      break
-    case 'checkForUpdate':
-      if (isDeactivated()) return
-      checkForUpdate()
-      break
+  if (event.data === 'checkForUpdate') {
+    debug('message', event.data)
+    checkForUpdate()
   }
 })
 
-startAutoUpdate()
+setInterval(checkForUpdate, isDebug() ? 10 * 1000 : 10 * 60 * 1000)

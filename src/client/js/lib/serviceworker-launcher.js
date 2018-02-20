@@ -27,7 +27,6 @@ export default new class ServiceWorkerLauncher {
     const {serviceWorker} = navigator
     if (!serviceWorker) throw new Error(NOT_AVAILABLE)
     const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
-    if (reg.active) return this.postMessage('reactivate')
   }
 
   async disable () {
@@ -35,7 +34,6 @@ export default new class ServiceWorkerLauncher {
     const reg = await this.getRegistration()
     if (!reg) return
 
-    await this.postMessage('deactivate')
     const result = await reg.unregister()
     if (!result) throw new Error('Can not disable the service worker')
   }
