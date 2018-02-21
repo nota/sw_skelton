@@ -105,11 +105,11 @@ async function updateCache (manifest) {
   const {version} = manifest
   const keys = await caches.keys()
   if (keys && keys.includes(cacheKey(version))) {
-    debug('up to date', version)
+    debug('already up-to-date')
     return
   }
   await cacheAddAll(manifest)
-  debug('new cache added', version)
+  debug('updating cache done', version)
 }
 
 async function fetchManifest () {
@@ -159,15 +159,15 @@ function cacheIsValid (res) {
   return (now - cachedDate < cacheTime)
 }
 
-async function respondFetchFirst (req) {
-  debug('fetch on reload', req.url, req.cache)
+async function respondRemoteFirst (req) {
+  debug('request on reload', req.url, req.cache)
 
   if (isAppHtmlRequest(req)) {
     req = appHtmlRequest(req)
   }
 
   try {
-    debug('fetch', req.url, req.cache)
+    debug('fetch remote', req.url, req.cache)
     const res = await fetch(req)
     const version = res.headers.get('x-app-version')
     await deleteOldCache(version)
@@ -186,7 +186,7 @@ async function respondCacheFirst (req) {
   const res = await caches.match(req)
   if (res) {
     if (cacheIsValid(res)) {
-      debug('use cache (valid)', req.url)
+      debug('use cache (valid)', req.url, req.cache)
       return res
     } else {
       expiredCache = res
@@ -194,13 +194,13 @@ async function respondCacheFirst (req) {
   }
 
   try {
-    debug('fetch', req.url, req.cache)
+    debug('fetch remote', req.url, req.cache)
     const res = await fetch(req)
     if (expiredCache) await deleteAllCache()
     return res
   } catch (err) {
     if (expiredCache) {
-      debug('use cache (expired)', req.url)
+      debug('use cache (expired)', req.url, req.cache)
       return expiredCache
     }
     throw err
@@ -210,10 +210,9 @@ async function respondCacheFirst (req) {
 self.addEventListener('fetch', async function (event) {
   event.respondWith(async function () {
     const req = event.request
-
-    const browserReloadFlags = ['reload', 'no-cache', 'no-store']
+    const browserReloadFlags = ['reload', 'no-cache']
     if (browserReloadFlags.includes(req.cache)) {
-      return respondFetchFirst(req)
+      return respondRemoteFirst(req)
     }
 
     return respondCacheFirst(req)
