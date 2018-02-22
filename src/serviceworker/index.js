@@ -202,7 +202,7 @@ async function respondCacheFirst (req) {
   }
 
   try {
-    debug('fetch remote', req.url, req.cache)
+    debug(expiredCache ? 'cache expired' : 'no cache', '(fetch remote)', req.url, req.cache)
     const res = await fetch(req)
     if (expiredCache) await deleteAllCache()
     return res
