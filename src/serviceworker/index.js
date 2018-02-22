@@ -56,7 +56,8 @@ function isAsset (url) {
 
 function acceptHtml (req) {
   const accept = req.headers.get('Accept')
-  return accept && accept.includes('text/html')
+  // req.cache=only-if-cachedのとき`*/*`が来るので注意
+  return accept && (accept.includes('text/html') || accept === '*/*')
 }
 
 function isGetRequest (req) {
@@ -91,6 +92,7 @@ async function deleteOldCache (currentVersion) {
 }
 
 async function deleteAllCache () {
+  debug('delete all cache')
   const keys = await caches.keys()
   return Promise.all(keys.map(key => caches.delete(key)))
 }
@@ -108,6 +110,7 @@ async function updateCache (manifest) {
     debug('already up-to-date')
     return
   }
+  debug('updating cache...')
   await cacheAddAll(manifest)
   debug('updating cache done', version)
 }
@@ -160,9 +163,8 @@ function cacheIsValid (res) {
 }
 
 async function respondRemoteFirst (req) {
-  debug('request on reload', req.url, req.cache)
-
   if (isAppHtmlRequest(req)) {
+    debug('app reload request', req.url, req.cache)
     req = appHtmlRequest(req)
   }
 
@@ -170,7 +172,7 @@ async function respondRemoteFirst (req) {
     debug('fetch remote', req.url, req.cache)
     const res = await fetch(req)
     const version = res.headers.get('x-app-version')
-    await deleteOldCache(version)
+    if (version) await deleteOldCache(version)
     return res
   } catch (err) {
     return caches.match(req)
@@ -191,6 +193,12 @@ async function respondCacheFirst (req) {
     } else {
       expiredCache = res
     }
+  }
+  if (req.cache === 'only-if-cached') {
+    // XXX: ChromeのprerenderやFirefoxのaddAll時に呼ばれることがある
+    // キャッシュが存在しないときに504を返すのは、RFCの既定
+    debug('use cache (only-if-cached)', req.url, req.cache, !!res)
+    return res || new Response('No Cache', {status: 504, statusText: 'Gateway Timeout'})
   }
 
   try {
