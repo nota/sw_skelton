@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-// const debug = require('../lib/debug')(__filename)
+const debug = require('../lib/debug')(__filename)
 
 import {EventEmitter} from 'events'
 
@@ -11,8 +11,9 @@ export default new class AppCacheStore extends EventEmitter {
     this.cachedVersion = null
     this.cacheStatus = null
     this.timeOfUpdateFound = null
-    this.timerId = null
+    this.forceUpdateTimer = null
 
+    this.forceUpdate = this.forceUpdate.bind(this)
     setInterval(this.watchCacheStore.bind(this), 1000)
   }
 
@@ -32,6 +33,18 @@ export default new class AppCacheStore extends EventEmitter {
       this.cachedVersion = cachedVersion
       this.emit('change')
     }
+
+    if (this.hasUpdate() && !this.forceUpdateTimer) {
+      this.forceUpdateTimer = setTimeout(this.forceUpdate, 10 * 1000)
+    }
+  }
+
+  forceUpdate () {
+    if (document.visibilityState === 'visible') {
+      return setTimeout(this.forceUpdate, 1000)
+    }
+    debug('forceUpdate')
+    location.reload()
   }
 }()
 
