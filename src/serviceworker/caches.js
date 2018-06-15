@@ -1,10 +1,8 @@
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
-
 function cacheKey (version) {
-  return `assets-${version}${POSTFIX}`
+  return `assets-${version}`
 }
 
 function getDateFromCacheKey (key) {
