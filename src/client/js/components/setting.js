@@ -3,7 +3,7 @@
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AppCacheStore from '../stores/app-cache-store'
+import AssetsCacheStore from '../stores/assets-cache-store'
 import ServiceWorkerClient from '../lib/serviceworker-client'
 
 export default class Setting extends Component {
@@ -15,20 +15,20 @@ export default class Setting extends Component {
 
     this.state = state
 
-    AppCacheStore.on('change', this.onAppCacheChanged.bind(this))
+    AssetsCacheStore.on('change', this.onAppCacheChanged.bind(this))
   }
 
   initState () {
     return {
-      myVersion: AppCacheStore.myVersion,
-      newerVersion: AppCacheStore.newerVersion,
-      timeOfUpdateFound: AppCacheStore.timeOfUpdateFound,
+      myVersion: AssetsCacheStore.myVersion,
+      newerVersion: AssetsCacheStore.newerVersion,
+      timeOfUpdateFound: AssetsCacheStore.timeOfUpdateFound,
       loading: false
     }
   }
 
   async componentDidMount () {
-    const myVersion = AppCacheStore.myVersion
+    const myVersion = AssetsCacheStore.myVersion
     this.setState({myVersion})
     this.checkEnabled()
   }
@@ -45,7 +45,7 @@ export default class Setting extends Component {
   async checkForUpdate () {
     this.setState({loading: true})
     try {
-      await AppCacheStore.checkForUpdate()
+      await AssetsCacheStore.checkForUpdate()
       this.setState({loading: false})
 //      ServiceWorkerClient.update()
     } catch (err) {

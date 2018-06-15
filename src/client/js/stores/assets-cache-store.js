@@ -5,7 +5,7 @@ const debug = require('../lib/debug')(__filename)
 import {EventEmitter} from 'events'
 import {checkForUpdate, isNewCacheAvailable} from '../../../serviceworker/caches'
 
-export default new class AppCacheStore extends EventEmitter {
+export default new class AssetsCacheStore extends EventEmitter {
   constructor () {
     super()
     this._newerVersion = null
