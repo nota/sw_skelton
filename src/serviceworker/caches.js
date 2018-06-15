@@ -4,7 +4,7 @@ const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gr
 const POSTFIX = '-v1' // XXX 緊急時は、このpostfixを上げることで全キャッシュを無効化できる
 
 function cacheKey (version) {
-  return `app-${version}${POSTFIX}`
+  return `assets-${version}${POSTFIX}`
 }
 
 function getDateFromCacheKey (key) {
