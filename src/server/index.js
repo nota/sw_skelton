@@ -7,18 +7,18 @@ const morgan = require('morgan')
 app.use(morgan('dev'))
 
 app.get('/', async (req, res) => {
-  const version = await getVersion()
+  const version = await getAssetsVersion()
   res.setHeader('x-app-version', version)
   res.render('app', {version})
 })
 
 app.get('/app.html', async (req, res) => {
-  const version = await getVersion()
+  const version = await getAssetsVersion()
   res.setHeader('x-app-version', version)
   res.render('app', {version})
 })
 
-async function getVersion () {
+async function getAssetsVersion () {
   const json = await fs.readFile('./public/json/assets-list.json')
   const {version} = JSON.parse(json)
   return version
