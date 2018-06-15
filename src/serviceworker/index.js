@@ -6,7 +6,7 @@ require('babel-polyfill')
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-const {deleteAllCache, deleteOldCache, checkForUpdate} = require('./caches')
+const {cacheKey, deleteAllCache, deleteOldCache, checkForUpdate} = require('./caches')
 
 debug('start')
 
@@ -97,17 +97,16 @@ function appHtmlRequest (req) {
   })
 }
 
-function cacheIsValid (res) {
+function cacheIsOutdated (res) {
   const url = new URL(res.url)
-  if (!isMyHost(url)) return true
 
   const dateStr = res.headers.get('date')
   if (!dateStr) return false
-  const cachedDate = new Date(dateStr)
+  const date = new Date(dateStr)
   const now = new Date()
-  const cacheTime = isDebug() ? 60 * 1000 : 7 * 24 * 60 * 60 * 1000
+  const cachePeriod = isDebug() ? 10 * 1000 : 7 * 24 * 60 * 60 * 1000
   // debug('cache info', res.url, cachedDate, (now - cachedDate) / 1000)
-  return (now - cachedDate < cacheTime)
+  return (now - date > cachePeriod)
 }
 
 async function respondRemoteFirst (req) {
@@ -129,42 +128,62 @@ async function respondRemoteFirst (req) {
   }
 }
 
-async function respondCacheFirst (req) {
-  const isAppHtml = isAppHtmlRequest(req)
-  if (isAppHtml) {
-    req = appHtmlRequest(req)
+async function respondAppHtml (req) {
+  req = appHtmlRequest(req)
+  const res = await caches.match(req)
+  if (!res) {
+    setTimeout(checkForUpdate, 1000)
+    return fetch(req)
+  }
+  const outdated = cacheIsOutdated(res)
+  if (!outdated) {
+    debug('use cache', req.url, req.cache)
+    setTimeout(checkForUpdate, 1000)
+    return res
+  }
+  debug('cache is outdated', '(fetch remote)', req.url, req.cache)
+  let res2
+  try {
+    res2 = await fetch(req)
+  } catch (err) {
+    console.error(err)
+    debug('use cache anyway', req.url, req.cache)
+    return res
   }
 
-  let expiredCache
+  const version = res2.headers.get('x-app-version')
+  const isNewVersionAvailable = res.headers.get('x-app-version') !== version
+  if (isNewVersionAvailable) {
+    debug('fetched new version')
+    await deleteAllCache()
+    setTimeout(checkForUpdate, 1000)
+  } else if (res2.ok) {
+    debug('version is not changed', 'so just replace cache to new one')
+    const cache = await caches.open(cacheKey(version))
+    await cache.put(req, res2.clone())
+  }
+  return res2
+}
+
+async function respondCacheFirst (req) {
+  if (isAppHtmlRequest(req)) {
+    return respondAppHtml(req)
+  }
+
   const res = await caches.match(req)
   if (res) {
-//    if (cacheIsValid(res)) {
-      debug('use cache (valid)', req.url, req.cache)
-      if (isAppHtml) checkForUpdate()
-      return res
-//    } else {
-//      expiredCache = res
-//    }
+    debug('use cache', req.url, req.cache)
+    return res
   }
+  // XXX: ChromeのprerenderやFirefoxのaddAll時に呼ばれることがある
+  // キャッシュが存在しないときに504を返すのは、RFCの既定
   if (req.cache === 'only-if-cached') {
-    // XXX: ChromeのprerenderやFirefoxのaddAll時に呼ばれることがある
-    // キャッシュが存在しないときに504を返すのは、RFCの既定
     debug('use cache (only-if-cached)', req.url, req.cache, !!res)
     return res || new Response('No Cache', {status: 504, statusText: 'Gateway Timeout'})
   }
 
-  try {
-    debug(expiredCache ? 'cache expired' : 'no cache', '(fetch remote)', req.url, req.cache)
-    const res = await fetch(req)
-//    if (expiredCache) await deleteAllCache()
-    return res
-  } catch (err) {
-    if (expiredCache) {
-      debug('use cache (expired)', req.url, req.cache)
-      return expiredCache
-    }
-    throw err
-  }
+  debug('fetch', req.url, req.cache)
+  return fetch(req)
 }
 
 self.addEventListener('fetch', async function (event) {

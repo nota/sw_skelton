@@ -88,6 +88,6 @@ async function isNewCacheAvailable (version) {
   return false
 }
 
-module.exports = {deleteAllCache, deleteOldCache, checkForUpdate, isNewCacheAvailable}
+module.exports = {cacheKey, deleteAllCache, deleteOldCache, checkForUpdate, isNewCacheAvailable}
 
 
