@@ -7,6 +7,13 @@ function cacheKey (version) {
   return `app-${version}${POSTFIX}`
 }
 
+function getDateFromCacheKey (key) {
+  const m = key.match(/(\d{4})(\d{2})(\d{2})\-(\d{2})(\d{2})(\d{2})/)
+  if (!m) return null
+  const monthIndex = parseInt(m[2]) - 1
+  return new Date(m[1], monthIndex, m[3], m[4], m[5], m[6])
+}
+
 async function deleteAllCache () {
   debug('delete all cache')
   const keys = await caches.keys()
@@ -66,10 +73,11 @@ async function checkForUpdate () {
 }
 
 async function isNewCacheAvailable (version) {
-  const date = getDateFromCacheKey(key)
+  const date = getDateFromCacheKey(version)
   const keys = await caches.keys()
   for (const key of keys) {
     const cacheDate = getDateFromCacheKey(key)
+    if (!cacheDate) continue
     if (cacheDate > date) return true
   }
   return false
