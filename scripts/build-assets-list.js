@@ -19,4 +19,6 @@ for (const dir of ['css', 'fonts', 'img']) {
 
 const body = JSON.stringify({version, assets})
 
-fs.writeFileSync("./public/json/assets-list.json", body)
+const dir = './public/json'
+if (!fs.existsSync(dir)) fs.mkdirSync(dir)
+fs.writeFileSync(`${dir}/assets-list.json`, body)
