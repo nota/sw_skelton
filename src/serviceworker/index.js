@@ -6,7 +6,7 @@ require('babel-polyfill')
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-const {deleteAllCache, deleteOldCache, updateCache} = require('./caches')
+const {deleteAllCache, deleteOldCache, checkForUpdate} = require('./caches')
 
 debug('start')
 
@@ -19,6 +19,7 @@ const ASSET_PATHS = [
   '/css/',
   '/img/',
   '/fonts/',
+  '/json/',
   '/app.html',
   '/index.js'
 ]
@@ -77,28 +78,6 @@ function isAppHtmlRequest (req) {
   )
 }
 
-async function fetchManifest () {
-  debug('fetching manifest...')
-  const url = location.origin + '/api/caches/manifest'
-  const req = new Request(url, { method: 'get' })
-  try {
-    const res = await fetch(req)
-    if (!res.ok) throw new Error(`Server responded ${res.status}`)
-    return res.clone().json()
-  } catch (err) {
-    if (err instanceof TypeError && err.message === 'Failed to fetch') {
-      debug('failed to fetch manifest, offline?')
-      return null
-    }
-    throw (err)
-  }
-}
-
-async function checkForUpdate () {
-  const manifest = await fetchManifest()
-  if (manifest) return updateCache(manifest)
-}
-
 function appHtmlRequest (req) {
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
@@ -125,7 +104,8 @@ function cacheIsValid (res) {
 }
 
 async function respondRemoteFirst (req) {
-  if (isAppHtmlRequest(req)) {
+  const isAppHtml = isAppHtmlRequest(req)
+  if (isAppHtml) {
     debug('app reload request', req.url, req.cache)
     req = appHtmlRequest(req)
   }
@@ -135,6 +115,7 @@ async function respondRemoteFirst (req) {
     const res = await fetch(req)
     const version = res.headers.get('x-app-version')
     if (version) await deleteOldCache(version)
+    if (isAppHtml) checkForUpdate()
     return res
   } catch (err) {
     return caches.match(req)
@@ -142,7 +123,8 @@ async function respondRemoteFirst (req) {
 }
 
 async function respondCacheFirst (req) {
-  if (isAppHtmlRequest(req)) {
+  const isAppHtml = isAppHtmlRequest(req)
+  if (isAppHtml) {
     req = appHtmlRequest(req)
   }
 
@@ -151,6 +133,7 @@ async function respondCacheFirst (req) {
   if (res) {
     if (cacheIsValid(res)) {
       debug('use cache (valid)', req.url, req.cache)
+      if (isAppHtml) checkForUpdate()
       return res
     } else {
       expiredCache = res

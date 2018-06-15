@@ -42,6 +42,39 @@ async function updateCache (manifest) {
   debug('updating cache done', version)
 }
 
-module.exports = {deleteAllCache, deleteOldCache, updateCache}
+async function fetchManifest () {
+  debug('fetching assets manifest...')
+  const url = location.origin + '/json/assets-list.json'
+  const req = new Request(url, { method: 'get' })
+  try {
+    const res = await fetch(req)
+    if (!res.ok) throw new Error(`Server responded ${res.status}`)
+    return res.clone().json()
+  } catch (err) {
+    if (err instanceof TypeError && err.message === 'Failed to fetch') {
+      debug('failed to fetch manifest, offline?')
+      return null
+    }
+    throw (err)
+  }
+}
+
+async function checkForUpdate () {
+  debug('check for update...')
+  const manifest = await fetchManifest()
+  if (manifest) return updateCache(manifest)
+}
+
+async function isNewCacheAvailable (version) {
+  const date = getDateFromCacheKey(key)
+  const keys = await caches.keys()
+  for (const key of keys) {
+    const cacheDate = getDateFromCacheKey(key)
+    if (cacheDate > date) return true
+  }
+  return false
+}
+
+module.exports = {deleteAllCache, deleteOldCache, checkForUpdate}
 
 
