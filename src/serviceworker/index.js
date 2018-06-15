@@ -66,6 +66,13 @@ function isGetRequest (req) {
   return req.method === 'GET'
 }
 
+function isVersionCheckRequest (req) {
+  const url = new URL(req.url)
+
+  return isMyHost(url) && url.pathname === '/__checkForUpdate'
+}
+
+
 function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
@@ -113,8 +120,8 @@ async function respondRemoteFirst (req) {
   try {
     debug('fetch remote', req.url, req.cache)
     const res = await fetch(req)
-    const version = res.headers.get('x-app-version')
-    if (version) await deleteOldCache(version)
+//    const version = res.headers.get('x-app-version')
+//    if (version) await deleteOldCache(version)
     if (isAppHtml) checkForUpdate()
     return res
   } catch (err) {
@@ -131,13 +138,13 @@ async function respondCacheFirst (req) {
   let expiredCache
   const res = await caches.match(req)
   if (res) {
-    if (cacheIsValid(res)) {
+//    if (cacheIsValid(res)) {
       debug('use cache (valid)', req.url, req.cache)
       if (isAppHtml) checkForUpdate()
       return res
-    } else {
-      expiredCache = res
-    }
+//    } else {
+//      expiredCache = res
+//    }
   }
   if (req.cache === 'only-if-cached') {
     // XXX: ChromeのprerenderやFirefoxのaddAll時に呼ばれることがある
@@ -149,7 +156,7 @@ async function respondCacheFirst (req) {
   try {
     debug(expiredCache ? 'cache expired' : 'no cache', '(fetch remote)', req.url, req.cache)
     const res = await fetch(req)
-    if (expiredCache) await deleteAllCache()
+//    if (expiredCache) await deleteAllCache()
     return res
   } catch (err) {
     if (expiredCache) {
@@ -163,10 +170,17 @@ async function respondCacheFirst (req) {
 self.addEventListener('fetch', async function (event) {
   event.respondWith(async function () {
     const req = event.request
-    const browserReloadFlags = ['reload', 'no-cache']
-    if (browserReloadFlags.includes(req.cache)) {
-      return respondRemoteFirst(req)
+
+    if (isVersionCheckRequest(req)) {
+      await checkForUpdate()
+      return new Response('OK', {status: 200})
     }
+//    debug(req)
+//    const browserReloadFlags = ['reload', 'no-cache']
+//    const browserReloadFlags = ['no-cache']
+//    if (browserReloadFlags.includes(req.cache)) {
+//      return respondRemoteFirst(req)
+//    }
 
     return respondCacheFirst(req)
   }())

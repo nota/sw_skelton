@@ -32,6 +32,7 @@ async function deleteOldCache (currentVersion) {
 async function cacheAddAll ({version, assets}) {
   const cache = await caches.open(cacheKey(version))
   await cache.addAll(assets)
+  debug('add all cache done', version)
   return deleteOldCache(version)
 }
 
@@ -48,7 +49,7 @@ async function updateCache (manifest) {
   const {version} = manifest
   debug('updating cache...')
   await cacheAddAll(manifest)
-  debug('updating cache done', version)
+  debug('updating cache done')
 }
 
 async function fetchManifest () {
@@ -73,8 +74,7 @@ async function checkForUpdate () {
   const manifest = await fetchManifest()
   if (!manifest) return null
   if (await IsCacheExist(manifest.version)) return null
-  await updateCache(manifest)
-  return manifest.version
+  return updateCache(manifest)
 }
 
 async function isNewCacheAvailable (version) {

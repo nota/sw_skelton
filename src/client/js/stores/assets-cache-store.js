@@ -27,11 +27,8 @@ export default new class AssetsCacheStore extends EventEmitter {
   }
 
   async checkForUpdate () {
-    const newKeys = await checkForUpdate()
-    if (newKeys) {
-      this._newerVersion = newKeys
-      this.emit('change')
-    }
+    return fetch('__checkForUpdate')
+//    return checkForUpdate()
   }
 
   hasUpdate () {
