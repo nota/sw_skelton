@@ -15,7 +15,7 @@ export default class Setting extends Component {
 
     this.state = state
 
-    AssetsCacheStore.on('change', this.onAppCacheChanged.bind(this))
+    AssetsCacheStore.on('change', this.onStoreChanged.bind(this))
   }
 
   initState () {
@@ -38,7 +38,7 @@ export default class Setting extends Component {
     this.setState({enabled})
   }
 
-  async onAppCacheChanged () {
+  async onStoreChanged () {
     this.setState(this.initState())
   }
 
@@ -46,12 +46,10 @@ export default class Setting extends Component {
     this.setState({loading: true})
     try {
       await AssetsCacheStore.checkForUpdate()
-      this.setState({loading: false})
-//      ServiceWorkerClient.update()
     } catch (err) {
       alert(err.toString())
     }
-    this.setState(this.initState())
+    this.setState({loading: false})
   }
 
   async enableServiceWorker () {
@@ -81,19 +79,7 @@ export default class Setting extends Component {
   render () {
     return (
       <div>
-        <p>serviceWorker:
-          {
-            this.state.enabled
-              ? <span className='label label-success'>on</span>
-              : <span className='label label-danger'>off</span>
-          }
-        </p>
-        {
-          this.state.closeMessage &&
-            <p className='alert alert-danger'>
-              {this.state.closeMessage}
-            </p>
-        }
+        <p><b>assets cache</b></p>
         {
           this.state.message && (
             <p>
@@ -120,6 +106,22 @@ export default class Setting extends Component {
           </button>
           &nbsp;
         </p>
+        <hr />
+        <p><b>service worker</b></p>
+        <p>enabled:
+          {
+            this.state.enabled
+              ? <span className='label label-success'>on</span>
+              : <span className='label label-danger'>off</span>
+          }
+        </p>
+        {
+          this.state.closeMessage &&
+            <p className='alert alert-danger'>
+              {this.state.closeMessage}
+            </p>
+        }
+
         <p>
           {
             this.state.enabled
