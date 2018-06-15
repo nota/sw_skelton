@@ -3,40 +3,52 @@
 const debug = require('../lib/debug')(__filename)
 
 import {EventEmitter} from 'events'
+import {checkForUpdate, isNewCacheAvailable} from '../../../serviceworker/caches'
 
 export default new class AppCacheStore extends EventEmitter {
   constructor () {
     super()
-    this.currentVersion = document.documentElement.dataset.version
-    this.cachedVersion = null
-    this.cacheStatus = null
+    this._newerVersion = null
     this.timeOfUpdateFound = null
     this.forceUpdateTimer = null
 
     this.forceUpdate = this.forceUpdate.bind(this)
-    setInterval(this.watchCacheStore.bind(this), 1000)
+    this.watchCacheStore = this.watchCacheStore.bind(this)
+
+    setInterval(this.watchCacheStore, 1000)
+  }
+
+  get myVersion() {
+    return document.documentElement.dataset.version
+  }
+
+  get newerVersion() {
+    return this._newerVersion
+  }
+
+  async checkForUpdate () {
+    const newKeys = await checkForUpdate()
+    if (newKeys) {
+      this._newerVersion = newKeys
+      this.emit('change')
+    }
   }
 
   hasUpdate () {
-    return this.cachedVersion && this.cachedVersion !== this.currentVersion
+    return this.newerVersion && this.newerVersion !== this.myVersion
   }
 
   async watchCacheStore () {
-    const keys = await caches.keys()
-    const cachedKey = keys.find(key => key.indexOf('app-') === 0)
-    const cachedVersion = cachedKey && cachedKey.match(/app\-(.*)\-.*/)[1]
-
-    // debug('checkForUpdate', this.currentVersion, cachedKey, cachedVersion)
-
-    if (this.cachedVersion !== cachedVersion) {
-      this.timeOfUpdateFound = cachedVersion ? new Date() : null
-      this.cachedVersion = cachedVersion
+//    debug('watchCacheStore')
+    const newKeys = await isNewCacheAvailable(this.myVersion)
+    if (newKeys) {
+      this._newerVersion = newKeys
       this.emit('change')
     }
 
-    if (this.hasUpdate() && !this.forceUpdateTimer) {
-      this.forceUpdateTimer = setTimeout(this.forceUpdate, 10 * 1000)
-    }
+//    if (this.hasUpdate() && !this.forceUpdateTimer) {
+//      this.forceUpdateTimer = setTimeout(this.forceUpdate, 10 * 1000)
+//    }
   }
 
   forceUpdate () {

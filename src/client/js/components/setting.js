@@ -19,24 +19,17 @@ export default class Setting extends Component {
   }
 
   initState () {
-    const {currentVersion, cachedVersion, timeOfUpdateFound} = AppCacheStore
-
-    let message
-    if (AppCacheStore.cachedVersion) {
-      if (AppCacheStore.hasUpdate()) {
-        message = 'Update is available'
-      } else {
-        message = 'It’s up to date :-)'
-      }
-    } else {
-      message = 'no cache'
+    return {
+      myVersion: AppCacheStore.myVersion,
+      newerVersion: AppCacheStore.newerVersion,
+      timeOfUpdateFound: AppCacheStore.timeOfUpdateFound,
+      loading: false
     }
-    return {currentVersion, cachedVersion, timeOfUpdateFound, message}
   }
 
   async componentDidMount () {
-    const currentVersion = AppCacheStore.currentVersion
-    this.setState({currentVersion})
+    const myVersion = AppCacheStore.myVersion
+    this.setState({myVersion})
     this.checkEnabled()
   }
 
@@ -50,9 +43,11 @@ export default class Setting extends Component {
   }
 
   async checkForUpdate () {
-    this.setState({message: 'checking latest version...'})
+    this.setState({loading: true})
     try {
-      ServiceWorkerClient.update()
+      await AppCacheStore.checkForUpdate()
+      this.setState({loading: false})
+//      ServiceWorkerClient.update()
     } catch (err) {
       alert(err.toString())
     }
@@ -114,24 +109,24 @@ export default class Setting extends Component {
           )
         }
         <p>
-          current version: {this.state.currentVersion}
+          my version: {this.state.myVersion}
         </p>
         <p>
-          cached version: {this.state.cachedVersion || 'null'}
+          new version: {this.state.newerVersion ? this.state.newerVersion + ' is available (cached)' : 'not available'}
         </p>
         <p>
           <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!this.state.enabled}>
-            Check for update
+            { this.state.loading ? 'Checking...' : 'Check for update' }
           </button>
           &nbsp;
         </p>
         <p>
           {
             this.state.enabled
-            ? <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
+            ? <button className='btn btn-default' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
             </button>
-            : <button className='btn btn-default btn-sm' onClick={this.enableServiceWorker.bind(this)}>
+            : <button className='btn btn-default' onClick={this.enableServiceWorker.bind(this)}>
                 Enable service worker
             </button>
           }

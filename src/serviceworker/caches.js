@@ -35,13 +35,17 @@ async function cacheAddAll ({version, assets}) {
   return deleteOldCache(version)
 }
 
-async function updateCache (manifest) {
-  const {version} = manifest
+async function IsCacheExist (version) {
   const keys = await caches.keys()
   if (keys && keys.includes(cacheKey(version))) {
     debug('already up-to-date')
-    return
+    return true
   }
+  return false
+}
+
+async function updateCache (manifest) {
+  const {version} = manifest
   debug('updating cache...')
   await cacheAddAll(manifest)
   debug('updating cache done', version)
@@ -67,7 +71,10 @@ async function fetchManifest () {
 async function checkForUpdate () {
   debug('check for update...')
   const manifest = await fetchManifest()
-  if (manifest) return updateCache(manifest)
+  if (!manifest) return null
+  if (await IsCacheExist(manifest.version)) return null
+  await updateCache(manifest)
+  return manifest.version
 }
 
 async function isNewCacheAvailable (version) {
@@ -76,11 +83,11 @@ async function isNewCacheAvailable (version) {
   for (const key of keys) {
     const cacheDate = getDateFromCacheKey(key)
     if (!cacheDate) continue
-    if (cacheDate > date) return true
+    if (cacheDate > date) return key
   }
   return false
 }
 
-module.exports = {deleteAllCache, deleteOldCache, checkForUpdate}
+module.exports = {deleteAllCache, deleteOldCache, checkForUpdate, isNewCacheAvailable}
 
 

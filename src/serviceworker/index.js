@@ -171,12 +171,3 @@ self.addEventListener('fetch', async function (event) {
     return respondCacheFirst(req)
   }())
 })
-
-self.addEventListener('message', function (event) {
-  if (event.data === 'checkForUpdate') {
-    debug('message', event.data)
-    checkForUpdate()
-  }
-})
-
-setInterval(checkForUpdate, isDebug() ? 10 * 1000 : 10 * 60 * 1000)
