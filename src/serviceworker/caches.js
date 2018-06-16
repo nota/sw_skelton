@@ -1,15 +1,20 @@
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-function cacheKey (version) {
-  return `assets-${version}`
-}
-
 function getDateFromCacheKey (key) {
   const m = key.match(/(\d{4})(\d{2})(\d{2})\-(\d{2})(\d{2})(\d{2})/)
   if (!m) return null
   const monthIndex = parseInt(m[2]) - 1
   return new Date(m[1], monthIndex, m[3], m[4], m[5], m[6])
+}
+
+async function updateCache ({version, assets}) {
+  debug('updating cache...')
+  const cache = await caches.open(version)
+  await cache.addAll(assets)
+  debug('add all cache done', version)
+  await deleteOldCache(version)
+  debug('updating cache done')
 }
 
 async function deleteAllCache () {
@@ -21,35 +26,12 @@ async function deleteAllCache () {
 async function deleteOldCache (currentVersion) {
   const keys = await caches.keys()
   return Promise.all(keys
-    .filter(key => key !== cacheKey(currentVersion))
+    .filter(key => key !== currentVersion)
     .map(key => {
       debug('delete old cache', key)
-      caches.delete(key)
+      return caches.delete(key)
     })
   )
-}
-
-async function cacheAddAll ({version, assets}) {
-  const cache = await caches.open(cacheKey(version))
-  await cache.addAll(assets)
-  debug('add all cache done', version)
-  return deleteOldCache(version)
-}
-
-async function IsCacheExist (version) {
-  const keys = await caches.keys()
-  if (keys && keys.includes(cacheKey(version))) {
-    debug('already up-to-date')
-    return true
-  }
-  return false
-}
-
-async function updateCache (manifest) {
-  const {version} = manifest
-  debug('updating cache...')
-  await cacheAddAll(manifest)
-  debug('updating cache done')
 }
 
 async function fetchManifest () {
@@ -73,7 +55,10 @@ async function checkForUpdate () {
   debug('check for update...')
   const manifest = await fetchManifest()
   if (!manifest) return null
-  if (await IsCacheExist(manifest.version)) return null
+  if (await caches.has(manifest.version)) {
+    debug('already up-to-date')
+    return null
+  }
   return updateCache(manifest)
 }
 
@@ -88,6 +73,6 @@ async function isNewCacheAvailable (version) {
   return false
 }
 
-module.exports = {cacheKey, deleteAllCache, deleteOldCache, checkForUpdate, isNewCacheAvailable}
+module.exports = {deleteAllCache, deleteOldCache, checkForUpdate, isNewCacheAvailable}
 
 

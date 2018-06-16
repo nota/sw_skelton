@@ -6,7 +6,7 @@ require('babel-polyfill')
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-const {cacheKey, deleteAllCache, deleteOldCache, checkForUpdate} = require('./caches')
+const {deleteAllCache, deleteOldCache, checkForUpdate} = require('./caches')
 
 debug('start')
 
@@ -97,7 +97,7 @@ function cacheIsOutdated (res) {
   if (!dateStr) return false
   const date = new Date(dateStr)
   const now = new Date()
-  const cachePeriod = isDebug() ? 10 * 1000 : 7 * 24 * 60 * 60 * 1000
+  const cachePeriod = isDebug() ? 60 * 1000 : 7 * 24 * 60 * 60 * 1000
   // debug('cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   return (now - date > cachePeriod)
 }
@@ -152,7 +152,7 @@ async function respondAppHtml (req) {
     setTimeout(checkForUpdate, 1000)
   } else if (res2.ok) {
     debug('version is not changed', 'so just replace cache to new one')
-    const cache = await caches.open(cacheKey(version))
+    const cache = await caches.open(version)
     await cache.put(req, res2.clone())
   }
   return res2
@@ -167,13 +167,6 @@ async function respondCacheFirst (req) {
   if (res) {
     debug('use cache', req.url, req.cache)
     return res
-//    if (cacheIsValid(res)) {
-      debug('use cache (valid)', req.url, req.cache)
-      if (isAppHtml) setTimeout(checkForUpdate, 1000)
-      return res
-//    } else {
-//      expiredCache = res
-//    }
   }
   // XXX: ChromeのprerenderやFirefoxのaddAll時に呼ばれることがある
   // キャッシュが存在しないときに504を返すのは、RFCの既定

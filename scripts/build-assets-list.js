@@ -2,7 +2,7 @@ const fs = require('fs')
 const dateFormat = require('dateformat')
 
 const now = new Date();
-const version = dateFormat(now, "yyyymmdd-hhMMss");
+const version = 'assets-' + dateFormat(now, "yyyymmdd-hhMMss");
 
 const assets = [
   '/app.html',
