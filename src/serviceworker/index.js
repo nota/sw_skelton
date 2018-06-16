@@ -81,7 +81,7 @@ async function respondCacheFirst (req) {
   return fetch(req)
 }
 
-self.addEventListener('fetch', async function (event) {
+self.addEventListener('fetch', function (event) {
   event.respondWith(async function () {
     const req = event.request
 
@@ -94,9 +94,11 @@ self.addEventListener('fetch', async function (event) {
 })
 
 self.addEventListener('message', function (event) {
-  if (event.data === 'checkForUpdate') {
+  event.waitUntil(async function () {
     debug('message', event.data)
-    checkForUpdate()
-  }
+    if (event.data !== 'checkForUpdate') return
+    const ret = await checkForUpdate()
+    event.ports[0].postMessage(ret)
+  }())
 })
 
