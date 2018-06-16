@@ -45,7 +45,8 @@ export default class Setting extends Component {
   async checkForUpdate () {
     this.setState({loading: true})
     try {
-      await AssetsCacheStore.checkForUpdate()
+      await ServiceWorkerClient.postMessage('checkForUpdate')
+//      await AssetsCacheStore.checkForUpdate()
     } catch (err) {
       alert(err.toString())
     }

@@ -39,4 +39,10 @@ export default new class ServiceWorkerClient {
     if (!reg) return
     reg.update() // service worker自体の更新を行う
   }
+
+  async postMessage (message) {
+    const reg = await this.getRegistration()
+    if (!reg.active) throw new Error('Service worker is not active yet')
+    reg.active.postMessage(message) // service workerがstopしている場合、startされる
+  }
 }()

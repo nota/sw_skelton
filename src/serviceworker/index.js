@@ -66,13 +66,6 @@ function isGetRequest (req) {
   return req.method === 'GET'
 }
 
-function isVersionCheckRequest (req) {
-  const url = new URL(req.url)
-
-  return isMyHost(url) && url.pathname === '/__checkForUpdate'
-}
-
-
 function isAppHtmlRequest (req) {
   const url = new URL(req.url)
 
@@ -174,6 +167,13 @@ async function respondCacheFirst (req) {
   if (res) {
     debug('use cache', req.url, req.cache)
     return res
+//    if (cacheIsValid(res)) {
+      debug('use cache (valid)', req.url, req.cache)
+      if (isAppHtml) setTimeout(checkForUpdate, 1000)
+      return res
+//    } else {
+//      expiredCache = res
+//    }
   }
   // XXX: ChromeのprerenderやFirefoxのaddAll時に呼ばれることがある
   // キャッシュが存在しないときに504を返すのは、RFCの既定
@@ -189,11 +189,6 @@ async function respondCacheFirst (req) {
 self.addEventListener('fetch', async function (event) {
   event.respondWith(async function () {
     const req = event.request
-
-    if (isVersionCheckRequest(req)) {
-      await checkForUpdate()
-      return new Response('OK', {status: 200})
-    }
 //    debug(req)
 //    const browserReloadFlags = ['reload', 'no-cache']
 //    const browserReloadFlags = ['no-cache']
@@ -204,3 +199,11 @@ self.addEventListener('fetch', async function (event) {
     return respondCacheFirst(req)
   }())
 })
+
+self.addEventListener('message', function (event) {
+  if (event.data === 'checkForUpdate') {
+    debug('message', event.data)
+    checkForUpdate()
+  }
+})
+
