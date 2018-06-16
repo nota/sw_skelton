@@ -3,7 +3,7 @@
 const debug = require('../lib/debug')(__filename)
 
 import {EventEmitter} from 'events'
-import {checkForUpdate, isNewCacheAvailable} from '../../../serviceworker/caches'
+import {isNewCacheAvailable} from '../lib/cache-watch'
 
 export default new class AssetsCacheStore extends EventEmitter {
   constructor () {
@@ -27,7 +27,7 @@ export default new class AssetsCacheStore extends EventEmitter {
   }
 
   hasUpdate () {
-    return this.newerVersion && this.newerVersion !== this.myVersion
+    return !!this._newerVersion
   }
 
   async watchCacheStore () {

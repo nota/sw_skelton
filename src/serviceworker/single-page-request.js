@@ -1,4 +1,3 @@
-
 const NOCACHE_PATHS = [
   '/serviceworker.js',
   '/api/'
@@ -13,10 +12,6 @@ const ASSET_PATHS = [
   '/index.js'
 ]
 
-const THIRDPARTY_ASSET_HOSTS = [
-  'maxcdn.bootstrapcdn.com'
-]
-
 function isMyHost (url) {
   return location.hostname === url.hostname
 }
@@ -27,9 +22,7 @@ function isApiOrLandingPage (url) {
   })
 }
 
-function isAsset (url) {
-  if (THIRDPARTY_ASSET_HOSTS.includes(url.hostname)) return true
-
+function isAssetPath (url) {
   return isMyHost(url) && ASSET_PATHS.find(function (path) {
     return url.pathname.indexOf(path) === 0
   })
@@ -41,23 +34,23 @@ function isAcceptHtml (req) {
   return accept && (accept.includes('text/html') || accept === '*/*')
 }
 
-function isGetRequest (req) {
+function isGetMethod (req) {
   return req.method === 'GET'
 }
 
-function isAppHtmlRequest (req) {
+function isSinglePageRequest (req) {
   const url = new URL(req.url)
 
   return (
     isMyHost(url) &&
-    !isAsset(url) &&
+    !isAssetPath(url) &&
     !isApiOrLandingPage(url) &&
-    isGetRequest(req) &&
+    isGetMethod(req) &&
     isAcceptHtml(req)
   )
 }
 
-function createAppHtmlRequest (req) {
+function createSinglePageRequest (req) {
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
     method: req.method,
@@ -69,5 +62,5 @@ function createAppHtmlRequest (req) {
   })
 }
 
-module.exports = {isAppHtmlRequest, createAppHtmlRequest}
+module.exports = {isSinglePageRequest, createSinglePageRequest}
 
