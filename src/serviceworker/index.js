@@ -3,7 +3,7 @@
 
 require('babel-polyfill')
 
-const isDebug = () => location && location.hostname === 'localhost'
+const isDebug = () => location && location.hostname.includes(['localhost', 'sw-skelton.herokuapp.com'])
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
 const {deleteAllCache, checkForUpdate} = require('./caches')
@@ -26,7 +26,7 @@ function cacheIsOutdated (res) {
   if (!dateStr) return false
   const date = new Date(dateStr)
   const now = new Date()
-  const cachePeriod = isDebug() ? 60 * 1000 : 30 * 24 * 60 * 60 * 1000
+  const cachePeriod = 30 * 24 * 60 * 60 * 1000 // isDebug() ? 60 * 1000
   // debug('cache info', res.url, cachedDate, (now - cachedDate) / 1000)
   return (now - date > cachePeriod)
 }

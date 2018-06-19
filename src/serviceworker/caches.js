@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-const isDebug = () => location && location.hostname === 'localhost'
+const isDebug = () => location && location.hostname.includes(['localhost', 'sw-skelton.herokuapp.com'])
 const debug = (...msg) => isDebug() && console.log('%cserviceworker:caches', 'color: gray', ...msg)
 
 async function updateCache ({version, paths}) {
