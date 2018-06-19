@@ -1,12 +1,12 @@
 /* eslint-env browser */
 
 const isDebug = () => location && location.hostname === 'localhost'
-const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
+const debug = (...msg) => isDebug() && console.log('%cserviceworker:caches', 'color: gray', ...msg)
 
-async function updateCache ({version, assets}) {
-  debug('updating cache...')
+async function updateCache ({version, paths}) {
+  debug('adding all cache...')
   const cache = await caches.open(version)
-  await cache.addAll(assets)
+  await cache.addAll(paths)
   debug('add all cache done', version)
   await deleteOldCache(version)
   debug('updating cache done')
@@ -30,28 +30,26 @@ async function deleteOldCache (currentVersion) {
   )
 }
 
-async function fetchManifest () {
-  debug('fetching assets manifest...')
-  const url = location.origin + '/assets/json/assets-list.json'
-  const req = new Request(url, { method: 'get' })
-  const res = await fetch(req)
+async function fetchAssetsJson () {
+  debug('fetching assets.json...')
+  const res = await fetch('/assets/assets.json')
   if (!res.ok) throw new Error(`Server responded ${res.status}`)
   return res.clone().json()
 }
 
 async function checkForUpdate () {
-  debug('check for update...')
+  debug('checking for update...')
   if (!navigator.onLine) {
     debug('offline')
     return
   }
 
-  const manifest = await fetchManifest()
-  if (await caches.has(manifest.version)) {
+  const assets = await fetchAssetsJson()
+  if (await caches.has(assets.version)) {
     debug('already up-to-date')
     return
   }
-  return updateCache(manifest)
+  return updateCache(assets)
 }
 
 module.exports = {deleteAllCache, checkForUpdate}
