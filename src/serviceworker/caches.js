@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
@@ -53,5 +55,3 @@ async function checkForUpdate () {
 }
 
 module.exports = {deleteAllCache, checkForUpdate}
-
-

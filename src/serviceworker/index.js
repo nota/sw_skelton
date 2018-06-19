@@ -22,8 +22,6 @@ self.addEventListener('activate', function (event) {
 })
 
 function cacheIsOutdated (res) {
-  const url = new URL(res.url)
-
   const dateStr = res.headers.get('date')
   if (!dateStr) return false
   const date = new Date(dateStr)

@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 const NOCACHE_PATHS = [
   '/serviceworker.js',
   '/api/'

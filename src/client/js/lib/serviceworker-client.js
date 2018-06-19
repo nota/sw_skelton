@@ -21,7 +21,7 @@ export default new class ServiceWorkerClient {
 
     const {serviceWorker} = navigator
     if (!serviceWorker) throw new Error(NOT_AVAILABLE)
-    const reg = await serviceWorker.register('/serviceworker.js', {scope: '/'})
+    return serviceWorker.register('/serviceworker.js', {scope: '/'})
   }
 
   async disable () {
@@ -37,7 +37,7 @@ export default new class ServiceWorkerClient {
     debug('update')
     const reg = await this.getRegistration()
     if (!reg) return
-    reg.update() // service worker自体の更新を行う
+    return reg.update() // service worker自体の更新を行う
   }
 
   async postMessage (message) {
