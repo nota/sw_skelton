@@ -32,7 +32,6 @@ h1 {
   text-align: center;
   bottom: 0;
   right: 0;
-  width: 100px;
 
   a {
     display: block;
@@ -41,6 +40,7 @@ h1 {
     border: 0;
     height: 36px;
     line-height: 36px;
+    padding: 0 10px;
     font-size: 14px;
     color: #fff;
     text-decoration: none;
