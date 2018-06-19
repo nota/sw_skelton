@@ -97,7 +97,13 @@ self.addEventListener('message', function (event) {
   event.waitUntil(async function () {
     debug('message', event.data)
     if (event.data !== 'checkForUpdate') return
-    const ret = await checkForUpdate()
+    let ret
+    try {
+      ret = await checkForUpdate()
+    } catch (err) {
+      console.error(err)
+      ret = {error: err.message}
+    }
     event.ports[0].postMessage(ret)
   }())
 })

@@ -8,6 +8,7 @@ async function updateCache ({version, assets}) {
   debug('add all cache done', version)
   await deleteOldCache(version)
   debug('updating cache done')
+  return {version}
 }
 
 async function deleteAllCache () {
@@ -31,26 +32,22 @@ async function fetchManifest () {
   debug('fetching assets manifest...')
   const url = location.origin + '/json/assets-list.json'
   const req = new Request(url, { method: 'get' })
-  try {
-    const res = await fetch(req)
-    if (!res.ok) throw new Error(`Server responded ${res.status}`)
-    return res.clone().json()
-  } catch (err) {
-    if (err instanceof TypeError && err.message === 'Failed to fetch') {
-      debug('failed to fetch manifest, offline?')
-      return null
-    }
-    throw (err)
-  }
+  const res = await fetch(req)
+  if (!res.ok) throw new Error(`Server responded ${res.status}`)
+  return res.clone().json()
 }
 
 async function checkForUpdate () {
   debug('check for update...')
+  if (!navigator.onLine) {
+    debug('offline')
+    return
+  }
+
   const manifest = await fetchManifest()
-  if (!manifest) return null
   if (await caches.has(manifest.version)) {
     debug('already up-to-date')
-    return null
+    return
   }
   return updateCache(manifest)
 }

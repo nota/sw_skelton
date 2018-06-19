@@ -46,7 +46,13 @@ export default new class ServiceWorkerClient {
     // Note: postMessageが呼ばれると、service workerがstopしていてもstartされる
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel()
-      channel.port1.onmessage = e => resolve(e.data)
+      channel.port1.onmessage = e => {
+        if (e.data && e.data.error) {
+          reject(e.data.error)
+        } else {
+          resolve(e.data)
+        }
+      }
       reg.active.postMessage(message, [channel.port2])
     })
   }
