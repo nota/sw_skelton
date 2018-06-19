@@ -12,6 +12,7 @@ export default new class AssetsCacheStore extends EventEmitter {
     this._isMyVersionCached = false
 
     this.watchCacheStore = this.watchCacheStore.bind(this)
+    this.watchCacheStore()
     setInterval(this.watchCacheStore, 1000)
   }
 
