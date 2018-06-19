@@ -43,13 +43,18 @@ export default class Setting extends Component {
   }
 
   async checkForUpdate () {
+    if (!navigator.onLine) {
+      alert('Your network is offline. Try again later.')
+      return
+    }
+
     this.setState({loading: true})
     try {
       const res = await ServiceWorkerClient.postMessage('checkForUpdate')
       debug(res)
 //      await AssetsCacheStore.checkForUpdate()
     } catch (err) {
-      alert(err.toString())
+      alert('Cannot check the new version\n' + err.toString())
     }
     this.setState({loading: false})
   }
