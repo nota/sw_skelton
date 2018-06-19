@@ -81,7 +81,7 @@ export default class Setting extends Component {
   render () {
     return (
       <div>
-        <p><b>assets cache</b></p>
+        <p><b>assets</b></p>
         {
           this.state.message && (
             <p>
