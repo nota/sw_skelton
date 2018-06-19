@@ -15,7 +15,7 @@
     "build:browserify": "browserify --verbose -t [ babelify ] -g [ uglifyify --keep_fnames ] src/client/js/index.js -o public/index.js",
     "build:serviceworker": "browserify --verbose -t [ babelify ] src/serviceworker/index.js -o public/serviceworker.js",
     "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/css/",
-    "build:gulp": "gulp build",
+    "build:assets": "scripts/build-assets/index.sh",
     "build:assets-list": "node scripts/build-assets-list.js",
     "test": "./node_modules/.bin/standard",
     "watch": "./node_modules/.bin/run-p watch:**",
@@ -23,9 +23,8 @@
     "watch:watchify": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/client/js/index.js -o public/index.js",
     "watch:serviceworker": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/serviceworker/index.js -o public/serviceworker.js",
     "watch:sass": "./node_modules/.bin/chokidar 'src/client/css/**/*.scss' -c 'npm run build:sass -- --source-map-embed' --initial",
-    "watch:gulp": "./node_modules/.bin/gulp watch",
-    "watch:assets-list": "./node_modules/.bin/chokidar 'src/' -c 'npm run build:assets-list' --initial",
-    "clean": "gulp clean"
+    "watch:assets": "chokidar 'src/client/img/**' -c 'npm run build:assets' --initial",
+    "watch:assets-list": "./node_modules/.bin/chokidar 'src/' -c 'npm run build:assets-list' --initial"
   },
   "devDependencies": {
     "babel-eslint": "^6.1.2",
@@ -55,9 +54,6 @@
     "express": "^4.15.3",
     "font-awesome": "^4.6.3",
     "glob-promise": "^1.0.6",
-    "gulp": "^3.9.1",
-    "gulp-iconfont": "^8.0.1",
-    "gulp-iconfont-css": "^2.1.0",
     "highlight.js": "^9.12.0",
     "md5": "^2.2.1",
     "md5-file": "^3.1.1",
