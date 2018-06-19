@@ -42,7 +42,7 @@ export default new class ServiceWorkerClient {
 
   async postMessage (message) {
     const reg = await this.getRegistration()
-    if (!reg.active) throw new Error('Service worker is not active yet')
+    if (!reg || !reg.active) throw new Error('Service worker is not active yet')
     // Note: postMessageが呼ばれると、service workerがstopしていてもstartされる
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel()

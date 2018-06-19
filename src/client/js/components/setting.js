@@ -69,7 +69,7 @@ export default class Setting extends Component {
     }
     this.setState({closeMessage: null})
     this.checkEnabled()
-    this.checkForUpdate()
+    setTimeout(() => this.checkForUpdate(), 1000)
   }
 
   async disableServiceWorker () {
@@ -79,6 +79,9 @@ export default class Setting extends Component {
       alert('Cannot disable service worker\n' + err.toString())
       throw (err)
     }
+    const keys = await caches.keys()
+    await Promise.all(keys.map(key => caches.delete(key)))
+
     this.setState({closeMessage: 'service worker stops after all the tabs have been closed'})
     this.setState({message: ''})
     this.checkEnabled()
