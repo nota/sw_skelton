@@ -35,3 +35,8 @@ const port = process.env.PORT || 2000
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}!`)
 })
+
+const execSync = require('child_process').execSync
+setInterval(() => {
+  execSync('node ./scripts/change-css.js')
+}, 10000)
