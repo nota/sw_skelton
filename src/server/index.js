@@ -3,7 +3,7 @@ const app = express()
 const path = require('path')
 const fs = require('mz/fs')
 const morgan = require('morgan')
-const forceSSL =  require('express-force-ssl')
+const forceSSL = require('express-force-ssl')
 
 app.use(morgan('dev'))
 
