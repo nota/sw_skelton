@@ -37,7 +37,6 @@ export default new class AssetsCacheStore extends EventEmitter {
     const isMyVersionCached = await cacheExists(this.myVersion)
     if (newKeys) {
       this._newerVersion = newKeys
-      this._myVersionIsCached =
       this.emit('change')
     }
     if (this._isMyVersionCached !== isMyVersionCached) {
