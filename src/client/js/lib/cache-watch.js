@@ -1,6 +1,7 @@
 /* eslint-env browser */
 
 export async function isNewCacheAvailable (version) {
+  if (await caches.has(version)) return false
   const date = getDateFromCacheKey(version)
   const keys = await caches.keys()
   for (const key of keys) {

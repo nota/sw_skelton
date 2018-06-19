@@ -37,6 +37,13 @@ async function fetchAssetsJson () {
   return res.clone().json()
 }
 
+async function cacheExists (version) {
+  if (!(await caches.has(version))) return false
+  // BK: addAllはときどき空のCacheオブジェクトだけ作って死ぬので、中にRequestオブジェクトがあるか確認する
+  const cache = await caches.open(version)
+  return (await cache.keys()).length > 0
+}
+
 async function checkForUpdate () {
   debug('checking for update...')
   if (!navigator.onLine) {
@@ -45,7 +52,7 @@ async function checkForUpdate () {
   }
 
   const assets = await fetchAssetsJson()
-  if (await caches.has(assets.version)) {
+  if (await cacheExists(assets.version)) {
     debug('already up-to-date')
     return
   }
