@@ -14,7 +14,7 @@
     "build:babel": "./node_modules/.bin/babel src/ --out-dir build/ --source-maps inline",
     "build:browserify": "browserify --verbose -t [ babelify ] -g [ uglifyify --keep_fnames ] src/client/js/index.js -o public/index.js",
     "build:serviceworker": "browserify --verbose -t [ babelify ] src/serviceworker/index.js -o public/serviceworker.js",
-    "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/css/",
+    "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/assets/css/",
     "build:assets": "scripts/build-assets/index.sh",
     "build:assets-list": "node scripts/build-assets-list.js",
     "test": "./node_modules/.bin/standard",

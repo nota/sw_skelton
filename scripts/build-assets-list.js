@@ -11,14 +11,14 @@ const assets = [
 ]
 const pattern = /\.(woff2|css|png|js)$/
 for (const dir of ['css', 'fonts', 'img']) {
-  const files = fs.readdirSync(`./public/${dir}`)
+  const files = fs.readdirSync(`./public/assets/${dir}`)
                   .filter(file => file.match(pattern))
-                  .map(file => `/${dir}/${file}`)
+                  .map(file => `/assets/${dir}/${file}`)
   assets.push(...files)
 }
 
 const body = JSON.stringify({version, assets})
 
-const dir = './public/json'
+const dir = './public/assets/json'
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 fs.writeFileSync(`${dir}/assets-list.json`, body)

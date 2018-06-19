@@ -7,12 +7,12 @@ export default class App extends Component {
     return (
       <div>
         <div className='navbar navbar-inverse'>
-          <a className='navbar-brand' href='#'>Scrapbox</a>
+          <a className='navbar-brand' href='#'>SW Skelton</a>
         </div>
         <UpdateNotifier />
         <div className='container' id='cont'>
           <h1>
-            <img src='/img/logo.png' className='logoimg' width='50' />
+            <img src='/assets/img/logo.png' className='logoimg' width='50' />
             Hello, service worker
           </h1>
           <Setting />
