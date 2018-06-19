@@ -3,8 +3,13 @@ const app = express()
 const path = require('path')
 const fs = require('mz/fs')
 const morgan = require('morgan')
+const forceSSL = require('express-force-ssl')
 
 app.use(morgan('dev'))
+if (process.env.FORCE_SSL === 'true') {
+  app.set('forceSSLOptions', { trustXFPHeader: true })
+  app.use(forceSSL)
+}
 
 app.get('/', async (req, res) => {
   const version = await readAssetsVersion()
