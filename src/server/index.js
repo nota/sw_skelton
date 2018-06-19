@@ -19,7 +19,7 @@ app.get('/app.html', async (req, res) => {
 })
 
 async function readAssetsVersion () {
-  const json = await fs.readFile('./public/assets/assets-list.json')
+  const json = await fs.readFile('./public/assets/assets.json')
   const {version} = JSON.parse(json)
   return version
 }

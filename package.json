@@ -16,7 +16,7 @@
     "build:serviceworker": "browserify --verbose -t [ babelify ] src/serviceworker/index.js -o public/serviceworker.js",
     "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/assets/css/",
     "build:assets": "scripts/build-assets/index.sh",
-    "build:assets-list": "node scripts/build-assets/assets-list.js",
+    "build:assets-json": "node scripts/build-assets/assets-json.js",
     "test": "./node_modules/.bin/standard",
     "watch": "./node_modules/.bin/run-p watch:**",
     "watch:babel": "npm run build:babel -- --watch",
@@ -24,7 +24,7 @@
     "watch:serviceworker": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/serviceworker/index.js -o public/serviceworker.js",
     "watch:sass": "./node_modules/.bin/chokidar 'src/client/css/**/*.scss' -c 'npm run build:sass -- --source-map-embed' --initial",
     "watch:assets": "chokidar 'src/client/img/**' -c 'npm run build:assets' --initial",
-    "watch:assets-list": "./node_modules/.bin/chokidar 'src/' -c 'npm run build:assets-list' --initial"
+    "watch:assets-json": "./node_modules/.bin/chokidar 'src/' -c 'npm run build:assets-json' --initial"
   },
   "devDependencies": {
     "babel-eslint": "^6.1.2",

@@ -3,10 +3,10 @@
 const isDebug = () => location && location.hostname === 'localhost'
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
-async function updateCache ({version, assets}) {
+async function updateCache ({version, paths}) {
   debug('updating cache...')
   const cache = await caches.open(version)
-  await cache.addAll(assets)
+  await cache.addAll(paths)
   debug('add all cache done', version)
   await deleteOldCache(version)
   debug('updating cache done')
@@ -32,7 +32,7 @@ async function deleteOldCache (currentVersion) {
 
 async function fetchManifest () {
   debug('fetching assets manifest...')
-  const url = location.origin + '/assets/assets-list.json'
+  const url = location.origin + '/assets/assets.json'
   const req = new Request(url, { method: 'get' })
   const res = await fetch(req)
   if (!res.ok) throw new Error(`Server responded ${res.status}`)
