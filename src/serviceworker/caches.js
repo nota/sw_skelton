@@ -39,7 +39,8 @@ async function fetchAssetsJson () {
 
 async function cacheExists (version) {
   if (!(await caches.has(version))) return false
-  // BK: addAllはときどき空のCacheオブジェクトだけ作って死ぬので、中にRequestオブジェクトがあるか確認する
+  // cache.addAllは、中断すると空のCacheオブジェクトができるので、
+  // 中にRequestオブジェクトがあるか確認する
   const cache = await caches.open(version)
   return (await cache.keys()).length > 0
 }
