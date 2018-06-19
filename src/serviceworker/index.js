@@ -3,7 +3,7 @@
 
 require('babel-polyfill')
 
-const isDebug = () => location && location.hostname.includes(['localhost', 'sw-skelton.herokuapp.com'])
+const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
 const {deleteAllCache, checkForUpdate} = require('./caches')
