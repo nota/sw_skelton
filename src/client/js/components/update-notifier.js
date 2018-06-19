@@ -25,7 +25,7 @@ export default class UpdateNotifier extends Component {
 
     return (
       <div className='update-alert-bar'>
-        <a href={location.href}>Update found!</a>
+        <a href={location.href}>New app version is ready!</a>
       </div>
     )
   }

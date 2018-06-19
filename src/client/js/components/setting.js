@@ -10,7 +10,7 @@ export default class Setting extends Component {
   constructor (props) {
     super(props)
 
-    const state = this.initState()
+    const state = this.getStateFromStore()
     state.enabled = false
 
     this.state = state
@@ -18,9 +18,10 @@ export default class Setting extends Component {
     AssetsCacheStore.on('change', this.onStoreChanged.bind(this))
   }
 
-  initState () {
+  getStateFromStore () {
     return {
       myVersion: AssetsCacheStore.myVersion,
+      isMyVersionCached: AssetsCacheStore.isMyVersionCached,
       newerVersion: AssetsCacheStore.newerVersion,
       timeOfUpdateFound: AssetsCacheStore.timeOfUpdateFound,
       loading: false
@@ -39,7 +40,7 @@ export default class Setting extends Component {
   }
 
   async onStoreChanged () {
-    this.setState(this.initState())
+    this.setState(this.getStateFromStore())
   }
 
   async checkForUpdate () {
@@ -103,6 +104,9 @@ export default class Setting extends Component {
         }
         <p>
           my version: {this.state.myVersion}
+          {
+            this.state.isMyVersionCached && ' (cached)'
+          }
         </p>
         <p>
           new version: {this.state.newerVersion ? this.state.newerVersion + ' is available (cached)' : 'not available'}
