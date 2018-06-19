@@ -3,6 +3,7 @@ const app = express()
 const path = require('path')
 const fs = require('mz/fs')
 const morgan = require('morgan')
+const forceSSL =  require('express-force-ssl')
 
 app.use(morgan('dev'))
 
@@ -31,6 +32,10 @@ app.get('/note/*', (req, res) => {
 app.use(express.static(path.join(__dirname, '../../public')))
 app.set('views', `${__dirname}/views`)
 app.set('view engine', 'ejs')
+if (process.env.FORCE_SSL === 'true') {
+  app.set('forceSSLOptions', { trustXFPHeader: true })
+  app.use(forceSSL)
+}
 const port = process.env.PORT || 2000
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}!`)
