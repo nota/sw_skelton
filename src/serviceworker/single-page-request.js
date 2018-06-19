@@ -6,10 +6,7 @@ const NOCACHE_PATHS = [
 ]
 
 const ASSET_PATHS = [
-  '/css/',
-  '/img/',
-  '/fonts/',
-  '/json/',
+  '/assets/',
   '/app.html',
   '/index.js'
 ]

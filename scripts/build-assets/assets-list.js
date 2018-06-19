@@ -17,8 +17,8 @@ for (const dir of ['css', 'fonts', 'img']) {
   assets.push(...files)
 }
 
-const body = JSON.stringify({version, assets})
+const body = JSON.stringify({version, assets}, null, 2)
 
-const dir = './public/assets/json'
+const dir = './public/assets'
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 fs.writeFileSync(`${dir}/assets-list.json`, body)

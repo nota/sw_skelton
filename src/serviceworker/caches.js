@@ -32,7 +32,7 @@ async function deleteOldCache (currentVersion) {
 
 async function fetchManifest () {
   debug('fetching assets manifest...')
-  const url = location.origin + '/assets/json/assets-list.json'
+  const url = location.origin + '/assets/assets-list.json'
   const req = new Request(url, { method: 'get' })
   const res = await fetch(req)
   if (!res.ok) throw new Error(`Server responded ${res.status}`)
