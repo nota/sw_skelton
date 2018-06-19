@@ -14,11 +14,6 @@ export default new class ServiceWorkerClient {
     const reg = await this.getRegistration()
     if (!reg) return
     this.enable()
-
-    window.addEventListener('load', () => {
-      debug('onload')
-      return this.postMessage('checkForUpdate')
-    })
   }
 
   async enable () {
@@ -43,12 +38,22 @@ export default new class ServiceWorkerClient {
     const reg = await this.getRegistration()
     if (!reg) return
     reg.update() // service worker自体の更新を行う
-    this.postMessage('checkForUpdate') // assets(app.html, JS, CSS, Image等)の更新を確認
   }
 
   async postMessage (message) {
     const reg = await this.getRegistration()
     if (!reg.active) throw new Error('Service worker is not active yet')
-    reg.active.postMessage(message)
+    // Note: postMessageが呼ばれると、service workerがstopしていてもstartされる
+    return new Promise((resolve, reject) => {
+      const channel = new MessageChannel()
+      channel.port1.onmessage = e => {
+        if (e.data && e.data.error) {
+          reject(e.data.error)
+        } else {
+          resolve(e.data)
+        }
+      }
+      reg.active.postMessage(message, [channel.port2])
+    })
   }
 }()

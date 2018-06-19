@@ -16,21 +16,10 @@ export default class App extends Component {
             Hello, service worker
           </h1>
           <Setting />
-          <div className='text'>
-            url: {window.location.href}<br />
-          </div>
-
-          <div className='text'>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-            sed do eiusmod tempor incididunt ut labore et dolore magna
-            aliqua.
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco
-            laboris nisi ut aliquip ex ea commodo consequat.
-            Duis aute irure dolor in reprehenderit in voluptate velit
-            esse cillum dolore eu fugiat nulla pariatur.
-            Excepteur sint occaecat cupidatat non proident,
-            sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </div>
+          <hr />
+          url: {window.location.href}<br />
+          <br />
+          Welcome to service worker skelton app!
         </div>
       </div>
     )

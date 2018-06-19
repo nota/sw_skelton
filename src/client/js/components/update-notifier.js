@@ -3,20 +3,20 @@
 // const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AppCacheStore from '../stores/app-cache-store'
+import AssetsCacheStore from '../stores/assets-cache-store'
 
 export default class UpdateNotifier extends Component {
   constructor (props) {
     super(props)
 
-    const hasUpdate = AppCacheStore.hasUpdate()
+    const hasUpdate = AssetsCacheStore.hasUpdate()
     this.state = {hasUpdate}
 
-    AppCacheStore.on('change', this.onAppVersionChanged.bind(this))
+    AssetsCacheStore.on('change', this.onAppVersionChanged.bind(this))
   }
 
   onAppVersionChanged () {
-    const hasUpdate = AppCacheStore.hasUpdate()
+    const hasUpdate = AssetsCacheStore.hasUpdate()
     this.setState({hasUpdate})
   }
 

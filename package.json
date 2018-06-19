@@ -1,5 +1,5 @@
 {
-  "name": "sw_app",
+  "name": "sw_skelton",
   "version": "0.0.1",
   "private": true,
   "engines": {
@@ -16,6 +16,7 @@
     "build:serviceworker": "browserify --verbose -t [ babelify ] src/serviceworker/index.js -o public/serviceworker.js",
     "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/css/",
     "build:gulp": "gulp build",
+    "build:assets-list": "node scripts/build-assets-list.js",
     "test": "./node_modules/.bin/standard",
     "watch": "./node_modules/.bin/run-p watch:**",
     "watch:babel": "npm run build:babel -- --watch",
@@ -23,6 +24,7 @@
     "watch:serviceworker": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/serviceworker/index.js -o public/serviceworker.js",
     "watch:sass": "./node_modules/.bin/chokidar 'src/client/css/**/*.scss' -c 'npm run build:sass -- --source-map-embed' --initial",
     "watch:gulp": "./node_modules/.bin/gulp watch",
+    "watch:assets-list": "./node_modules/.bin/chokidar 'src/' -c 'npm run build:assets-list' --initial",
     "clean": "gulp clean"
   },
   "devDependencies": {
@@ -46,6 +48,7 @@
     "bootstrap-sass": "^3.3.7",
     "browserify": "^13.1.0",
     "browserify-shim": "^3.8.14",
+    "dateformat": "^3.0.3",
     "debug": "^3.0.0",
     "del": "^2.2.2",
     "ejs": "^2.5.6",

@@ -1,9 +1,9 @@
 /* eslint-env browser */
 
-// const debug = require('../lib/debug')(__filename)
+const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
-import AppCacheStore from '../stores/app-cache-store'
+import AssetsCacheStore from '../stores/assets-cache-store'
 import ServiceWorkerClient from '../lib/serviceworker-client'
 
 export default class Setting extends Component {
@@ -15,28 +15,21 @@ export default class Setting extends Component {
 
     this.state = state
 
-    AppCacheStore.on('change', this.onAppCacheChanged.bind(this))
+    AssetsCacheStore.on('change', this.onStoreChanged.bind(this))
   }
 
   initState () {
-    const {currentVersion, cachedVersion, timeOfUpdateFound} = AppCacheStore
-
-    let message
-    if (AppCacheStore.cachedVersion) {
-      if (AppCacheStore.hasUpdate()) {
-        message = 'Update is available'
-      } else {
-        message = 'It’s up to date :-)'
-      }
-    } else {
-      message = 'no cache'
+    return {
+      myVersion: AssetsCacheStore.myVersion,
+      newerVersion: AssetsCacheStore.newerVersion,
+      timeOfUpdateFound: AssetsCacheStore.timeOfUpdateFound,
+      loading: false
     }
-    return {currentVersion, cachedVersion, timeOfUpdateFound, message}
   }
 
   async componentDidMount () {
-    const currentVersion = AppCacheStore.currentVersion
-    this.setState({currentVersion})
+    const myVersion = AssetsCacheStore.myVersion
+    this.setState({myVersion})
     this.checkEnabled()
   }
 
@@ -45,18 +38,20 @@ export default class Setting extends Component {
     this.setState({enabled})
   }
 
-  async onAppCacheChanged () {
+  async onStoreChanged () {
     this.setState(this.initState())
   }
 
   async checkForUpdate () {
-    this.setState({message: 'checking latest version...'})
+    this.setState({loading: true})
     try {
-      ServiceWorkerClient.update()
+      const res = await ServiceWorkerClient.postMessage('checkForUpdate')
+      debug(res)
+//      await AssetsCacheStore.checkForUpdate()
     } catch (err) {
       alert(err.toString())
     }
-    this.setState(this.initState())
+    this.setState({loading: false})
   }
 
   async enableServiceWorker () {
@@ -86,19 +81,7 @@ export default class Setting extends Component {
   render () {
     return (
       <div>
-        <p>serviceWorker:
-          {
-            this.state.enabled
-              ? <span className='label label-success'>on</span>
-              : <span className='label label-danger'>off</span>
-          }
-        </p>
-        {
-          this.state.closeMessage &&
-            <p className='alert alert-danger'>
-              {this.state.closeMessage}
-            </p>
-        }
+        <p><b>assets cache</b></p>
         {
           this.state.message && (
             <p>
@@ -114,24 +97,40 @@ export default class Setting extends Component {
           )
         }
         <p>
-          current version: {this.state.currentVersion}
+          my version: {this.state.myVersion}
         </p>
         <p>
-          cached version: {this.state.cachedVersion || 'null'}
+          new version: {this.state.newerVersion ? this.state.newerVersion + ' is available (cached)' : 'not available'}
         </p>
         <p>
           <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!this.state.enabled}>
-            Check for update
+            { this.state.loading ? 'Checking...' : 'Check for update' }
           </button>
           &nbsp;
         </p>
+        <hr />
+        <p><b>service worker</b></p>
+        <p>enabled:
+          {
+            this.state.enabled
+              ? <span className='label label-success'>on</span>
+              : <span className='label label-danger'>off</span>
+          }
+        </p>
+        {
+          this.state.closeMessage &&
+            <p className='alert alert-danger'>
+              {this.state.closeMessage}
+            </p>
+        }
+
         <p>
           {
             this.state.enabled
-            ? <button className='btn btn-default btn-sm' onClick={this.disableServiceWorker.bind(this)}>
+            ? <button className='btn btn-default' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
             </button>
-            : <button className='btn btn-default btn-sm' onClick={this.enableServiceWorker.bind(this)}>
+            : <button className='btn btn-default' onClick={this.enableServiceWorker.bind(this)}>
                 Enable service worker
             </button>
           }
