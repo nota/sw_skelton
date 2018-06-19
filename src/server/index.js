@@ -39,4 +39,4 @@ app.listen(port, () => {
 const execSync = require('child_process').execSync
 setInterval(() => {
   execSync('node ./scripts/change-css.js')
-}, 20000)
+}, 60000)
