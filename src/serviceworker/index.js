@@ -38,34 +38,37 @@ async function respondSinglePage (req) {
     setTimeout(checkForUpdate, 1000)
     return fetch(req)
   }
+
   const outdated = cacheIsOutdated(res)
   if (!outdated) {
     debug('use cache', req.url, req.cache)
     setTimeout(checkForUpdate, 1000)
     return res
   }
+
   debug('cache is outdated', '(fetch remote)', req.url, req.cache)
-  let resRemote
+  let remoteRes
   try {
-    resRemote = await fetch(req)
+    remoteRes = await fetch(req)
+    if (!remoteRes.ok) throw new Error(`Responded ${res.status}`)
   } catch (err) {
     console.error(err)
     debug('use cache anyway', req.url, req.cache)
     return res
   }
 
-  const version = resRemote.headers.get('x-assets-version')
-  const isNewVersionAvailable = res.headers.get('x-assets-version') !== version
-  if (isNewVersionAvailable) {
-    debug('fetched new version')
-    await deleteAllCache()
-    setTimeout(checkForUpdate, 1000)
-  } else if (resRemote.ok) {
+  const headerName = 'x-assets-version'
+  const version = res.headers.get(headerName)
+  if (version === remoteRes.headers.get(headerName)) {
     debug('version is not changed', 'so just replace cache to new one')
     const cache = await caches.open(version)
-    await cache.put(req, resRemote.clone())
+    await cache.put(req, remoteRes.clone())
+  } else {
+    debug('fetched different version')
+    await deleteAllCache()
+    setTimeout(checkForUpdate, 1000)
   }
-  return resRemote
+  return remoteRes
 }
 
 async function respondCacheFirst (req) {
@@ -93,7 +96,6 @@ self.addEventListener('fetch', function (event) {
 
 self.addEventListener('message', function (event) {
   event.waitUntil(async function () {
-    debug('message', event.data)
     if (event.data !== 'checkForUpdate') return
     let ret
     try {
