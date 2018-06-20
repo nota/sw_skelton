@@ -67,7 +67,6 @@ export default class Setting extends Component {
     }
     this.setState({closeMessage: null})
     this.checkEnabled()
-    setTimeout(() => this.checkForUpdate(), 1000)
   }
 
   async disableServiceWorker () {
