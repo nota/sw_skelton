@@ -8,7 +8,8 @@ const version = 'assets-' + dateFormat(now, 'yyyymmdd-HHMMss')
 const paths = [
   '/app.html',
   '/index.js',
-  'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
+  'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
+  'https://fonts.googleapis.com/css?family=Open+Sans:400,700'
 ]
 const pattern = /\.(woff2|css|png|jpg|gif|svg|ico|js)$/
 
