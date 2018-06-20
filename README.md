@@ -1,6 +1,6 @@
 # Service Worker オフラインアプリ
 
-![](https://gyazo.com/bdfb01a248300f02268f264d17580c7d.png)
+![](https://gyazo.com/cbab2c429e373564e8fb40aac1f20647.png)
 
 ## Install
 
