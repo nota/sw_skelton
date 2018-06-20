@@ -3,45 +3,45 @@
 // const debug = require('../lib/debug')(__filename)
 
 import {EventEmitter} from 'events'
-import {isNewCacheAvailable, cacheExists} from '../lib/cache-watch'
+import {hasNewVersionCache, cacheExists} from '../lib/cache-watch'
 
 export default new class AssetsCacheStore extends EventEmitter {
   constructor () {
     super()
-    this._newerVersion = null
-    this._isMyVersionCached = false
+    this._newVersion = null
+    this._hasCache = false
 
     this.watchCacheStore = this.watchCacheStore.bind(this)
     this.watchCacheStore()
     setInterval(this.watchCacheStore, 1000)
   }
 
-  get myVersion () {
+  get version () {
     return document.documentElement.dataset.version
   }
 
-  get isMyVersionCached () {
-    return this._isMyVersionCached
+  hasCache () {
+    return this._hasCache
   }
 
-  get newerVersion () {
-    return this._newerVersion
+  get newVersion () {
+    return this._newVersion
   }
 
   hasUpdate () {
-    return !!this._newerVersion
+    return !!this._newVersion
   }
 
   async watchCacheStore () {
 //    debug('watchCacheStore')
-    const newKeys = await isNewCacheAvailable(this.myVersion)
-    const isMyVersionCached = await cacheExists(this.myVersion)
-    if (newKeys) {
-      this._newerVersion = newKeys
+    const newVersion = await hasNewVersionCache(this.version)
+    const hasCache = await cacheExists(this.version)
+    if (newVersion) {
+      this._newVersion = newVersion
       this.emit('change')
     }
-    if (this._isMyVersionCached !== isMyVersionCached) {
-      this._isMyVersionCached = isMyVersionCached
+    if (this._hasCache !== hasCache) {
+      this._hasCache = hasCache
       this.emit('change')
     }
   }

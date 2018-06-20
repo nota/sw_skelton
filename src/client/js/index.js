@@ -5,7 +5,7 @@ import 'babel-polyfill'
 import React from 'react'
 import {render} from 'react-dom'
 
-import ServiceWorkerClient from './lib/serviceworker-client'
+import {ServiceWorkerClient} from './lib/serviceworker-client'
 
 ServiceWorkerClient.start()
 
