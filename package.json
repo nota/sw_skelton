@@ -18,8 +18,6 @@
     "build:assets-json": "node scripts/build-assets/assets-json.js",
     "test": "./node_modules/.bin/standard",
     "watch": "./node_modules/.bin/run-p watch:**",
-    "watch:babel:client": "npm run build:babel:client -- --watch",
-    "watch:babel:serviceworker": "npm run build:babel:serviceworker -- --watch",
     "watch:client": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/client/js/index.js -o public/index.js",
     "watch:serviceworker": "./node_modules/.bin/watchify --verbose --debug -t [ babelify ] -p browserify-notify src/serviceworker/index.js -o public/serviceworker.js",
     "watch:sass": "./node_modules/.bin/chokidar 'src/client/css/**/*.scss' -c 'npm run build:sass -- --source-map-embed' --initial",
