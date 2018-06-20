@@ -11,8 +11,8 @@ export default new class ServiceWorkerClient {
 
   async start () {
     debug('start')
-    const reg = await this.getRegistration()
-    if (!reg) return
+//    const reg = await this.getRegistration()
+//    if (!reg) return
     this.enable()
   }
 
