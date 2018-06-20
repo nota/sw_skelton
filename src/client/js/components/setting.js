@@ -23,7 +23,6 @@ export default class Setting extends Component {
       myVersion: AssetsCacheStore.myVersion,
       isMyVersionCached: AssetsCacheStore.isMyVersionCached,
       newerVersion: AssetsCacheStore.newerVersion,
-      timeOfUpdateFound: AssetsCacheStore.timeOfUpdateFound,
       loading: false
     }
   }
@@ -98,22 +97,26 @@ export default class Setting extends Component {
             </p>
           )
         }
-        {
-          this.state.timeOfUpdateFound && (
-            <p>
-              Update is downloaded: {this.state.timeOfUpdateFound.toString()}
-            </p>
-          )
-        }
         <p>
-          my version: {this.state.myVersion}
+          version: {this.state.myVersion}
           {
-            this.state.isMyVersionCached && ' (cached)'
+            this.state.isMyVersionCached && ' (saved)'
           }
         </p>
-        <p>
-          new version: {this.state.newerVersion ? this.state.newerVersion + ' is available (cached)' : 'not available'}
-        </p>
+        {
+          this.state.newerVersion &&
+            <p>
+              new version ({this.state.newerVersion}) is ready! (saved)
+            </p>
+        }
+        {
+          !this.state.newerVersion && this.state.isMyVersionCached &&
+            <p>It’s up to date</p>
+        }
+        {
+          !this.state.newerVersion && !this.state.isMyVersionCached &&
+            <p>-</p>
+        }
         <p>
           <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!this.state.enabled}>
             { this.state.loading ? 'Checking...' : 'Check for update' }
