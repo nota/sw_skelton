@@ -1,6 +1,8 @@
 {
   "name": "SW Skelton",
   "short_name": "SW Skelton",
+  "theme_color": "#222",
+  "background_color": "rgb(140, 220, 98)",
   "icons": [
     {
       "src": "/assets/img/favicon/chrome-icon-144.png",
