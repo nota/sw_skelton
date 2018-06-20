@@ -4,7 +4,7 @@ const debug = require('../lib/debug')(__filename)
 
 import React, {Component} from 'react'
 import AssetsCacheStore from '../stores/assets-cache-store'
-import ServiceWorkerClient from '../lib/serviceworker-client'
+import {ServiceWorkerClient} from '../lib/serviceworker-client'
 
 export default class Setting extends Component {
   constructor (props) {

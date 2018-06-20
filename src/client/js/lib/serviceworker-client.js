@@ -3,57 +3,57 @@ const debug = require('./debug')(__filename)
 
 const NOT_AVAILABLE = 'Your browser does not support service worker'
 
-export default new class ServiceWorkerClient {
-  getRegistration () {
-    const {serviceWorker} = navigator
-    return serviceWorker && serviceWorker.getRegistration('/')
-  }
+export const ServiceWorkerClient = {getRegistration, start, enable, disable, update, postMessage}
 
-  async start () {
-    debug('start')
-//    const reg = await this.getRegistration()
-//    if (!reg) return
-    this.enable()
-  }
+function getRegistration () {
+  const {serviceWorker} = navigator
+  return serviceWorker && serviceWorker.getRegistration('/')
+}
 
-  async enable () {
-    debug('enable')
+async function start () {
+  debug('start')
+  const reg = await getRegistration()
+  if (!reg) return
+  enable()
+}
 
-    const {serviceWorker} = navigator
-    if (!serviceWorker) throw new Error(NOT_AVAILABLE)
-    return serviceWorker.register('/serviceworker.js', {scope: '/'})
-  }
+async function enable () {
+  debug('enable')
 
-  async disable () {
-    debug('disable')
-    const reg = await this.getRegistration()
-    if (!reg) return
+  const {serviceWorker} = navigator
+  if (!serviceWorker) throw new Error(NOT_AVAILABLE)
+  return serviceWorker.register('/serviceworker.js', {scope: '/'})
+}
 
-    const result = await reg.unregister()
-    if (!result) throw new Error('Can not disable the service worker')
-  }
+async function disable () {
+  debug('disable')
+  const reg = await getRegistration()
+  if (!reg) return
 
-  async update () {
-    debug('update')
-    const reg = await this.getRegistration()
-    if (!reg) return
-    return reg.update() // service worker自体の更新を行う
-  }
+  const result = await reg.unregister()
+  if (!result) throw new Error('Can not disable the service worker')
+}
 
-  async postMessage (message) {
-    const reg = await this.getRegistration()
-    if (!reg || !reg.active) throw new Error('Service worker is not active yet')
-    // Note: postMessageが呼ばれると、service workerがstopしていてもstartされる
-    return new Promise((resolve, reject) => {
-      const channel = new MessageChannel()
-      channel.port1.onmessage = e => {
-        if (e.data && e.data.error) {
-          reject(e.data.error)
-        } else {
-          resolve(e.data)
-        }
+async function update () {
+  debug('update')
+  const reg = await getRegistration()
+  if (!reg) return
+  return reg.update() // service worker自体の更新を行う
+}
+
+async function postMessage (message) {
+  const reg = await getRegistration()
+  if (!reg || !reg.active) throw new Error('Service worker is not active yet')
+  // Note: postMessageが呼ばれると、service workerがstopしていてもstartされる
+  return new Promise((resolve, reject) => {
+    const channel = new MessageChannel()
+    channel.port1.onmessage = e => {
+      if (e.data && e.data.error) {
+        reject(e.data.error)
+      } else {
+        resolve(e.data)
       }
-      reg.active.postMessage(message, [channel.port2])
-    })
-  }
-}()
+    }
+    reg.active.postMessage(message, [channel.port2])
+  })
+}
