@@ -20,16 +20,15 @@ export default class Setting extends Component {
 
   getStateFromStore () {
     return {
-      myVersion: AssetsCacheStore.myVersion,
-      isMyVersionCached: AssetsCacheStore.isMyVersionCached,
-      newerVersion: AssetsCacheStore.newerVersion,
+      version: AssetsCacheStore.version,
+      hasCache: AssetsCacheStore.hasCache(),
+      newVersion: AssetsCacheStore.newVersion,
       loading: false
     }
   }
 
   async componentDidMount () {
-    const myVersion = AssetsCacheStore.myVersion
-    this.setState({myVersion})
+    this.setState(this.getStateFromStore())
     this.checkEnabled()
   }
 
@@ -82,44 +81,38 @@ export default class Setting extends Component {
     await Promise.all(keys.map(key => caches.delete(key)))
 
     this.setState({closeMessage: 'service worker stops after all the tabs have been closed'})
-    this.setState({message: ''})
     this.checkEnabled()
   }
 
   render () {
+    const {version, newVersion, hasCache, enabled, loading, closeMessage} = this.state
+
     return (
       <div>
         <p><b>assets</b></p>
-        {
-          this.state.message && (
-            <p>
-              <b>{this.state.message}</b>
-            </p>
-          )
-        }
         <p>
-          version: {this.state.myVersion}
+          version: {version}
           {
-            this.state.isMyVersionCached && ' (saved)'
+            hasCache && ' (saved)'
           }
         </p>
         {
-          this.state.newerVersion &&
+          newVersion &&
             <p>
-              new version ({this.state.newerVersion}) is ready! (saved)
+              new version ({newVersion}) is ready! (saved)
             </p>
         }
         {
-          !this.state.newerVersion && this.state.isMyVersionCached &&
+          !newVersion && hasCache &&
             <p>It’s up to date</p>
         }
         {
-          !this.state.newerVersion && !this.state.isMyVersionCached &&
+          !newVersion && !hasCache &&
             <p>-</p>
         }
         <p>
-          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!this.state.enabled}>
-            { this.state.loading ? 'Checking...' : 'Check for update' }
+          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!enabled}>
+            { loading ? 'Checking...' : 'Check for update' }
           </button>
           &nbsp;
         </p>
@@ -127,21 +120,20 @@ export default class Setting extends Component {
         <p><b>service worker</b></p>
         <p>enabled:
           {
-            this.state.enabled
+            enabled
               ? <span className='label label-success'>on</span>
               : <span className='label label-danger'>off</span>
           }
         </p>
         {
-          this.state.closeMessage &&
+          closeMessage &&
             <p className='alert alert-danger'>
-              {this.state.closeMessage}
+              {closeMessage}
             </p>
         }
-
         <p>
           {
-            this.state.enabled
+            enabled
             ? <button className='btn btn-default' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
             </button>
