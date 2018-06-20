@@ -1,8 +1,6 @@
 /* global caches self URL fetch */
 /* eslint-env browser */
 
-require('babel-polyfill')
-
 const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
