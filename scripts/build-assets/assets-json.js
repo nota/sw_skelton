@@ -1,4 +1,5 @@
 const fs = require('fs')
+const execFileSync = require('child_process').execFileSync
 const dateFormat = require('dateformat')
 
 const now = new Date()
@@ -9,13 +10,14 @@ const paths = [
   '/index.js',
   'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
 ]
-const pattern = /\.(woff2|css|png|js)$/
-for (const dir of ['css', 'fonts', 'img']) {
-  const files = fs.readdirSync(`./public/assets/${dir}`)
-                  .filter(file => file.match(pattern))
-                  .map(file => `/assets/${dir}/${file}`)
-  paths.push(...files)
-}
+const pattern = /\.(woff2|css|png|jpg|gif|svg|ico|js)$/
+
+const files = execFileSync('find', [ './public/assets' ])
+                .toString()
+                .split('\n')
+                .filter(file => file.match(pattern))
+                .map(file => file.replace('./public', ''))
+paths.push(...files)
 
 const body = JSON.stringify({version, paths}, null, 2)
 
