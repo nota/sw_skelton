@@ -1,20 +1,11 @@
 {
-  "env": {
-    "serviceworker": {
-      "presets": [
-        "env"
-      ]
-    },
-    "client": {
-      "presets": [
-        "stage-3",
-        "react",
-        ["env", {
-          "targets": {
-            "browsers": ["last 2 versions"]
-          }
-        }]
-      ]
-    }
-  }
+  "presets": [
+    "stage-3",
+    "react",
+    ["env", {
+      "targets": {
+        "browsers": ["last 2 versions"]
+      }
+    }]
+  ]
 }
