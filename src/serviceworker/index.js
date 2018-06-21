@@ -16,8 +16,10 @@ self.addEventListener('install', function (event) {
 
 self.addEventListener('activate', function (event) {
   debug('activate')
-  event.waitUntil(self.clients.claim())
-  checkForUpdate()
+  event.waitUntil(Promise.all([
+    self.clients.claim(),
+    checkForUpdate()
+  ]))
 })
 
 function cacheIsOutdated (res) {
