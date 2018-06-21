@@ -5,6 +5,7 @@ const debug = require('../lib/debug')(__filename)
 import React, {Component} from 'react'
 import AssetsCacheStore from '../stores/assets-cache-store'
 import {ServiceWorkerClient} from '../lib/serviceworker-client'
+import Button from './button'
 
 export default class Setting extends Component {
   constructor (props) {
@@ -110,9 +111,9 @@ export default class Setting extends Component {
             <p>-</p>
         }
         <p>
-          <button className='btn btn-default' onClick={this.checkForUpdate.bind(this)} disabled={!enabled}>
+          <Button className='btn2 btn2-default' onClick={this.checkForUpdate.bind(this)} disabled={!enabled}>
             { loading ? 'Checking...' : 'Check for update' }
-          </button>
+          </Button>
           &nbsp;
         </p>
         <hr />
@@ -133,12 +134,12 @@ export default class Setting extends Component {
         <p>
           {
             enabled
-            ? <button className='btn btn-default' onClick={this.disableServiceWorker.bind(this)}>
+            ? <Button className='btn2 btn2-default' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
-            </button>
-            : <button className='btn btn-default' onClick={this.enableServiceWorker.bind(this)}>
+            </Button>
+            : <Button className='btn2 btn2-default' onClick={this.enableServiceWorker.bind(this)}>
                 Enable service worker
-            </button>
+            </Button>
           }
         </p>
       </div>
