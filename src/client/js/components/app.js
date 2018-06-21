@@ -6,7 +6,7 @@ export default class App extends Component {
   render () {
     return (
       <div>
-        <div className='navbar navbar-inverse'>
+        <div className='navbar navbar-inverse navbar-fixed-top'>
           <a className='navbar-brand' href='#'>SW Skelton</a>
         </div>
         <UpdateNotifier />
