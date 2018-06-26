@@ -7,7 +7,7 @@ const NOCACHE_PATHS = [
 
 const ASSET_PATHS = [
   '/assets/',
-  '/app.html',
+  // '/app.html',
   '/index.js'
 ]
 
@@ -50,6 +50,8 @@ function isSinglePageRequest (req) {
 }
 
 function createSinglePageRequest (req) {
+  // XXXX: Scrapboxでもapp.htmlを作ればいい?
+  // XXXX: Public、Private、Page、PageListによってベースとなるSPA htmlが異なるので無理?
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
     method: req.method,

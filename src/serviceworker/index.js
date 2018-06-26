@@ -33,13 +33,19 @@ function cacheIsOutdated (res) {
 }
 
 async function respondSinglePage (req) {
+  // XXXX: app.html へのrequestを組み立てる
   req = createSinglePageRequest(req)
   const res = await caches.match(req)
   if (!res) {
+    // XXXX: いまのscrapboxでは毎回ここが実行されている状態
+    // そして、app.htmlが存在しないので404?
+    // projectName="app.html" と解釈されているはず
+    console.log("!res", req)
     setTimeout(checkForUpdate, 1000)
     return fetch(req)
   }
 
+  // app.htmlを作れないとなると、以降の期限切れ処理をどこかに移さないといけない
   const outdated = cacheIsOutdated(res)
   if (!outdated) {
     debug('use cache', req.url, req.cache)
