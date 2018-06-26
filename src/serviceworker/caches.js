@@ -47,8 +47,11 @@ async function cacheExists (version) {
 
 async function checkForUpdate () {
   debug('checking for update...')
-  if (!navigator.onLine) {
-    debug('offline')
+  // XXXX: connection状況を見るやつを使う
+  // XXXX: 3Gくらいに遅いときは実行しないほうが良い為
+  // https://gyazo.com/9b08d78393f8b3ae3c802e9fd58ebb87
+  if (!navigator.onLine || navigator.connection.rtt > 1000) {
+    debug('offline or slow network')
     return
   }
 

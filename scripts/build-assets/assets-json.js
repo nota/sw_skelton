@@ -5,8 +5,10 @@ const dateFormat = require('dateformat')
 const now = new Date()
 const version = 'assets-' + dateFormat(now, 'yyyymmdd-HHMMss')
 
+const dir = './public/assets'
+fs.writeFileSync(`${dir}/assets-version.js`, `const ASSETS_VERSION = '${version}';`)
 const paths = [
-  '/app.html',
+  // '/app.html',
   '/index.js',
   'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
   'https://fonts.googleapis.com/css?family=Open+Sans:400,700'
@@ -22,6 +24,5 @@ paths.push(...files)
 
 const body = JSON.stringify({version, paths}, null, 2)
 
-const dir = './public/assets'
 if (!fs.existsSync(dir)) fs.mkdirSync(dir)
 fs.writeFileSync(`${dir}/assets.json`, body)
