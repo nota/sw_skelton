@@ -16,9 +16,9 @@ const paths = execFileSync('find', [ './public/assets' ])
 const urls = [
   '/app.html',
   '/index.js',
+  ...paths,
   'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
-  'https://fonts.googleapis.com/css?family=Open+Sans:400,700',
-  ...paths
+  'https://fonts.googleapis.com/css?family=Open+Sans:400,700'
 ]
 
 const body = JSON.stringify({version, urls}, null, 2)
