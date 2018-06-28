@@ -17,7 +17,7 @@ export default new class AssetsCacheStore extends EventEmitter {
   }
 
   get version () {
-    return document.documentElement.dataset.version
+    return document.documentElement.dataset.assetsVersion
   }
 
   hasCache () {
