@@ -3,10 +3,10 @@
 const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
 const debug = (...msg) => isDebug() && console.log('%cserviceworker:caches', 'color: gray', ...msg)
 
-async function updateCache ({version, paths}) {
+async function updateCache ({version, urls}) {
   debug('adding all cache...')
   const cache = await caches.open(version)
-  await cache.addAll(paths)
+  await cache.addAll(urls)
   debug('add all cache done', version)
   await deleteOldCache(version)
   debug('updating cache done')
