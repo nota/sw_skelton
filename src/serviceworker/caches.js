@@ -55,7 +55,9 @@ async function checkForUpdate () {
   const assets = await fetchAssetsJson()
   if (await cacheExists(assets.version)) {
     debug('already up-to-date')
-    return
+    // まれにupdateCacheで古いキャッシュの削除に失敗することがあるので
+    // 念の為このタイミングで古いキャッシュがないことを確認する
+    return deleteOldCache(assets.version)
   }
   return updateCache(assets)
 }
