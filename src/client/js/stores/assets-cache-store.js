@@ -1,9 +1,9 @@
 /* eslint-env browser */
 
-// const debug = require('../lib/debug')(__filename)
-
 import {EventEmitter} from 'events'
 import {hasNewVersionCache, cacheExists} from '../lib/cache-watch'
+
+// const debug = require('../lib/debug')(__filename)
 
 export default new class AssetsCacheStore extends EventEmitter {
   constructor () {
@@ -33,7 +33,7 @@ export default new class AssetsCacheStore extends EventEmitter {
   }
 
   async watchCacheStore () {
-//    debug('watchCacheStore')
+    // debug('watchCacheStore')
     const newVersion = await hasNewVersionCache(this.version)
     const hasCache = await cacheExists(this.version)
     if (newVersion) {
@@ -46,4 +46,3 @@ export default new class AssetsCacheStore extends EventEmitter {
     }
   }
 }()
-

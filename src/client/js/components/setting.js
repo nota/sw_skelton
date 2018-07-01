@@ -1,10 +1,9 @@
 /* eslint-env browser */
 
-const debug = require('../lib/debug')(__filename)
-
 import React, {Component} from 'react'
 import AssetsCacheStore from '../stores/assets-cache-store'
 import {ServiceWorkerClient} from '../lib/serviceworker-client'
+const debug = require('../lib/debug')(__filename)
 
 export default class Setting extends Component {
   constructor (props) {
@@ -51,7 +50,7 @@ export default class Setting extends Component {
     try {
       const res = await ServiceWorkerClient.postMessage('checkForUpdate')
       debug(res)
-//      await AssetsCacheStore.checkForUpdate()
+      // await AssetsCacheStore.checkForUpdate()
     } catch (err) {
       alert('Cannot check the new version\n' + err.toString())
     }
@@ -117,7 +116,8 @@ export default class Setting extends Component {
         </p>
         <hr />
         <p><b>service worker</b></p>
-        <p>enabled:
+        <p>
+          enabled:
           {
             enabled
               ? <span className='label label-success'>on</span>
@@ -133,12 +133,12 @@ export default class Setting extends Component {
         <p>
           {
             enabled
-            ? <button className='btn btn-default' onClick={this.disableServiceWorker.bind(this)}>
+              ? <button className='btn btn-default' onClick={this.disableServiceWorker.bind(this)}>
                 Disable service worker
-            </button>
-            : <button className='btn btn-default' onClick={this.enableServiceWorker.bind(this)}>
+              </button>
+              : <button className='btn btn-default' onClick={this.enableServiceWorker.bind(this)}>
                 Enable service worker
-            </button>
+              </button>
           }
         </p>
       </div>

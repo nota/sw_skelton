@@ -4,7 +4,7 @@ const execSync = require('child_process').execSync
 const path = './public/assets/css/app.css'
 
 let body = fs.readFileSync(path, {encoding: 'utf8'})
-body = body.replace(/color:[\s\w\(\),]+/g, 'color:' + getRandomColor())
+body = body.replace(/color:[\s\w(),]+/g, 'color:' + getRandomColor())
 fs.writeFileSync(path, body)
 
 execSync('npm run build:assets-json')

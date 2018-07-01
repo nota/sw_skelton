@@ -2,16 +2,15 @@ const fs = require('fs')
 const {execFileSync} = require('child_process')
 const moment = require('moment')
 
-const now = new Date()
 const version = 'assets-' + moment().format('YYYYMMDD-HHmmss')
 
 const pattern = /\.(woff2|css|png|jpg|gif|svg|ico|js)$/
 
 const paths = execFileSync('find', [ './public/assets' ])
-                .toString()
-                .split('\n')
-                .filter(file => file.match(pattern))
-                .map(file => file.replace('./public', ''))
+  .toString()
+  .split('\n')
+  .filter(file => file.match(pattern))
+  .map(file => file.replace('./public', ''))
 
 const urls = [
   '/app.html',
