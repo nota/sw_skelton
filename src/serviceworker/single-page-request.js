@@ -57,9 +57,8 @@ function createSinglePageRequest (req) {
     credentials: req.credentials,
     cache: req.cache,
     mode: 'same-origin', // need to set this properly
-    redirect: 'manual'   // let browser handle redirects
+    redirect: 'manual' // let browser handle redirects
   })
 }
 
 module.exports = {isSinglePageRequest, createSinglePageRequest}
-
