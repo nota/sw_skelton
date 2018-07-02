@@ -1,15 +1,8 @@
 /* eslint-env browser */
 
-const NOCACHE_PATHS = [
-  '/serviceworker.js',
-  '/api/'
-]
+importScripts('/serviceworker-paths.js')
 
-const ASSET_PATHS = [
-  '/assets/',
-  '/app.html',
-  '/index.js'
-]
+console.log(NOCACHE_PATHS, ASSET_PATHS)
 
 function isMyHost (url) {
   return location.hostname === url.hostname
