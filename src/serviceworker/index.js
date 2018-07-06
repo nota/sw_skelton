@@ -1,11 +1,11 @@
 /* global caches self URL fetch */
 /* eslint-env browser */
 
-const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
-const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
-
 import {deleteAllCache, checkForUpdate} from './caches'
 import {isSinglePageRequest, createSinglePageRequest} from './single-page-request'
+
+const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
+const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
 
 debug('start')
 
