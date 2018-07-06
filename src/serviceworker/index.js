@@ -1,7 +1,6 @@
-/* eslint-env worker, serviceworker */
-
 import './fetch/'
 import './install/'
+import './message'
 const debug = require('./lib/debug')(__filename)
 
 debug('start')

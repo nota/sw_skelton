@@ -15,17 +15,3 @@ self.addEventListener('activate', function (event) {
     checkForUpdate()
   ]))
 })
-
-self.addEventListener('message', function (event) {
-  event.waitUntil(async function () {
-    if (event.data !== 'checkForUpdate') return
-    let ret
-    try {
-      ret = await checkForUpdate()
-    } catch (err) {
-      console.error(err)
-      ret = {error: err.message}
-    }
-    event.ports[0].postMessage(ret)
-  }())
-})
