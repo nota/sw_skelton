@@ -37,7 +37,7 @@ function isGetMethod (req) {
   return req.method === 'GET'
 }
 
-function isSinglePageRequest (req) {
+export function isSinglePageRequest (req) {
   const url = new URL(req.url)
 
   return (
@@ -49,7 +49,7 @@ function isSinglePageRequest (req) {
   )
 }
 
-function createSinglePageRequest (req) {
+export function createSinglePageRequest (req) {
   const url = new URL(req.url).origin + '/app.html'
   return new Request(url, {
     method: req.method,
@@ -60,5 +60,3 @@ function createSinglePageRequest (req) {
     redirect: 'manual' // let browser handle redirects
   })
 }
-
-module.exports = {isSinglePageRequest, createSinglePageRequest}

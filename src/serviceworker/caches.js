@@ -13,7 +13,7 @@ async function updateCache ({version, urls}) {
   return {version}
 }
 
-async function deleteAllCache () {
+export async function deleteAllCache () {
   debug('delete all cache')
   const keys = await caches.keys()
   return Promise.all(keys.map(key => caches.delete(key)))
@@ -45,7 +45,7 @@ async function cacheExists (version) {
   return (await cache.keys()).length > 0
 }
 
-async function checkForUpdate () {
+export async function checkForUpdate () {
   debug('checking for update...')
   if (!navigator.onLine) {
     debug('offline')
@@ -62,4 +62,3 @@ async function checkForUpdate () {
   return updateCache(assets)
 }
 
-module.exports = {deleteAllCache, checkForUpdate}
