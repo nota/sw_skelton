@@ -1,7 +1,6 @@
 /* eslint-env worker, serviceworker */
 
-const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
-const debug = (...msg) => isDebug() && console.log('%cserviceworker:caches', 'color: gray', ...msg)
+const debug = require('./debug')(__filename)
 
 async function updateCache ({version, urls}) {
   debug('adding all cache...')

@@ -1,9 +1,7 @@
 /* eslint-env worker, serviceworker */
 
 import {checkForUpdate} from '../lib/caches'
-
-const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
-const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
+const debug = require('../lib/debug')(__filename)
 
 self.addEventListener('install', function (event) {
   debug('install')
