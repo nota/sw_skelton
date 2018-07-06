@@ -12,7 +12,7 @@
     "start:dev": "DEBUG=sw_app* node-dev src/server/index.js",
     "build": "run-s build:**",
     "build:client": "browserify --verbose -t [ babelify ] -g [ uglifyify --keep_fnames ] src/client/js/index.js -o public/index.js",
-    "build:serviceworker": "browserify --verbose -t [ babelify ] src/serviceworker/index.js -o public/serviceworker.js",
+    "build:serviceworker": "browserify --verbose -t [ babelify ] -g [ uglifyify --keep_fnames ] src/serviceworker/index.js -o public/serviceworker.js",
     "build:sass": "node-sass src/client/css/app.scss --include-path ./node_modules/bootstrap-sass/assets/stylesheets --include-path ./node_modules/font-awesome/scss --include-path ./node_modules/highlight.js/styles --output-style compressed -o public/assets/css/",
     "build:assets": "scripts/build-assets/index.sh",
     "build:assets-json": "node scripts/build-assets/assets-json.js",
