@@ -1,5 +1,4 @@
-/* global caches self URL fetch */
-/* eslint-env browser */
+/* eslint-env worker, serviceworker */
 
 import {deleteAllCache, checkForUpdate} from './caches'
 import {isSinglePageRequest, createSinglePageRequest} from './single-page-request'
