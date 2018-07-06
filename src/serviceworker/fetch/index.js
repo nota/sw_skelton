@@ -1,7 +1,7 @@
 /* eslint-env worker, serviceworker */
 
 import {isSinglePageRequest, createSinglePageRequest} from './single-page-request'
-import {deleteAllCache, checkForUpdate} from '../caches'
+import {deleteAllCache, checkForUpdate} from '../lib/caches'
 
 const isDebugEnv = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
 const debug = (...msg) => isDebugEnv() && console.log('%cserviceworker', 'color: gray', ...msg)
