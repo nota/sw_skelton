@@ -4,16 +4,21 @@ import {checkForUpdate} from '../lib/caches'
 const debug = require('../lib/debug')(__filename)
 
 self.addEventListener('message', function (event) {
-  debug(event.data)
-  const {name, data} = event.data // eslint-disable-line no-unused-vars
-  if (name !== 'checkForUpdate') return
   event.waitUntil(async function () {
     try {
-      const result = await checkForUpdate()
-      event.ports[0].postMessage({name, result})
+      const result = await exec(event.data)
+      event.ports[0].postMessage({name: event.name, result})
     } catch (err) {
       console.error(err)
-      event.ports[0].postMessage({name, error: err.message})
+      event.ports[0].postMessage({name: event.name, error: err.message})
     }
   }())
 })
+
+function exec ({name, data}) {
+  debug('exec', {name, data})
+  switch (name) {
+    case 'checkForUpdate':
+      return checkForUpdate()
+  }
+}
