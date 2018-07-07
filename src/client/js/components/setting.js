@@ -48,7 +48,7 @@ export default class Setting extends Component {
 
     this.setState({loading: true})
     try {
-      const res = await ServiceWorkerClient.postMessage({name: 'checkForUpdate'})
+      const res = await ServiceWorkerClient.postMessage({title: 'checkForUpdate'})
       debug(res)
       // await AssetsCacheStore.checkForUpdate()
     } catch (err) {

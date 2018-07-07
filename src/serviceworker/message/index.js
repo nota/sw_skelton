@@ -7,17 +7,17 @@ self.addEventListener('message', function (event) {
   event.waitUntil(async function () {
     try {
       const result = await exec(event.data)
-      event.ports[0].postMessage({name: event.name, result})
+      event.ports[0].postMessage({title: event.title, result})
     } catch (err) {
       console.error(err)
-      event.ports[0].postMessage({name: event.name, error: err.message})
+      event.ports[0].postMessage({title: event.title, error: err.message})
     }
   }())
 })
 
-function exec ({name, data}) {
-  debug('exec', {name, data})
-  switch (name) {
+function exec ({title, body}) {
+  debug('exec', {title, body})
+  switch (title) {
     case 'checkForUpdate':
       return checkForUpdate()
   }
