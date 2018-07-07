@@ -5,15 +5,15 @@ const debug = require('../lib/debug')(__filename)
 
 self.addEventListener('message', function (event) {
   debug(event.data)
+  const {name, data} = event.data // eslint-disable-line no-unused-vars
+  if (name !== 'checkForUpdate') return
   event.waitUntil(async function () {
-    if (event.data !== 'checkForUpdate') return
-    let ret
     try {
-      ret = await checkForUpdate()
+      const result = await checkForUpdate()
+      event.ports[0].postMessage({name, result})
     } catch (err) {
       console.error(err)
-      ret = {error: err.message}
+      event.ports[0].postMessage({name, error: err.message})
     }
-    event.ports[0].postMessage(ret)
   }())
 })

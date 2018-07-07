@@ -41,7 +41,7 @@ async function update () {
   return reg.update() // service worker自体の更新を行う
 }
 
-async function postMessage (message) {
+async function postMessage ({name, data}) {
   const reg = await getRegistration()
   if (!reg || !reg.active) throw new Error('Service worker is not active yet')
   // Note: postMessageが呼ばれると、service workerがstopしていてもstartされる
@@ -54,6 +54,6 @@ async function postMessage (message) {
         resolve(e.data)
       }
     }
-    reg.active.postMessage(message, [channel.port2])
+    reg.active.postMessage({name, data}, [channel.port2])
   })
 }
