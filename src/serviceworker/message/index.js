@@ -4,16 +4,21 @@ import {checkForUpdate} from '../lib/caches'
 const debug = require('../lib/debug')(__filename)
 
 self.addEventListener('message', function (event) {
-  debug(event.data)
   event.waitUntil(async function () {
-    if (event.data !== 'checkForUpdate') return
-    let ret
     try {
-      ret = await checkForUpdate()
+      const result = await exec(event.data)
+      event.ports[0].postMessage({title: event.title, result})
     } catch (err) {
       console.error(err)
-      ret = {error: err.message}
+      event.ports[0].postMessage({title: event.title, error: err.message})
     }
-    event.ports[0].postMessage(ret)
   }())
 })
+
+function exec ({title, body}) {
+  debug('exec', {title, body})
+  switch (title) {
+    case 'checkForUpdate':
+      return checkForUpdate()
+  }
+}
