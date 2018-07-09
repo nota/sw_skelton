@@ -1,11 +1,10 @@
-/* global caches self URL fetch */
-/* eslint-env browser */
+/* eslint-env worker, serviceworker */
+
+import {deleteAllCache, checkForUpdate} from './caches'
+import {isSinglePageRequest, createSinglePageRequest} from './single-page-request'
 
 const isDebug = () => location && ['localhost', 'sw-skelton.herokuapp.com'].includes(location.hostname)
 const debug = (...msg) => isDebug() && console.log('%cserviceworker', 'color: gray', ...msg)
-
-const {deleteAllCache, checkForUpdate} = require('./caches')
-const {isSinglePageRequest, createSinglePageRequest} = require('./single-page-request')
 
 debug('start')
 
