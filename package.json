@@ -9,7 +9,7 @@
   "scripts": {
     "postinstall": "npm run build",
     "start": "node src/server/index.js",
-    "start:dev": "DEBUG=sw_skelton* node-dev src/server/index.js",
+    "start:dev": "node-dev src/server/index.js",
     "build": "run-s build:**",
     "build:client": "browserify --verbose -t [ babelify ] -g [ uglifyify --keep_fnames ] src/client/js/index.js -o public/index.js",
     "build:serviceworker": "browserify --verbose -t [ babelify ] -g [ uglifyify --keep_fnames ] src/serviceworker/index.js -o public/serviceworker.js",
