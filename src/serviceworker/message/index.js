@@ -7,10 +7,10 @@ self.addEventListener('message', function (event) {
   event.waitUntil(async function () {
     try {
       const result = await exec(event.data)
-      event.ports[0].postMessage({title: event.title, result})
+      event.ports[0].postMessage({title: event.data.title, result})
     } catch (err) {
       console.error(err)
-      event.ports[0].postMessage({title: event.title, error: err.message})
+      event.ports[0].postMessage({title: event.data.title, error: err.message})
     }
   }())
 })
