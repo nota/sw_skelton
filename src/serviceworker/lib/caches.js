@@ -47,8 +47,7 @@ async function cacheExists (version) {
 export async function checkForUpdate () {
   debug('checking for update...')
   if (!navigator.onLine) {
-    debug('offline')
-    return
+    throw new Error('network is offline')
   }
 
   const assets = await fetchAssetsJson()
