@@ -1,3 +1,4 @@
+import '@babel/polyfill'
 import './fetch/'
 import './install/'
 import './message'
