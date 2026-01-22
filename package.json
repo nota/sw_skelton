@@ -60,7 +60,7 @@
     "path": "^0.12.7",
     "react": "^15.6.2",
     "react-dom": "^15.6.2",
-    "uglifyify": "^5.0.0"
+    "uglifyify": "^5.0.2"
   },
   "standard": {
     "parser": "babel-eslint",
